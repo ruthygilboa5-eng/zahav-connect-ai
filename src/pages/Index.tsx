@@ -1,12 +1,23 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import ElderlyInterface from '@/components/ElderlyInterface';
+import FamilyDashboard from '@/components/FamilyDashboard';
+import NavigationHeader from '@/components/NavigationHeader';
 
 const Index = () => {
+  const [currentView, setCurrentView] = useState<'elderly' | 'family'>('elderly');
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <NavigationHeader 
+        currentView={currentView} 
+        onViewChange={setCurrentView} 
+      />
+      
+      {currentView === 'elderly' ? (
+        <ElderlyInterface userName="אבא" />
+      ) : (
+        <FamilyDashboard />
+      )}
     </div>
   );
 };

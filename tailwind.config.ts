@@ -52,6 +52,15 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				zahav: {
+					green: 'hsl(var(--zahav-green))',
+					red: 'hsl(var(--zahav-red))',
+					purple: 'hsl(var(--zahav-purple))',
+					blue: 'hsl(var(--zahav-blue))',
+					yellow: 'hsl(var(--zahav-yellow))',
+					pink: 'hsl(var(--zahav-pink))',
+					orange: 'hsl(var(--zahav-orange))',
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
