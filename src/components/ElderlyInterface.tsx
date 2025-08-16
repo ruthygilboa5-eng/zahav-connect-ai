@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { 
@@ -18,11 +19,38 @@ interface ElderlyInterfaceProps {
 
 const ElderlyInterface = ({ userName = "אבא" }: ElderlyInterfaceProps) => {
   const [lastAction, setLastAction] = useState<string>("");
+  const navigate = useNavigate();
 
   const handleButtonClick = (action: string, buttonName: string) => {
     setLastAction(`${buttonName} נלחץ`);
     console.log(`Action: ${action}`);
-    // Here we would implement the actual functionality
+    
+    // Navigate to specific pages
+    switch (action) {
+      case 'wakeup':
+        navigate('/wakeup');
+        break;
+      case 'emergency':
+        navigate('/emergency');
+        break;
+      case 'emergency-contacts':
+        navigate('/emergency-contacts');
+        break;
+      case 'reminders':
+        navigate('/reminders');
+        break;
+      case 'memories':
+        navigate('/memories');
+        break;
+      case 'games':
+        navigate('/games');
+        break;
+      case 'family-board':
+        navigate('/family-board');
+        break;
+      default:
+        console.log(`No navigation defined for action: ${action}`);
+    }
   };
 
   const buttons = [
