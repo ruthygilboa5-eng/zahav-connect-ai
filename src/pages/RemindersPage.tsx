@@ -1,8 +1,16 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 import { Bell, Pill, Calendar, Gift, Home, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
+interface ReminderStatus {
+  id: number;
+  completed: boolean;
+  note: string;
+}
 
 const RemindersPage = () => {
   const navigate = useNavigate();
@@ -36,6 +44,30 @@ const RemindersPage = () => {
     }
   ]);
 
+  const [reminderStatuses, setReminderStatuses] = useState<ReminderStatus[]>(
+    reminders.map(reminder => ({ id: reminder.id, completed: false, note: '' }))
+  );
+
+  const updateReminderStatus = (id: number, completed: boolean) => {
+    setReminderStatuses(prev => 
+      prev.map(status => 
+        status.id === id ? { ...status, completed, note: completed ? '' : status.note } : status
+      )
+    );
+  };
+
+  const updateReminderNote = (id: number, note: string) => {
+    setReminderStatuses(prev => 
+      prev.map(status => 
+        status.id === id ? { ...status, note } : status
+      )
+    );
+  };
+
+  const getReminderStatus = (id: number) => {
+    return reminderStatuses.find(status => status.id === id) || { completed: false, note: '' };
+  };
+
   return (
     <div className="min-h-screen bg-background p-4 rtl-text">
       <div className="max-w-md mx-auto">
@@ -50,26 +82,55 @@ const RemindersPage = () => {
         </div>
 
         <div className="space-y-4 mb-8">
-          {reminders.map((reminder) => (
-            <Card key={reminder.id} className="p-4">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-muted rounded-full">
-                  <reminder.icon className={`w-6 h-6 ${reminder.color}`} />
-                </div>
-                <div className="flex-1 text-right">
-                  <h3 className="text-lg font-bold text-foreground">
-                    {reminder.title}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {reminder.description}
-                  </p>
-                  <div className="text-primary font-bold text-lg mt-1">
-                    {reminder.time}
+          {reminders.map((reminder) => {
+            const status = getReminderStatus(reminder.id);
+            return (
+              <Card key={reminder.id} className={`p-4 ${status.completed ? 'bg-green-50 border-green-200' : ''}`}>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-muted rounded-full">
+                      <reminder.icon className={`w-6 h-6 ${reminder.color}`} />
+                    </div>
+                    <div className="flex-1 text-right">
+                      <h3 className={`text-lg font-bold ${status.completed ? 'text-green-700 line-through' : 'text-foreground'}`}>
+                        {reminder.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {reminder.description}
+                      </p>
+                      <div className="text-primary font-bold text-lg mt-1">
+                        {reminder.time}
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`reminder-${reminder.id}`}
+                        checked={status.completed}
+                        onCheckedChange={(checked) => updateReminderStatus(reminder.id, checked as boolean)}
+                      />
+                      <label htmlFor={`reminder-${reminder.id}`} className="text-sm font-medium">
+                        {status.completed ? 'בוצע' : 'סמן כבוצע'}
+                      </label>
+                    </div>
                   </div>
+                  
+                  {!status.completed && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        הערות (אופציונלי):
+                      </label>
+                      <Textarea
+                        value={status.note}
+                        onChange={(e) => updateReminderNote(reminder.id, e.target.value)}
+                        placeholder="הוסף הערה אם התזכורת לא בוצעה..."
+                        className="min-h-[80px]"
+                      />
+                    </div>
+                  )}
                 </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
 
         <Card className="p-4 mb-6 bg-blue-50 border-blue-200">
