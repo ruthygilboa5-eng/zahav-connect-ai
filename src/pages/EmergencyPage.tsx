@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { AlertTriangle, MapPin, Home, Phone } from 'lucide-react';
+import { AlertTriangle, MapPin, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface EmergencyPageProps {
@@ -40,16 +40,9 @@ const EmergencyPage = ({ userName = "אבא" }: EmergencyPageProps) => {
             </Button>
 
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-              <p className="text-red-800 text-sm">
-                אם זה חירום אמיתי, תוכל גם לחייג ישירות למוקדי החירום
+              <p className="text-red-800 text-sm font-medium">
+                ⚠️ לחיצה על הכפתור תשלח הודעת חירום מיידית לבני המשפחה שהוגדרו עם המיקום שלך
               </p>
-              <Button
-                onClick={() => navigate('/emergency-contacts')}
-                className="mt-3 bg-red-600 hover:bg-red-700 text-white"
-              >
-                <Phone className="w-4 h-4 ml-2" />
-                מוקדי חירום
-              </Button>
             </div>
           </>
         ) : (
@@ -60,14 +53,22 @@ const EmergencyPage = ({ userName = "אבא" }: EmergencyPageProps) => {
                 הכל יהיה בסדר {userName}
               </h2>
               <p className="text-blue-700 text-lg mb-2">
-                ההתראה נשלחה למשפחה שלך
+                הודעת חירום נשלחה לבני המשפחה שהוגדרו:
               </p>
+              <div className="space-y-2 mb-4">
+                <div className="bg-blue-100 rounded-lg p-2">
+                  <p className="text-blue-800 font-medium">📱 רותי (בת)</p>
+                </div>
+                <div className="bg-blue-100 rounded-lg p-2">
+                  <p className="text-blue-800 font-medium">📱 דני (בן)</p>
+                </div>
+              </div>
               <p className="text-blue-600 text-sm">
                 כולל המיקום שלך כדי שיוכלו לעזור לך מהר 📍
               </p>
-              <div className="mt-4 p-3 bg-blue-100 rounded-lg">
-                <p className="text-blue-800 font-medium">
-                  המשפחה שלך בדרך אליך
+              <div className="mt-4 p-3 bg-green-100 rounded-lg">
+                <p className="text-green-800 font-medium">
+                  ✅ ההודעות נשלחו בהצלחה
                 </p>
               </div>
             </div>
