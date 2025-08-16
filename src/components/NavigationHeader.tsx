@@ -32,7 +32,7 @@ const NavigationHeader = ({ currentView, onViewChange }: NavigationHeaderProps) 
               className="flex items-center gap-2"
             >
               <User className="w-4 h-4" />
-              <span className="hidden sm:inline">ממשק קשיש</span>
+              <span className="hidden sm:inline">ממשק משתמש</span>
             </Button>
             <Button
               variant={currentView === 'family' ? 'default' : 'ghost'}
