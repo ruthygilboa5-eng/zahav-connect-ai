@@ -19,6 +19,12 @@ export const useProfile = () => {
         return;
       }
 
+      // Set user context for RLS
+      await supabase.rpc('set_config', {
+        setting_name: 'app.current_user_id',
+        setting_value: user.id
+      });
+
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
@@ -49,6 +55,12 @@ export const useProfile = () => {
         console.log('No user for profile update');
         return false;
       }
+
+      // Set user context for RLS
+      await supabase.rpc('set_config', {
+        setting_name: 'app.current_user_id',
+        setting_value: user.id
+      });
 
       if (profile) {
         // Update existing profile
