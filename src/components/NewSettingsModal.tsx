@@ -47,7 +47,8 @@ const NewSettingsModal = ({ isOpen, onClose }: NewSettingsModalProps) => {
   const [contactForm, setContactForm] = useState({
     full_name: '',
     relation: 'FAMILY' as Contact['relation'],
-    phone: ''
+    phone: '',
+    sendEmergencyRequest: false
   });
 
   // Initialize profile form when profile data loads
@@ -77,7 +78,8 @@ const NewSettingsModal = ({ isOpen, onClose }: NewSettingsModalProps) => {
     setContactForm({
       full_name: '',
       relation: 'FAMILY',
-      phone: ''
+      phone: '',
+      sendEmergencyRequest: false
     });
     setEditingContact(null);
     setIsAddingContact(true);
@@ -87,7 +89,8 @@ const NewSettingsModal = ({ isOpen, onClose }: NewSettingsModalProps) => {
     setContactForm({
       full_name: contact.full_name,
       relation: contact.relation,
-      phone: contact.phone
+      phone: contact.phone,
+      sendEmergencyRequest: false
     });
     setEditingContact(contact);
     setIsAddingContact(true);
@@ -116,6 +119,17 @@ const NewSettingsModal = ({ isOpen, onClose }: NewSettingsModalProps) => {
         is_emergency_candidate: false,
         emergency_status: 'NONE'
       });
+
+      // If contact was added and user wants to send emergency request
+      if (success && contactForm.sendEmergencyRequest) {
+        // Find the newly added contact (it will be first in the list)
+        setTimeout(async () => {
+          const newContact = contacts[0];
+          if (newContact) {
+            await handleSendEmergencyRequest(newContact.id);
+          }
+        }, 500);
+      }
     }
 
     if (success) {
@@ -130,6 +144,13 @@ const NewSettingsModal = ({ isOpen, onClose }: NewSettingsModalProps) => {
 
   const handleSendEmergencyRequest = async (contactId: string) => {
     await sendEmergencyRequest(contactId);
+  };
+
+  const handleRevokeEmergencyStatus = async (contactId: string) => {
+    await updateContact(contactId, { 
+      is_emergency_candidate: false,
+      emergency_status: 'NONE' 
+    });
   };
 
   const getEmergencyStatusColor = (status: Contact['emergency_status']) => {
@@ -279,7 +300,7 @@ const NewSettingsModal = ({ isOpen, onClose }: NewSettingsModalProps) => {
                           )}
                         </div>
                         <div className="flex items-center gap-2">
-                          {!contact.is_emergency_candidate && (
+                          {contact.emergency_status === 'NONE' && (
                             <Button
                               variant="outline"
                               size="sm"
@@ -287,6 +308,36 @@ const NewSettingsModal = ({ isOpen, onClose }: NewSettingsModalProps) => {
                             >
                               <Send className="w-4 h-4 mr-1" />
                               שלח בקשת חירום
+                            </Button>
+                          )}
+                          {contact.emergency_status === 'PENDING' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRevokeEmergencyStatus(contact.id)}
+                            >
+                              <X className="w-4 h-4 mr-1" />
+                              בטל בקשה
+                            </Button>
+                          )}
+                          {contact.emergency_status === 'APPROVED' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRevokeEmergencyStatus(contact.id)}
+                            >
+                              <ShieldX className="w-4 h-4 mr-1" />
+                              בטל אישור
+                            </Button>
+                          )}
+                          {contact.emergency_status === 'DECLINED' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleSendEmergencyRequest(contact.id)}
+                            >
+                              <Send className="w-4 h-4 mr-1" />
+                              שלח שוב
                             </Button>
                           )}
                           <Button
@@ -307,7 +358,7 @@ const NewSettingsModal = ({ isOpen, onClose }: NewSettingsModalProps) => {
                                 <AlertDialogTitle>מחיקת איש קשר</AlertDialogTitle>
                                 <AlertDialogDescription>
                                   האם אתה בטוח שברצונך למחוק את {contact.full_name}? פעולה זו לא ניתנת לביטול.
-                                </AlertDialogDescription>
+                                </AlertDialogDescription>     
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>ביטול</AlertDialogCancel>
@@ -368,16 +419,31 @@ const NewSettingsModal = ({ isOpen, onClose }: NewSettingsModalProps) => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">טלפון נייד *</Label>
-                <Input
-                  id="phone"
-                  value={contactForm.phone}
-                  onChange={(e) => setContactForm(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="05X-XXXXXXX"
-                  dir="ltr"
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">טלפון נייד *</Label>
+                  <Input
+                    id="phone"
+                    value={contactForm.phone}
+                    onChange={(e) => setContactForm(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="05X-XXXXXXX"
+                    dir="ltr"
+                  />
+                </div>
+                
+                {!editingContact && (
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="sendEmergencyRequest"
+                      checked={contactForm.sendEmergencyRequest}
+                      onChange={(e) => setContactForm(prev => ({ ...prev, sendEmergencyRequest: e.target.checked }))}
+                      className="rounded border-gray-300"
+                    />
+                    <Label htmlFor="sendEmergencyRequest" className="text-sm">
+                      שלח בקשה כאיש קשר חירום מיד לאחר השמירה
+                    </Label>
+                  </div>
+                )}
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setIsAddingContact(false)}>
                   <X className="w-4 h-4 mr-2" />

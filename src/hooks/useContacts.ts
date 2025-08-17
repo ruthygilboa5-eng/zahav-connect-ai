@@ -2,15 +2,16 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Contact } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
+import { useTempAuth } from '@/hooks/useTempAuth';
 
 export const useContacts = () => {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useTempAuth();
 
   const fetchContacts = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setLoading(false);
         return;
@@ -40,9 +41,12 @@ export const useContacts = () => {
   };
 
   const addContact = async (contactData: Omit<Contact, 'id' | 'owner_user_id' | 'created_at' | 'updated_at'>) => {
+    console.log('addContact called with:', contactData, 'user:', user);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
+      if (!user) {
+        console.log('No user for contact add');
+        return false;
+      }
 
       const { data, error } = await supabase
         .from('contacts')

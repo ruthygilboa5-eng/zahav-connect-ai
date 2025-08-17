@@ -2,16 +2,19 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { UserProfile } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
+import { useTempAuth } from '@/hooks/useTempAuth';
 
 export const useProfile = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useTempAuth();
 
   const fetchProfile = async () => {
+    console.log('fetchProfile called, user:', user);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
+        console.log('No user found');
         setLoading(false);
         return;
       }
@@ -40,9 +43,12 @@ export const useProfile = () => {
   };
 
   const updateProfile = async (updates: Partial<Pick<UserProfile, 'first_name' | 'last_name'>>) => {
+    console.log('updateProfile called with:', updates, 'user:', user);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
+      if (!user) {
+        console.log('No user for profile update');
+        return false;
+      }
 
       if (profile) {
         // Update existing profile
