@@ -111,7 +111,7 @@ const FamilyDashboard = () => {
             <User className="w-8 h-8 text-primary" />
             <div>
               <h1 className="text-3xl font-bold text-foreground">
-                דשבורד המשפחה
+                דשבורד {profile?.last_name || 'המשפחה'}
               </h1>
               <p className="text-muted-foreground">
                 ניהול וטיפול ב{profile?.first_name || 'אבא יקר'}

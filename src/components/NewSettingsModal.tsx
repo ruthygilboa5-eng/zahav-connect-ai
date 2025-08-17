@@ -254,10 +254,18 @@ const NewSettingsModal = ({ isOpen, onClose }: NewSettingsModalProps) => {
                   נהל את רשימת אנשי הקשר שלך ושלח בקשות לאישור חירום
                 </p>
               </div>
-              <Button onClick={handleAddContact}>
-                <Plus className="w-4 h-4 mr-2" />
-                הוסף איש קשר
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => {
+                  // Clear all contacts data
+                  contacts.forEach(contact => deleteContact(contact.id));
+                }}>
+                  רקן נתונים
+                </Button>
+                <Button onClick={handleAddContact}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  הוסף איש קשר
+                </Button>
+              </div>
             </div>
 
             <Separator />

@@ -23,9 +23,9 @@ export const useProfile = () => {
         .from('user_profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error fetching profile:', error);
         toast({
           title: "שגיאה",
@@ -61,7 +61,7 @@ export const useProfile = () => {
         
         setProfile(prev => prev ? { ...prev, ...updates } : null);
       } else {
-        // Create new profile
+        // Create new profile using upsert to handle duplicates
         const newProfile = {
           user_id: user.id,
           first_name: updates.first_name || '',
@@ -70,7 +70,7 @@ export const useProfile = () => {
 
         const { data, error } = await supabase
           .from('user_profiles')
-          .insert(newProfile)
+          .upsert(newProfile, { onConflict: 'user_id' })
           .select()
           .single();
 
