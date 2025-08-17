@@ -59,13 +59,28 @@ export const useContacts = () => {
 
       if (error) {
         if (error.code === '23505') {
+          // Check if it's a phone number duplicate and offer to update instead
+          const existingContact = contacts.find(c => c.phone === contactData.phone);
+          if (existingContact) {
+            toast({
+              title: "שגיאה",
+              description: `מספר הטלפון כבר קיים עבור ${existingContact.full_name}. עדכן את הקשר הקיים או השתמש במספר אחר.`,
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "שגיאה",
+              description: "מספר הטלפון כבר קיים במערכת",
+              variant: "destructive",
+            });
+          }
+        } else {
+          console.error('Database error:', error);
           toast({
             title: "שגיאה",
-            description: "מספר הטלפון כבר קיים במערכת",
+            description: "לא ניתן להוסיף את איש הקשר",
             variant: "destructive",
           });
-        } else {
-          throw error;
         }
         return false;
       }
