@@ -255,9 +255,10 @@ const NewSettingsModal = ({ isOpen, onClose }: NewSettingsModalProps) => {
                 </p>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => {
+                <Button variant="outline" onClick={async () => {
                   // Clear all contacts data
-                  contacts.forEach(contact => deleteContact(contact.id));
+                  const promises = contacts.map(contact => deleteContact(contact.id));
+                  await Promise.all(promises);
                 }}>
                   רקן נתונים
                 </Button>
