@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { USE_PREVIEW_MAIN_USER, PREVIEW_USER } from '@/config/preview';
 
 type UserRole = 'main_user' | 'family_basic' | 'family_emergency' | null;
 
@@ -31,6 +32,27 @@ export const useAuth = () => {
   };
 
   useEffect(() => {
+    // Preview mode - set mock user immediately
+    if (USE_PREVIEW_MAIN_USER) {
+      const mockUser = {
+        id: PREVIEW_USER.id,
+        email: 'preview@zahav.com',
+        user_metadata: {
+          first_name: PREVIEW_USER.firstName,
+          last_name: PREVIEW_USER.lastName
+        },
+        app_metadata: {},
+        aud: 'authenticated',
+        created_at: new Date().toISOString()
+      } as User;
+      
+      setUser(mockUser);
+      setUserRole(PREVIEW_USER.role);
+      setLoading(false);
+      return;
+    }
+
+    // Normal auth flow
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -70,6 +92,11 @@ export const useAuth = () => {
   }, []);
 
   const signOut = async () => {
+    // In preview mode, do nothing
+    if (USE_PREVIEW_MAIN_USER) {
+      return;
+    }
+    
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Error signing out:', error);

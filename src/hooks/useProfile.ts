@@ -1,82 +1,33 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { UserProfile } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
-import { useTempAuth } from '@/hooks/useTempAuth';
+import { profileProvider } from '@/providers';
 
 export const useProfile = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { user } = useTempAuth();
 
   const fetchProfile = async () => {
-    console.log('fetchProfile called, user:', user);
     try {
-      if (!user) {
-        console.log('No user found');
-        setLoading(false);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        toast({
-          title: "שגיאה",
-          description: "לא ניתן לטעון את הפרופיל",
-          variant: "destructive",
-        });
-      } else {
-        setProfile(data);
-      }
+      const data = await profileProvider.getProfile();
+      setProfile(data);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error fetching profile:', error);
+      toast({
+        title: "שגיאה",
+        description: "לא ניתן לטעון את הפרופיל",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const updateProfile = async (updates: Partial<Pick<UserProfile, 'first_name' | 'last_name'>>) => {
-    console.log('updateProfile called with:', updates, 'user:', user);
     try {
-      if (!user) {
-        console.log('No user for profile update');
-        return false;
-      }
-
-      if (profile) {
-        // Update existing profile
-        const { error } = await supabase
-          .from('user_profiles')
-          .update(updates)
-          .eq('user_id', user.id);
-
-        if (error) throw error;
-        
-        setProfile(prev => prev ? { ...prev, ...updates } : null);
-      } else {
-        // Create new profile using upsert to handle duplicates
-        const newProfile = {
-          user_id: user.id,
-          first_name: updates.first_name || '',
-          last_name: updates.last_name || ''
-        };
-
-        const { data, error } = await supabase
-          .from('user_profiles')
-          .upsert(newProfile, { onConflict: 'user_id' })
-          .select()
-          .single();
-
-        if (error) throw error;
-        setProfile(data);
-      }
+      const updatedProfile = await profileProvider.updateProfile(updates);
+      setProfile(updatedProfile);
 
       toast({
         title: "הצלחה",

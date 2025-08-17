@@ -5,7 +5,7 @@ import { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface NavigationHeaderProps {
   onSettingsClick: () => void;
-  onSignOut: () => void;
+  onSignOut?: () => void;
   user: SupabaseUser | null;
 }
 
@@ -35,14 +35,16 @@ const NavigationHeader = ({ onSettingsClick, onSignOut, user }: NavigationHeader
               <Settings className="w-4 h-4 mr-2" />
               הגדרות
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onSignOut}
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              יציאה
-            </Button>
+            {onSignOut && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onSignOut}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                יציאה
+              </Button>
+            )}
             <Badge className="bg-green-500 text-white">
               מחובר
             </Badge>

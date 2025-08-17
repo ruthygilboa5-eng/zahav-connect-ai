@@ -4,7 +4,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from '@/hooks/useAuth';
+import { USE_PREVIEW_MAIN_USER } from '@/config/preview';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import PreviewBanner from '@/components/PreviewBanner';
 import AuthPage from '@/pages/AuthPage';
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -31,6 +33,23 @@ function AppRoutes() {
           <p className="text-muted-foreground">טוען...</p>
         </div>
       </div>
+    );
+  }
+
+  // In preview mode, redirect directly to main user home
+  if (USE_PREVIEW_MAIN_USER) {
+    return (
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/wakeup" element={<WakeUpPage />} />
+        <Route path="/emergency" element={<EmergencyPage />} />
+        <Route path="/emergency-contacts" element={<EmergencyContactsPage />} />
+        <Route path="/reminders" element={<RemindersPage />} />
+        <Route path="/memories" element={<MemoriesPage />} />
+        <Route path="/games" element={<GamesPage />} />
+        <Route path="/family-board" element={<FamilyBoardPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     );
   }
 
@@ -109,6 +128,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <PreviewBanner />
         <AppRoutes />
       </BrowserRouter>
     </TooltipProvider>
