@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { UserProfile } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
@@ -10,7 +10,7 @@ export const useProfile = () => {
   const { toast } = useToast();
   const { user } = useTempAuth();
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     console.log('fetchProfile called, user:', user);
     try {
       if (!user) {
@@ -40,7 +40,7 @@ export const useProfile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, toast]);
 
   const updateProfile = async (updates: Partial<Pick<UserProfile, 'first_name' | 'last_name'>>) => {
     console.log('updateProfile called with:', updates, 'user:', user);
@@ -97,7 +97,7 @@ export const useProfile = () => {
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+  }, [fetchProfile]);
 
   return {
     profile,
