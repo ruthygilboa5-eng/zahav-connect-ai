@@ -14,7 +14,107 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      contacts: {
+        Row: {
+          created_at: string
+          emergency_status: string | null
+          full_name: string
+          id: string
+          is_emergency_candidate: boolean | null
+          owner_user_id: string
+          phone: string
+          relation: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          emergency_status?: string | null
+          full_name: string
+          id?: string
+          is_emergency_candidate?: boolean | null
+          owner_user_id: string
+          phone: string
+          relation: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          emergency_status?: string | null
+          full_name?: string
+          id?: string
+          is_emergency_candidate?: boolean | null
+          owner_user_id?: string
+          phone?: string
+          relation?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      emergency_consents: {
+        Row: {
+          contact_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          status: string | null
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          status?: string | null
+          token: string
+          updated_at?: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          status?: string | null
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emergency_consents_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_profiles: {
+        Row: {
+          created_at: string
+          first_name: string
+          id: string
+          last_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          first_name: string
+          id?: string
+          last_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
