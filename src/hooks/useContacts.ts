@@ -1,45 +1,91 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Contact } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
-import { contactsProvider } from '@/providers';
+import { useTempAuth } from '@/hooks/useTempAuth';
 
 export const useContacts = () => {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useTempAuth();
 
   const fetchContacts = async () => {
     try {
-      const data = await contactsProvider.getContacts();
-      setContacts(data);
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('owner_user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching contacts:', error);
+        toast({
+          title: "שגיאה",
+          description: "לא ניתן לטעון את אנשי הקשר",
+          variant: "destructive",
+        });
+      } else {
+        setContacts((data || []) as Contact[]);
+      }
     } catch (error) {
-      console.error('Error fetching contacts:', error);
-      toast({
-        title: "שגיאה",
-        description: "לא ניתן לטעון את אנשי הקשר",
-        variant: "destructive",
-      });
+      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const addContact = async (contactData: Omit<Contact, 'id' | 'owner_user_id' | 'created_at' | 'updated_at'>) => {
+    console.log('addContact called with:', contactData, 'user:', user);
     try {
-      // Check for duplicates in current contacts
-      const existingContact = contacts.find(c => c.phone === contactData.phone);
-      if (existingContact) {
-        toast({
-          title: "שגיאה",
-          description: `מספר הטלפון כבר קיים עבור ${existingContact.full_name}`,
-          variant: "destructive",
-        });
+      if (!user) {
+        console.log('No user for contact add');
         return false;
       }
 
-      const newContact = await contactsProvider.addContact(contactData);
-      setContacts(prev => [newContact, ...prev]);
-      
+      const { data, error } = await supabase
+        .from('contacts')
+        .insert({
+          ...contactData,
+          owner_user_id: user.id
+        })
+        .select()
+        .single();
+
+      if (error) {
+        if (error.code === '23505') {
+          // Check if it's a phone number duplicate and offer to update instead
+          const existingContact = contacts.find(c => c.phone === contactData.phone);
+          if (existingContact) {
+            toast({
+              title: "שגיאה",
+              description: `מספר הטלפון כבר קיים עבור ${existingContact.full_name}. עדכן את הקשר הקיים או השתמש במספר אחר.`,
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "שגיאה",
+              description: "מספר הטלפון כבר קיים במערכת",
+              variant: "destructive",
+            });
+          }
+        } else {
+          console.error('Database error:', error);
+          toast({
+            title: "שגיאה",
+            description: "לא ניתן להוסיף את איש הקשר",
+            variant: "destructive",
+          });
+        }
+        return false;
+      }
+
+      setContacts(prev => [data as Contact, ...prev]);
       toast({
         title: "הצלחה",
         description: "איש הקשר נוסף בהצלחה",
@@ -58,9 +104,15 @@ export const useContacts = () => {
 
   const updateContact = async (id: string, updates: Partial<Contact>) => {
     try {
-      const updatedContact = await contactsProvider.updateContact(id, updates);
+      const { error } = await supabase
+        .from('contacts')
+        .update(updates)
+        .eq('id', id);
+
+      if (error) throw error;
+
       setContacts(prev => prev.map(contact => 
-        contact.id === id ? updatedContact : contact
+        contact.id === id ? { ...contact, ...updates } : contact
       ));
 
       toast({
@@ -81,9 +133,14 @@ export const useContacts = () => {
 
   const deleteContact = async (id: string) => {
     try {
-      await contactsProvider.deleteContact(id);
+      const { error } = await supabase
+        .from('contacts')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
       setContacts(prev => prev.filter(contact => contact.id !== id));
-      
       toast({
         title: "הצלחה",
         description: "איש הקשר נמחק בהצלחה",
@@ -102,14 +159,30 @@ export const useContacts = () => {
 
   const sendEmergencyRequest = async (contactId: string) => {
     try {
-      await contactsProvider.sendEmergencyRequest(contactId);
-      
-      // Update local state
-      setContacts(prev => prev.map(contact => 
-        contact.id === contactId 
-          ? { ...contact, is_emergency_candidate: true, emergency_status: 'PENDING' }
-          : contact
-      ));
+      // Generate a unique token for the emergency consent
+      const token = crypto.randomUUID();
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7); // Expires in 7 days
+
+      const { error: consentError } = await supabase
+        .from('emergency_consents')
+        .insert({
+          token,
+          contact_id: contactId,
+          expires_at: expiresAt.toISOString()
+        });
+
+      if (consentError) throw consentError;
+
+      // Update contact status to pending
+      await updateContact(contactId, { 
+        is_emergency_candidate: true,
+        emergency_status: 'PENDING' 
+      });
+
+      // TODO: Send SMS with approval link
+      // This would typically integrate with an SMS service
+      console.log(`Emergency request sent for contact ${contactId} with token ${token}`);
 
       toast({
         title: "הצלחה",

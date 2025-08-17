@@ -1,23 +1,26 @@
 import { useState } from 'react';
 import ElderlyInterface from '@/components/ElderlyInterface';
+import FamilyDashboard from '@/components/FamilyDashboard';
 import NavigationHeader from '@/components/NavigationHeader';
 import NewSettingsModal from '@/components/NewSettingsModal';
-import { useAuth } from '@/hooks/useAuth';
-import { USE_PREVIEW_MAIN_USER } from '@/config/preview';
 
 const Index = () => {
+  const [currentView, setCurrentView] = useState<'elderly' | 'family'>('elderly');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const { signOut, user } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
       <NavigationHeader 
+        currentView={currentView} 
+        onViewChange={setCurrentView}
         onSettingsClick={() => setIsSettingsOpen(true)}
-        onSignOut={USE_PREVIEW_MAIN_USER ? undefined : signOut}
-        user={user}
       />
       
-      <ElderlyInterface />
+      {currentView === 'elderly' ? (
+        <ElderlyInterface />
+      ) : (
+        <FamilyDashboard />
+      )}
 
       <NewSettingsModal
         isOpen={isSettingsOpen}
