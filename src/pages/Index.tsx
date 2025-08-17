@@ -2,17 +2,11 @@ import { useState } from 'react';
 import ElderlyInterface from '@/components/ElderlyInterface';
 import FamilyDashboard from '@/components/FamilyDashboard';
 import NavigationHeader from '@/components/NavigationHeader';
-import SettingsModal from '@/components/SettingsModal';
+import NewSettingsModal from '@/components/NewSettingsModal';
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<'elderly' | 'family'>('elderly');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [settings, setSettings] = useState({
-    userName: 'אבא',
-    children: [],
-    grandchildren: [],
-    institutionalContacts: []
-  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -23,16 +17,14 @@ const Index = () => {
       />
       
       {currentView === 'elderly' ? (
-        <ElderlyInterface userName={settings.userName} />
+        <ElderlyInterface />
       ) : (
         <FamilyDashboard />
       )}
 
-      <SettingsModal
+      <NewSettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        settings={settings}
-        onSave={setSettings}
       />
     </div>
   );

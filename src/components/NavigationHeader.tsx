@@ -19,7 +19,7 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: Naviga
               onClick={onSettingsClick}
               className="w-10 h-10 bg-primary rounded-full flex items-center justify-center hover:bg-primary/90 transition-colors"
             >
-              <Heart className="w-6 h-6 text-primary-foreground" />
+              <Settings className="w-6 h-6 text-primary-foreground" />
             </button>
             <div className="rtl-text">
               <h1 className="text-xl font-bold text-foreground">ZAHAV</h1>

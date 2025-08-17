@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -12,6 +12,7 @@ import {
   MessageSquare,
   User
 } from 'lucide-react';
+import { useProfile } from '@/hooks/useProfile';
 
 interface ElderlyInterfaceProps {
   userName?: string;
@@ -20,6 +21,7 @@ interface ElderlyInterfaceProps {
 const ElderlyInterface = ({ userName = "אבא" }: ElderlyInterfaceProps) => {
   const [lastAction, setLastAction] = useState<string>("");
   const navigate = useNavigate();
+  const { profile } = useProfile();
 
   const handleButtonClick = (action: string, buttonName: string) => {
     setLastAction(`${buttonName} נלחץ`);
@@ -129,7 +131,7 @@ const ElderlyInterface = ({ userName = "אבא" }: ElderlyInterfaceProps) => {
         <div className="flex items-center justify-center gap-3 mb-4">
           <User className="w-8 h-8 text-primary" />
           <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-            שלום {userName}!
+            שלום {profile?.first_name || userName}!
           </h1>
         </div>
         <p className="text-xl text-muted-foreground">

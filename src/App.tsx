@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 import WakeUpPage from "./pages/WakeUpPage";
 import EmergencyPage from "./pages/EmergencyPage";
 import EmergencyContactsPage from "./pages/EmergencyContactsPage";
+import EmergencyApprovalPage from "./pages/EmergencyApprovalPage";
 import RemindersPage from "./pages/RemindersPage";
 import MemoriesPage from "./pages/MemoriesPage";
 import GamesPage from "./pages/GamesPage";
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/wakeup" element={<WakeUpPage />} />
           <Route path="/emergency" element={<EmergencyPage />} />
           <Route path="/emergency-contacts" element={<EmergencyContactsPage />} />
+          <Route path="/emergency-approval" element={<EmergencyApprovalPage />} />
           <Route path="/reminders" element={<RemindersPage />} />
           <Route path="/memories" element={<MemoriesPage />} />
           <Route path="/games" element={<GamesPage />} />

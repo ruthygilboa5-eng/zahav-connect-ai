@@ -15,6 +15,7 @@ import {
   CheckCircle,
   User
 } from 'lucide-react';
+import { useProfile } from '@/hooks/useProfile';
 
 interface Activity {
   id: string;
@@ -48,6 +49,7 @@ const FamilyDashboard = () => {
       status: 'completed'
     }
   ]);
+  const { profile } = useProfile();
 
   const getActivityIcon = (type: Activity['type']) => {
     const iconClass = "w-4 h-4";
@@ -112,7 +114,7 @@ const FamilyDashboard = () => {
                 דשבורד המשפחה
               </h1>
               <p className="text-muted-foreground">
-                ניהול וטיפול באבא יקר
+                ניהול וטיפול ב{profile?.first_name || 'אבא יקר'}
               </p>
             </div>
           </div>
