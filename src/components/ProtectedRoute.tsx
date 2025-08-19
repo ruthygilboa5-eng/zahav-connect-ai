@@ -1,10 +1,11 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/providers/AuthProvider';
+import { AppRole } from '@/types/family';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: 'MAIN_USER' | 'FAMILY';
+  requiredRole?: AppRole;
 }
 
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {

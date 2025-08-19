@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { DataProvider } from "@/providers/DataProvider";
+import { FamilyProvider } from "@/providers/FamilyProvider";
 import AppLayout from "@/components/AppLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingPage from "./pages/LandingPage";
@@ -26,10 +27,11 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <DataProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+        <FamilyProvider>
+          <DataProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
             <AppLayout>
               <Routes>
                 <Route path="/" element={<LandingPage />} />
@@ -44,17 +46,17 @@ const App = () => (
                   </ProtectedRoute>
                 } />
                 <Route path="/wakeup" element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRole="MAIN_USER">
                     <WakeUpPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/emergency" element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRole="MAIN_USER">
                     <EmergencyPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/emergency-contacts" element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRole="MAIN_USER">
                     <EmergencyContactsPage />
                   </ProtectedRoute>
                 } />
@@ -64,22 +66,22 @@ const App = () => (
                   </ProtectedRoute>
                 } />
                 <Route path="/reminders" element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRole="MAIN_USER">
                     <RemindersPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/memories" element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRole="MAIN_USER">
                     <MemoriesPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/games" element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRole="MAIN_USER">
                     <GamesPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/family-board" element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRole="MAIN_USER">
                     <FamilyBoardPage />
                   </ProtectedRoute>
                 } />
@@ -88,7 +90,8 @@ const App = () => (
               </Routes>
             </AppLayout>
           </BrowserRouter>
-        </DataProvider>
+          </DataProvider>
+        </FamilyProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

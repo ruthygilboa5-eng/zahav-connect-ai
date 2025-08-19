@@ -1,14 +1,17 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { AppRole, FamilyScope } from '@/types/family';
 
 export interface AuthState {
   isAuthenticated: boolean;
-  role: 'MAIN_USER' | 'FAMILY' | null;
+  role: AppRole | null;
   firstName: string;
+  memberId?: string; // For FAMILY users - links to FamilyMember.id
+  scopes?: FamilyScope[]; // For FAMILY users - their allowed actions
 }
 
 interface AuthContextType {
   authState: AuthState;
-  login: (role: 'MAIN_USER' | 'FAMILY') => void;
+  login: (role: AppRole, memberId?: string, scopes?: FamilyScope[]) => void;
   logout: () => void;
 }
 
@@ -30,14 +33,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [authState, setAuthState] = useState<AuthState>({
     isAuthenticated: false,
     role: null,
-    firstName: ''
+    firstName: '',
+    memberId: undefined,
+    scopes: undefined
   });
 
-  const login = (role: 'MAIN_USER' | 'FAMILY') => {
+  const login = (role: AppRole, memberId?: string, scopes?: FamilyScope[]) => {
     setAuthState({
       isAuthenticated: true,
       role,
-      firstName: 'Demo'
+      firstName: role === 'MAIN_USER' ? 'משתמש ראשי' : 'בן משפחה',
+      memberId,
+      scopes
     });
   };
 
@@ -45,7 +52,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setAuthState({
       isAuthenticated: false,
       role: null,
-      firstName: ''
+      firstName: '',
+      memberId: undefined,
+      scopes: undefined
     });
   };
 

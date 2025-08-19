@@ -9,12 +9,13 @@ const LandingPage = () => {
   const navigate = useNavigate();
 
   const handleLogin = (role: 'MAIN_USER' | 'FAMILY') => {
-    login(role);
-    if (role === 'MAIN_USER') {
-      navigate('/home');
+    if (role === 'FAMILY') {
+      // For demo purposes, login as first approved family member
+      login(role, 'member-1', ['POST_MEDIA', 'SUGGEST_REMINDER', 'PLAY_GAMES']);
     } else {
-      navigate('/family');
+      login(role);
     }
+    navigate(role === 'MAIN_USER' ? '/home' : '/family');
   };
 
   return (
