@@ -94,6 +94,7 @@ export type Database = {
       user_profiles: {
         Row: {
           created_at: string
+          display_name: string | null
           first_name: string
           id: string
           last_name: string
@@ -102,6 +103,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          display_name?: string | null
           first_name: string
           id?: string
           last_name: string
@@ -110,6 +112,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          display_name?: string | null
           first_name?: string
           id?: string
           last_name?: string
@@ -157,6 +160,15 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      init_account_with_profile_and_contacts: {
+        Args: {
+          p_contacts?: Json
+          p_display_name?: string
+          p_first_name: string
+          p_last_name: string
+        }
+        Returns: Json
       }
     }
     Enums: {

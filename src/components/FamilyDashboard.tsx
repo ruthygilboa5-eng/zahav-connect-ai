@@ -15,6 +15,7 @@ import {
   CheckCircle,
   User
 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 
 interface Activity {
@@ -49,6 +50,7 @@ const FamilyDashboard = () => {
       status: 'completed'
     }
   ]);
+  const { user } = useAuth();
   const { profile } = useProfile();
 
   const getActivityIcon = (type: Activity['type']) => {
@@ -111,10 +113,10 @@ const FamilyDashboard = () => {
             <User className="w-8 h-8 text-primary" />
             <div>
               <h1 className="text-3xl font-bold text-foreground">
-                דשבורד {profile?.last_name || 'המשפחה'}
+                דשבורד משפחת {profile?.last_name || 'ישראל'}
               </h1>
               <p className="text-muted-foreground">
-                ניהול וטיפול ב{profile?.first_name || 'אבא יקר'}
+                ניהול וטיפול ב-{profile?.display_name || profile?.first_name || 'אבא יקר'}
               </p>
             </div>
           </div>

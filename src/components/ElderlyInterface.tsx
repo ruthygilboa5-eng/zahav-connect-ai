@@ -12,6 +12,7 @@ import {
   MessageSquare,
   User
 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 
 interface ElderlyInterfaceProps {
@@ -21,6 +22,7 @@ interface ElderlyInterfaceProps {
 const ElderlyInterface = ({ userName = "אבא" }: ElderlyInterfaceProps) => {
   const [lastAction, setLastAction] = useState<string>("");
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { profile } = useProfile();
 
   const handleButtonClick = (action: string, buttonName: string) => {
@@ -131,7 +133,7 @@ const ElderlyInterface = ({ userName = "אבא" }: ElderlyInterfaceProps) => {
         <div className="flex items-center justify-center gap-3 mb-4">
           <User className="w-8 h-8 text-primary" />
           <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-            שלום {profile?.first_name || "אבא"}!
+            שלום, {profile?.display_name || profile?.first_name || "אבא"}!
           </h1>
         </div>
         <p className="text-xl text-muted-foreground">
