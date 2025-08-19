@@ -16,6 +16,7 @@ const AccountModal = ({ isOpen, onClose }: AccountModalProps) => {
   const handleLogout = () => {
     logout();
     onClose();
+    // Navigation will be handled by AuthProvider logout function
   };
 
   const roleDisplay = authState.role === 'MAIN_USER' ? 'משתמש ראשי' : 'בן משפחה';

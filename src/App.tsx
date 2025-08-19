@@ -9,6 +9,7 @@ import { FamilyProvider } from "@/providers/FamilyProvider";
 import AppLayout from "@/components/AppLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingPage from "./pages/LandingPage";
+import AuthPage from "./pages/AuthPage";
 import HomePage from "./pages/HomePage";
 import FamilyPage from "./pages/FamilyPage";
 import NotFound from "./pages/NotFound";
@@ -38,6 +39,7 @@ const App = () => (
             <AppLayout>
               <Routes>
                 <Route path="/" element={<LandingPage />} />
+                <Route path="/auth" element={<AuthPage />} />
                 <Route path="/home" element={
                   <ProtectedRoute requiredRole="MAIN_USER">
                     <HomePage />

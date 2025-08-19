@@ -29,6 +29,7 @@ const step1Schema = z.object({
 const step2Schema = z.object({
   firstName: z.string().min(1, "שם פרטי הוא שדה חובה"),
   lastName: z.string().min(1, "שם משפחה הוא שדה חובה"),
+  phone: z.string().regex(/^0[2-9]\d{8}$|^\+972[2-9]\d{8}$/, "מספר טלפון לא תקין (פורמט: 050-1234567)"),
   displayName: z.string().optional()
 });
 
@@ -74,6 +75,7 @@ export default function SignupWizard({ onComplete }: SignupWizardProps) {
     defaultValues: {
       firstName: "",
       lastName: "",
+      phone: "",
       displayName: ""
     }
   });
@@ -261,6 +263,20 @@ export default function SignupWizard({ onComplete }: SignupWizardProps) {
                       <FormLabel>שם משפחה *</FormLabel>
                       <FormControl>
                         <Input placeholder="הזן שם משפחה" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={step2Form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>מספר טלפון * (המזהה העיקרי)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="050-1234567" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

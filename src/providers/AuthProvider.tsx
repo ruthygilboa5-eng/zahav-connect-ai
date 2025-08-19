@@ -56,6 +56,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       memberId: undefined,
       scopes: undefined
     });
+    // Redirect to auth page after logout
+    window.location.href = '/auth';
   };
 
   return (

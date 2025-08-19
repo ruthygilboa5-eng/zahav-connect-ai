@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useNavigate } from 'react-router-dom';
 
@@ -14,11 +14,13 @@ const Index = () => {
       } else if (authState.role === 'FAMILY') {
         navigate('/family', { replace: true });
       }
+    } else {
+      // Redirect non-authenticated users to landing page
+      navigate('/', { replace: true });
     }
   }, [authState, navigate]);
 
-  // This should only render for non-authenticated users
-  // The LandingPage will handle the actual UI
+  // This component just handles routing logic
   return null;
 };
 

@@ -12,7 +12,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const { authState } = useAuth();
 
   if (!authState.isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/auth" replace />;
   }
 
   if (requiredRole && authState.role !== requiredRole) {

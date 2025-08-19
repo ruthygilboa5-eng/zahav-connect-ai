@@ -1,21 +1,23 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/providers/AuthProvider';
 import { useNavigate } from 'react-router-dom';
-import { Users, Heart, Shield, Clock } from 'lucide-react';
+import { Users, Heart, Shield, Clock, LogIn } from 'lucide-react';
 
 const LandingPage = () => {
-  const { login } = useAuth();
+  const { authState } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = (role: 'MAIN_USER' | 'FAMILY') => {
-    if (role === 'FAMILY') {
-      // For demo purposes, login as first approved family member
-      login(role, 'member-1', ['POST_MEDIA', 'SUGGEST_REMINDER', 'PLAY_GAMES']);
-    } else {
-      login(role);
+  // If already authenticated, redirect to appropriate page
+  useEffect(() => {
+    if (authState.isAuthenticated) {
+      const targetRoute = authState.role === 'MAIN_USER' ? '/home' : '/family';
+      navigate(targetRoute);
     }
-    navigate(role === 'MAIN_USER' ? '/home' : '/family');
+  }, [authState.isAuthenticated, authState.role, navigate]);
+
+  const handleAuthRedirect = () => {
+    navigate('/auth');
   };
 
   return (
@@ -66,26 +68,17 @@ const LandingPage = () => {
           </div>
         </div>
 
-        {/* Auth Buttons */}
+        {/* Auth Button */}
         <div className="space-y-4">
-          <h2 className="text-2xl font-semibold mb-6">בחר איך להתחבר</h2>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <h2 className="text-2xl font-semibold mb-6">התחל עכשיו</h2>
+          <div className="flex justify-center">
             <Button 
               size="lg"
-              onClick={() => handleLogin('MAIN_USER')}
+              onClick={handleAuthRedirect}
               className="text-lg px-8 py-6"
             >
-              <Users className="w-5 h-5 ml-2" />
-              התחברות כמשתמש ראשי
-            </Button>
-            <Button 
-              variant="outline"
-              size="lg"
-              onClick={() => handleLogin('FAMILY')}
-              className="text-lg px-8 py-6"
-            >
-              <Heart className="w-5 h-5 ml-2" />
-              התחברות כבן משפחה
+              <LogIn className="w-5 h-5 ml-2" />
+              התחברות / הרשמה
             </Button>
           </div>
         </div>
