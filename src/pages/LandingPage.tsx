@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/providers/AuthProvider';
 import { useNavigate } from 'react-router-dom';
 import { Users, Heart, Shield, Clock } from 'lucide-react';
+import elderlyCouple from '@/assets/elderly-couple.jpg';
 
 const LandingPage = () => {
   const { login } = useAuth();
@@ -21,7 +22,14 @@ const LandingPage = () => {
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="max-w-4xl mx-auto text-center space-y-8">
         {/* Hero Section */}
-        <div className="space-y-4">
+        <div className="space-y-6">
+          <div className="mb-8">
+            <img 
+              src={elderlyCouple} 
+              alt="זוג משתמשים ראשיים מחייכים יחד" 
+              className="w-64 h-48 object-cover rounded-2xl mx-auto shadow-lg"
+            />
+          </div>
           <h1 className="text-4xl md:text-6xl font-bold text-foreground">
             ZAHAV
           </h1>
@@ -29,7 +37,7 @@ const LandingPage = () => {
             חיבור לגיל השלישי
           </p>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            פלטפורמה דיגיטלית המחברת בין קשישים לבני המשפחה שלהם, 
+            פלטפורמה דיגיטלית המחברת בין משתמשים ראשיים לבני המשפחה שלהם, 
             מאפשרת מעקב בטיחותי ותקשורת קלה ונגישה.
           </p>
         </div>
@@ -68,7 +76,7 @@ const LandingPage = () => {
               className="text-lg px-8 py-6"
             >
               <Users className="w-5 h-5 ml-2" />
-              התחברות כקשיש
+              התחברות כמשתמש ראשי
             </Button>
             <Button 
               variant="outline"

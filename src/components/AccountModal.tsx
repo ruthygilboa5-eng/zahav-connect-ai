@@ -18,7 +18,7 @@ const AccountModal = ({ isOpen, onClose }: AccountModalProps) => {
     onClose();
   };
 
-  const roleDisplay = authState.role === 'MAIN_USER' ? 'קשיש' : 'בן משפחה';
+  const roleDisplay = authState.role === 'MAIN_USER' ? 'משתמש ראשי' : 'בן משפחה';
   const mockEmail = authState.role === 'MAIN_USER' ? 'demo@zahav.com' : 'family@zahav.com';
   const mockPhone = authState.role === 'MAIN_USER' ? '050-1234567' : '052-7654321';
 

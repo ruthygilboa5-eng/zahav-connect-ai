@@ -64,7 +64,7 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: Naviga
                   onClick={() => login('MAIN_USER')}
                   className="text-sm"
                 >
-                  התחברות כקשיש
+                  התחברות כמשתמש ראשי
                 </Button>
                 <Button 
                   variant="outline" 
