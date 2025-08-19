@@ -33,7 +33,7 @@ const LandingPage = () => {
             ZAHAV
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground">
-            חיבור לגיל השלישי
+            משפחתי
           </p>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             פלטפורמה דיגיטלית המחברת בין משתמשים ראשיים לבני המשפחה שלהם, 

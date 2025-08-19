@@ -28,7 +28,7 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: Naviga
             </button>
             <div className="rtl-text">
               <h1 className="text-xl font-bold text-foreground">ZAHAV</h1>
-              <p className="text-xs text-muted-foreground">חיבור לגיל השלישי</p>
+              <p className="text-xs text-muted-foreground">משפחתי</p>
             </div>
           </div>
 

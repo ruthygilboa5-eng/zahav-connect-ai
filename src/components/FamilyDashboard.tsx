@@ -32,7 +32,7 @@ const FamilyDashboard = () => {
     {
       id: '1',
       type: 'wakeup',
-      message: 'אבא דיווח שהוא בסדר',
+      message: 'המשתמש דיווח שהוא בסדר',
       timestamp: '08:30',
       status: 'completed'
     },
@@ -118,7 +118,7 @@ const FamilyDashboard = () => {
                 דשבורד משפחת {userProfile?.lastName || profile?.last_name || 'ישראל'}
               </h1>
               <p className="text-muted-foreground">
-                ניהול וטיפול ב-{userProfile?.displayName || userProfile?.firstName || profile?.display_name || profile?.first_name || 'אבא יקר'}
+                ניהול וטיפול ב-{userProfile?.displayName || userProfile?.firstName || profile?.display_name || profile?.first_name || 'משתמש יקר'}
               </p>
             </div>
           </div>

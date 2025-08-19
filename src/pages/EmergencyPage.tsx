@@ -8,7 +8,7 @@ interface EmergencyPageProps {
   userName?: string;
 }
 
-const EmergencyPage = ({ userName = "אבא" }: EmergencyPageProps) => {
+const EmergencyPage = ({ userName }: EmergencyPageProps) => {
   const [isEmergencySent, setIsEmergencySent] = useState(false);
   const navigate = useNavigate();
 

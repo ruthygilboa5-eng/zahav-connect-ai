@@ -8,7 +8,7 @@ interface WakeUpPageProps {
   userName?: string;
 }
 
-const WakeUpPage = ({ userName = "אבא" }: WakeUpPageProps) => {
+const WakeUpPage = ({ userName }: WakeUpPageProps) => {
   const [isWakeUpSent, setIsWakeUpSent] = useState(false);
   const navigate = useNavigate();
 

@@ -20,7 +20,7 @@ const FamilyBoardPage = () => {
     {
       id: 1,
       sender: 'רותי',
-      content: 'אבא שלום! איך אתה מרגיש היום?',
+      content: 'שלום! איך אתה מרגיש היום?',
       timestamp: '10:30',
       type: 'family'
     },
@@ -33,7 +33,7 @@ const FamilyBoardPage = () => {
     },
     {
       id: 3,
-      sender: 'אבא',
+      sender: 'משתמש',
       content: 'הכל בסדר, תודה! מחכה לראות אתכם',
       timestamp: '11:45',
       type: 'user'
@@ -44,7 +44,7 @@ const FamilyBoardPage = () => {
     if (newMessage.trim()) {
       const message: Message = {
         id: messages.length + 1,
-        sender: 'אבא',
+        sender: 'משתמש',
         content: newMessage,
         timestamp: new Date().toLocaleTimeString('he-IL', { 
           hour: '2-digit', 

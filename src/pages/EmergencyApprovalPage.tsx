@@ -271,7 +271,7 @@ const EmergencyApprovalPage = () => {
             {/* Footer */}
             <div className="pt-4 border-t">
               <p className="text-xs text-muted-foreground text-center">
-                מערכת ZAHAV - חיבור לגיל השלישי
+                מערכת ZAHAV - משפחתי
               </p>
             </div>
           </CardContent>
