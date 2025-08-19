@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { DEV_MODE_DEMO, DEMO_USER } from '@/config/dev';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -60,7 +60,11 @@ class MockProvider implements DataProviderType {
     private setContacts: (contacts: Contact[]) => void,
     private setLoading: (loading: boolean) => void
   ) {
-    // In demo mode, automatically set demo user
+    // Don't set state in constructor to avoid infinite re-renders
+  }
+
+  initializeDemoData() {
+    // Initialize demo data - called once from useEffect
     this._user = DEMO_USER;
     this._userProfile = {
       firstName: DEMO_USER.firstName,
@@ -75,7 +79,7 @@ class MockProvider implements DataProviderType {
   get user() { return this._user; }
   get userProfile() { return this._userProfile; }
   get contacts() { return this._contacts; }
-  get loading() { return false; }
+  get loading() { return this._user === null; }
 
   async signUp(email: string, password: string) {
     // Mock signup - just return success
@@ -198,9 +202,21 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   
   const { user: supabaseUser, loading: supabaseLoading, signOut: supabaseSignOut } = useAuth();
 
-  const provider = DEV_MODE_DEMO 
-    ? new MockProvider(setUser, setUserProfile, setContacts, setLoading)
-    : new SupabaseProvider(supabaseUser, supabaseLoading, supabaseSignOut, setUser, setUserProfile, setContacts, setLoading);
+  // Initialize provider only once and setup demo data in useEffect
+  const provider = useMemo(() => {
+    if (DEV_MODE_DEMO) {
+      return new MockProvider(setUser, setUserProfile, setContacts, setLoading);
+    } else {
+      return new SupabaseProvider(supabaseUser, supabaseLoading, supabaseSignOut, setUser, setUserProfile, setContacts, setLoading);
+    }
+  }, [DEV_MODE_DEMO, supabaseUser, supabaseLoading, supabaseSignOut]);
+
+  // Setup demo data only once when in demo mode
+  useEffect(() => {
+    if (DEV_MODE_DEMO && provider instanceof MockProvider) {
+      provider.initializeDemoData();
+    }
+  }, [provider]);
 
   return (
     <DataContext.Provider value={provider}>
