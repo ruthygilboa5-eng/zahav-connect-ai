@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { DEV_MODE_DEMO, DEMO_USER } from '@/config/dev';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -48,148 +48,6 @@ export interface DataProviderType {
   initAccount: (profile: UserProfile, contacts: Omit<Contact, 'id'>[]) => Promise<{ error?: any }>;
 }
 
-// Mock Provider Implementation
-class MockProvider implements DataProviderType {
-  private _user: User | null = null;
-  private _userProfile: UserProfile | null = null;
-  private _contacts: Contact[] = [];
-  
-  constructor(
-    private setUser: (user: User | null) => void,
-    private setUserProfile: (profile: UserProfile | null) => void,
-    private setContacts: (contacts: Contact[]) => void,
-    private setLoading: (loading: boolean) => void
-  ) {
-    // Don't set state in constructor to avoid infinite re-renders
-  }
-
-  initializeDemoData() {
-    // Initialize demo data - called once from useEffect
-    this._user = DEMO_USER;
-    this._userProfile = {
-      firstName: DEMO_USER.firstName,
-      lastName: DEMO_USER.lastName,
-      displayName: DEMO_USER.firstName
-    };
-    this.setUser(this._user);
-    this.setUserProfile(this._userProfile);
-    this.setLoading(false);
-  }
-
-  get user() { return this._user; }
-  get userProfile() { return this._userProfile; }
-  get contacts() { return this._contacts; }
-  get loading() { return this._user === null; }
-
-  async signUp(email: string, password: string) {
-    // Mock signup - just return success
-    return { error: null };
-  }
-
-  async signOut() {
-    this._user = null;
-    this._userProfile = null;
-    this._contacts = [];
-    this.setUser(null);
-    this.setUserProfile(null);
-    this.setContacts([]);
-    return { error: null };
-  }
-
-  async updateProfile(profile: UserProfile) {
-    this._userProfile = profile;
-    this.setUserProfile(profile);
-  }
-
-  async addContacts(contacts: Omit<Contact, 'id'>[]) {
-    const newContacts = contacts.map((contact, index) => ({
-      ...contact,
-      id: `demo-contact-${Date.now()}-${index}`
-    }));
-    this._contacts = [...this._contacts, ...newContacts];
-    this.setContacts(this._contacts);
-  }
-
-  async initAccount(profile: UserProfile, contacts: Omit<Contact, 'id'>[]) {
-    await this.updateProfile(profile);
-    await this.addContacts(contacts);
-    return { error: null };
-  }
-}
-
-// Real Provider Implementation (Supabase)
-class SupabaseProvider implements DataProviderType {
-  constructor(
-    private supabaseUser: any,
-    private supabaseLoading: boolean,
-    private supabaseSignOut: () => Promise<{ error?: any }>,
-    private setUser: (user: User | null) => void,
-    private setUserProfile: (profile: UserProfile | null) => void,
-    private setContacts: (contacts: Contact[]) => void,
-    private setLoading: (loading: boolean) => void
-  ) {}
-
-  get user() {
-    if (!this.supabaseUser) return null;
-    return {
-      id: this.supabaseUser.id,
-      role: "MAIN_USER",
-      firstName: "",
-      lastName: "",
-      email: this.supabaseUser.email,
-      displayName: ""
-    };
-  }
-  
-  get userProfile() { return null; } // TODO: Implement with actual Supabase queries
-  get contacts() { return []; } // TODO: Implement with actual Supabase queries  
-  get loading() { return this.supabaseLoading; }
-
-  async signUp(email: string, password: string) {
-    const { supabase } = await import('@/integrations/supabase/client');
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/`
-      }
-    });
-    return { error };
-  }
-
-  async signOut() {
-    return await this.supabaseSignOut();
-  }
-
-  async updateProfile(profile: UserProfile) {
-    // TODO: Implement with actual Supabase update
-  }
-
-  async addContacts(contacts: Omit<Contact, 'id'>[]) {
-    // TODO: Implement with actual Supabase insert
-  }
-
-  async initAccount(profile: UserProfile, contacts: Omit<Contact, 'id'>[]) {
-    const { supabase } = await import('@/integrations/supabase/client');
-    
-    const contactsData = contacts.map(contact => ({
-      full_name: contact.fullName,
-      relation: contact.relation,
-      phone: contact.phone,
-      is_emergency_candidate: contact.isEmergencyCandidate
-    }));
-
-    const { error } = await supabase.rpc('init_account_with_profile_and_contacts', {
-      p_first_name: profile.firstName,
-      p_last_name: profile.lastName,
-      p_display_name: profile.displayName,
-      p_contacts: contactsData.length > 0 ? JSON.stringify(contactsData) : '[]'
-    });
-
-    return { error };
-  }
-}
-
 // Context
 const DataContext = createContext<DataProviderType | null>(null);
 
@@ -202,24 +60,127 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   
   const { user: supabaseUser, loading: supabaseLoading, signOut: supabaseSignOut } = useAuth();
 
-  // Initialize provider only once and setup demo data in useEffect
-  const provider = useMemo(() => {
-    if (DEV_MODE_DEMO) {
-      return new MockProvider(setUser, setUserProfile, setContacts, setLoading);
-    } else {
-      return new SupabaseProvider(supabaseUser, supabaseLoading, supabaseSignOut, setUser, setUserProfile, setContacts, setLoading);
-    }
-  }, [DEV_MODE_DEMO, supabaseUser, supabaseLoading, supabaseSignOut]);
-
-  // Setup demo data only once when in demo mode
+  // Initialize demo data once on mount if in demo mode
   useEffect(() => {
-    if (DEV_MODE_DEMO && provider instanceof MockProvider) {
-      provider.initializeDemoData();
+    if (DEV_MODE_DEMO) {
+      setUser(DEMO_USER);
+      setUserProfile({
+        firstName: DEMO_USER.firstName,
+        lastName: DEMO_USER.lastName,
+        displayName: DEMO_USER.firstName
+      });
+      setLoading(false);
     }
-  }, [provider]);
+  }, []);
+
+  // Handle supabase auth changes
+  useEffect(() => {
+    if (!DEV_MODE_DEMO) {
+      if (supabaseUser) {
+        setUser({
+          id: supabaseUser.id,
+          role: "MAIN_USER",
+          firstName: "",
+          lastName: "",
+          email: supabaseUser.email,
+          displayName: ""
+        });
+      } else {
+        setUser(null);
+        setUserProfile(null);
+        setContacts([]);
+      }
+      setLoading(supabaseLoading);
+    }
+  }, [supabaseUser, supabaseLoading]);
+
+  const providerValue: DataProviderType = {
+    user,
+    userProfile,
+    contacts,
+    loading,
+    
+    async signUp(email: string, password: string) {
+      if (DEV_MODE_DEMO) {
+        // Mock signup - just return success
+        return { error: null };
+      } else {
+        const { supabase } = await import('@/integrations/supabase/client');
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`
+          }
+        });
+        return { error };
+      }
+    },
+
+    async signOut() {
+      if (DEV_MODE_DEMO) {
+        setUser(null);
+        setUserProfile(null);
+        setContacts([]);
+        return { error: null };
+      } else {
+        return await supabaseSignOut();
+      }
+    },
+
+    async updateProfile(profile: UserProfile) {
+      if (DEV_MODE_DEMO) {
+        setUserProfile(profile);
+      } else {
+        // TODO: Implement with actual Supabase update
+      }
+    },
+
+    async addContacts(newContacts: Omit<Contact, 'id'>[]) {
+      if (DEV_MODE_DEMO) {
+        const contactsWithIds = newContacts.map((contact, index) => ({
+          ...contact,
+          id: `demo-contact-${Date.now()}-${index}`
+        }));
+        setContacts(prev => [...prev, ...contactsWithIds]);
+      } else {
+        // TODO: Implement with actual Supabase insert
+      }
+    },
+
+    async initAccount(profile: UserProfile, contactsData: Omit<Contact, 'id'>[]) {
+      if (DEV_MODE_DEMO) {
+        setUserProfile(profile);
+        const contactsWithIds = contactsData.map((contact, index) => ({
+          ...contact,
+          id: `demo-contact-${Date.now()}-${index}`
+        }));
+        setContacts(prev => [...prev, ...contactsWithIds]);
+        return { error: null };
+      } else {
+        const { supabase } = await import('@/integrations/supabase/client');
+        
+        const contacts = contactsData.map(contact => ({
+          full_name: contact.fullName,
+          relation: contact.relation,
+          phone: contact.phone,
+          is_emergency_candidate: contact.isEmergencyCandidate
+        }));
+
+        const { error } = await supabase.rpc('init_account_with_profile_and_contacts', {
+          p_first_name: profile.firstName,
+          p_last_name: profile.lastName,
+          p_display_name: profile.displayName,
+          p_contacts: contacts.length > 0 ? JSON.stringify(contacts) : '[]'
+        });
+
+        return { error };
+      }
+    }
+  };
 
   return (
-    <DataContext.Provider value={provider}>
+    <DataContext.Provider value={providerValue}>
       {children}
     </DataContext.Provider>
   );
