@@ -4,14 +4,18 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { 
   Heart, 
-  AlertTriangle, 
-  Phone, 
-  Bell, 
-  Camera, 
+  MessageSquare, 
+  Calendar, 
   Gamepad2, 
-  MessageSquare,
-  User,
-  Settings
+  AlertTriangle, 
+  Home, 
+  Users,
+  Sunrise,
+  Clock,
+  Phone,
+  Bell,
+  Camera,
+  User
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -188,16 +192,26 @@ const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
         </Card>
       )}
 
-      {/* Settings Button */}
-      <div className="mt-8">
+      {/* Settings Buttons */}
+      <div className="mt-8 flex flex-col gap-3">
         <Button
           variant="outline"
           size="lg"
           onClick={() => navigate('/family-management')}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
         >
-          <Settings className="w-5 h-5" />
+          <Users className="w-5 h-5" />
           ניהול משפחה והגדרות
+        </Button>
+        
+        <Button
+          variant="outline"
+          size="lg"
+          onClick={() => navigate('/review')}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+        >
+          <Clock className="w-5 h-5" />
+          אישור תוכן משפחתי
         </Button>
       </div>
 

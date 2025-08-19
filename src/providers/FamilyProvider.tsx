@@ -144,44 +144,54 @@ export const FamilyProvider = ({ children }: FamilyProviderProps) => {
   };
 
   const approvePendingItem = (itemId: string) => {
-    const item = pendingQueue.find(p => p.id === itemId);
-    if (!item) return;
+    setPendingQueue(prev =>
+      prev.map(item => 
+        item.id === itemId 
+          ? { ...item, status: 'APPROVED' as const, viewed: true }
+          : item
+      )
+    );
 
-    // Move to appropriate collection based on type
-    switch (item.type) {
-      case 'MEDIA':
-      case 'STORY':
-        addMemory({
-          title: item.title,
-          content: item.content,
-          type: item.type === 'MEDIA' ? 'PHOTO' : 'STORY',
-          fromFamily: true,
-          fromMemberName: item.fromMemberName
-        });
-        break;
-      case 'REMINDER':
-        addReminder({
-          title: item.title,
-          description: item.content,
-          type: 'EVENT',
-          scheduledFor: item.metadata?.scheduledFor || new Date().toISOString(),
-          isActive: true,
-          fromFamily: true,
-          fromMemberName: item.fromMemberName
-        });
-        break;
-      case 'GAME_INVITE':
-        // Handle game invite logic here
-        console.log('Game invite approved:', item);
-        break;
+    // Move approved item to appropriate location
+    const approvedItem = pendingQueue.find(item => item.id === itemId);
+    if (approvedItem) {
+      switch (approvedItem.type) {
+        case 'MEDIA':
+        case 'STORY':
+          addMemory({
+            title: approvedItem.title,
+            content: approvedItem.content,
+            type: approvedItem.type === 'MEDIA' ? 'PHOTO' : 'STORY',
+            fromFamily: true,
+            fromMemberName: approvedItem.fromMemberName
+          });
+          break;
+        case 'REMINDER':
+          addReminder({
+            title: approvedItem.title,
+            description: approvedItem.content,
+            type: (approvedItem.metadata?.reminderType as any) || 'EVENT',
+            scheduledFor: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
+            isActive: true,
+            fromFamily: true,
+            fromMemberName: approvedItem.fromMemberName
+          });
+          break;
+        case 'GAME_INVITE':
+          // TODO: Handle game invites
+          break;
+      }
     }
-
-    // Remove from pending queue
-    setPendingQueue(prev => prev.filter(p => p.id !== itemId));
   };
 
   const rejectPendingItem = (itemId: string) => {
-    setPendingQueue(prev => prev.filter(p => p.id !== itemId));
+    setPendingQueue(prev =>
+      prev.map(item => 
+        item.id === itemId 
+          ? { ...item, status: 'REJECTED' as const, viewed: true }
+          : item
+      )
+    );
   };
 
   // Content management

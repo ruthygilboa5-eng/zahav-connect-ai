@@ -21,6 +21,8 @@ import MemoriesPage from "./pages/MemoriesPage";
 import GamesPage from "./pages/GamesPage";
 import FamilyManagementPage from "./pages/FamilyManagementPage";
 import FamilyBoardPage from "./pages/FamilyBoardPage";
+import ReviewPage from "./pages/ReviewPage";
+import FamilyDashboardPage from "./pages/FamilyDashboardPage";
 
 const queryClient = new QueryClient();
 
@@ -43,7 +45,7 @@ const App = () => (
                 } />
                 <Route path="/family" element={
                   <ProtectedRoute requiredRole="FAMILY">
-                    <FamilyPage />
+                    <FamilyDashboardPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/wakeup" element={
@@ -89,6 +91,11 @@ const App = () => (
                 <Route path="/family-board" element={
                   <ProtectedRoute requiredRole="MAIN_USER">
                     <FamilyBoardPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/review" element={
+                  <ProtectedRoute requiredRole="MAIN_USER">
+                    <ReviewPage />
                   </ProtectedRoute>
                 } />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

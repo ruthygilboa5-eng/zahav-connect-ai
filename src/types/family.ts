@@ -27,6 +27,8 @@ export interface PendingItem {
   title: string;
   content: string;
   submittedAt: string;
+  status?: 'PENDING' | 'APPROVED' | 'REJECTED';
+  viewed?: boolean;
   metadata?: Record<string, any>; // עבור נתונים נוספים לפי סוג הפריט
 }
 
