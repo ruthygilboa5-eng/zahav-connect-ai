@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/providers/AuthProvider';
 import { useNavigate } from 'react-router-dom';
 import { Users, Heart, Shield, Clock } from 'lucide-react';
-import elderlyCouple from '@/assets/elderly-couple.jpg';
 
 const LandingPage = () => {
   const { login } = useAuth();
@@ -25,7 +24,7 @@ const LandingPage = () => {
         <div className="space-y-6">
           <div className="mb-8">
             <img 
-              src={elderlyCouple} 
+              src="/lovable-uploads/e4b1e680-f7d4-4a90-871c-2b4ff3419c16.png" 
               alt="זוג משתמשים ראשיים מחייכים יחד" 
               className="w-64 h-48 object-cover rounded-2xl mx-auto shadow-lg"
             />
