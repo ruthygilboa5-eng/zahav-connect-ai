@@ -4,12 +4,14 @@ import FamilyDashboard from '@/components/FamilyDashboard';
 import NavigationHeader from '@/components/NavigationHeader';
 import NewSettingsModal from '@/components/NewSettingsModal';
 import SignupWizard from '@/components/SignupWizard';
-import { useAuth } from '@/hooks/useAuth';
+import DevModeBanner from '@/components/DevModeBanner';
+import { useDataProvider } from '@/providers/DataProvider';
+import { DEV_MODE_DEMO } from '@/config/dev';
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<'elderly' | 'family'>('elderly');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const { user, loading } = useAuth();
+  const { user, loading } = useDataProvider();
 
   // Show loading while checking auth status
   if (loading) {
@@ -30,10 +32,12 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <DevModeBanner />
       <NavigationHeader 
         currentView={currentView} 
         onViewChange={setCurrentView}
         onSettingsClick={() => setIsSettingsOpen(true)}
+        hideAuthButtons={DEV_MODE_DEMO}
       />
       
       {currentView === 'elderly' ? (

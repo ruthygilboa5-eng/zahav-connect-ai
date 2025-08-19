@@ -11,9 +11,10 @@ import { Plus, Trash2, ArrowRight, ArrowLeft } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { relationLabels } from "@/types/database";
+import { useDataProvider } from "@/providers/DataProvider";
+import { DEV_MODE_DEMO } from "@/config/dev";
 
 // Form schemas
 const step1Schema = z.object({
@@ -57,6 +58,7 @@ export default function SignupWizard({ onComplete }: SignupWizardProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [step1Data, setStep1Data] = useState<Step1Data | null>(null);
   const [step2Data, setStep2Data] = useState<Step2Data | null>(null);
+  const dataProvider = useDataProvider();
 
   const step1Form = useForm<Step1Data>({
     resolver: zodResolver(step1Schema),
@@ -101,22 +103,24 @@ export default function SignupWizard({ onComplete }: SignupWizardProps) {
   const handleStep1Submit = async (data: Step1Data) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`
+      if (DEV_MODE_DEMO) {
+        // In demo mode, skip auth and go to next step
+        setStep1Data(data);
+        setCurrentStep(2);
+        toast.success("מצב דמו - ממשיך למילוי הפרופיל");
+      } else {
+        // Real mode - use Supabase auth
+        const { error } = await dataProvider.signUp(data.email, data.password);
+
+        if (error) {
+          toast.error(`שגיאה ביצירת החשבון: ${error.message}`);
+          return;
         }
-      });
 
-      if (error) {
-        toast.error(`שגיאה ביצירת החשבון: ${error.message}`);
-        return;
+        setStep1Data(data);
+        setCurrentStep(2);
+        toast.success("החשבון נוצר בהצלחה! אנא המשך למילוי הפרופיל");
       }
-
-      setStep1Data(data);
-      setCurrentStep(2);
-      toast.success("החשבון נוצר בהצלחה! אנא המשך למילוי הפרופיל");
     } catch (error) {
       toast.error("שגיאה לא צפויה");
     } finally {
@@ -134,27 +138,23 @@ export default function SignupWizard({ onComplete }: SignupWizardProps) {
     
     setIsLoading(true);
     try {
-      const contactsData = data.contacts.map(contact => ({
-        full_name: contact.fullName,
+      const profile = {
+        firstName: step2Data.firstName,
+        lastName: step2Data.lastName,
+        displayName: step2Data.displayName || step2Data.firstName
+      };
+
+      const contacts = data.contacts.map(contact => ({
+        fullName: contact.fullName,
         relation: contact.relation,
         phone: contact.phone,
-        is_emergency_candidate: contact.isEmergencyCandidate
+        isEmergencyCandidate: contact.isEmergencyCandidate
       }));
 
-      const { data: result, error } = await supabase.rpc('init_account_with_profile_and_contacts', {
-        p_first_name: step2Data.firstName,
-        p_last_name: step2Data.lastName,
-        p_display_name: step2Data.displayName || step2Data.firstName,
-        p_contacts: contactsData.length > 0 ? JSON.stringify(contactsData) : '[]'
-      });
+      const { error } = await dataProvider.initAccount(profile, contacts);
 
       if (error) {
         toast.error(`שגיאה בשמירת הנתונים: ${error.message}`);
-        return;
-      }
-
-      if (result && typeof result === 'object' && 'success' in result && !result.success) {
-        toast.error(`שגיאה: ${(result as any).error}`);
         return;
       }
 

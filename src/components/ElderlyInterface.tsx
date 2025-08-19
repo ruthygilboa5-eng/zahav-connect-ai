@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
+import { useDataProvider } from '@/providers/DataProvider';
 
 interface ElderlyInterfaceProps {
   userName?: string;
@@ -24,6 +25,7 @@ const ElderlyInterface = ({ userName = "אבא" }: ElderlyInterfaceProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { profile } = useProfile();
+  const { userProfile } = useDataProvider();
 
   const handleButtonClick = (action: string, buttonName: string) => {
     setLastAction(`${buttonName} נלחץ`);
@@ -133,7 +135,7 @@ const ElderlyInterface = ({ userName = "אבא" }: ElderlyInterfaceProps) => {
         <div className="flex items-center justify-center gap-3 mb-4">
           <User className="w-8 h-8 text-primary" />
           <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-            שלום, {profile?.display_name || profile?.first_name || "אבא"}!
+            שלום, {userProfile?.displayName || userProfile?.firstName || profile?.display_name || profile?.first_name || "אבא"}!
           </h1>
         </div>
         <p className="text-xl text-muted-foreground">

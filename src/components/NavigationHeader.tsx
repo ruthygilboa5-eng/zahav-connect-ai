@@ -6,9 +6,10 @@ interface NavigationHeaderProps {
   currentView: 'elderly' | 'family';
   onViewChange: (view: 'elderly' | 'family') => void;
   onSettingsClick: () => void;
+  hideAuthButtons?: boolean;
 }
 
-const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: NavigationHeaderProps) => {
+const NavigationHeader = ({ currentView, onViewChange, onSettingsClick, hideAuthButtons = false }: NavigationHeaderProps) => {
   return (
     <div className="bg-card border-b border-border sticky top-0 z-50 backdrop-blur-sm bg-card/95">
       <div className="max-w-6xl mx-auto px-4 py-3">
@@ -50,11 +51,13 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: Naviga
           </div>
 
           {/* Status Indicator */}
-          <div className="flex items-center gap-2">
-            <Badge className="bg-zahav-green text-white">
-              מחובר
-            </Badge>
-          </div>
+          {!hideAuthButtons && (
+            <div className="flex items-center gap-2">
+              <Badge className="bg-zahav-green text-white">
+                מחובר
+              </Badge>
+            </div>
+          )}
         </div>
       </div>
     </div>

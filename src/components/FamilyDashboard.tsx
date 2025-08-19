@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
+import { useDataProvider } from '@/providers/DataProvider';
 
 interface Activity {
   id: string;
@@ -52,6 +53,7 @@ const FamilyDashboard = () => {
   ]);
   const { user } = useAuth();
   const { profile } = useProfile();
+  const { userProfile } = useDataProvider();
 
   const getActivityIcon = (type: Activity['type']) => {
     const iconClass = "w-4 h-4";
@@ -113,10 +115,10 @@ const FamilyDashboard = () => {
             <User className="w-8 h-8 text-primary" />
             <div>
               <h1 className="text-3xl font-bold text-foreground">
-                דשבורד משפחת {profile?.last_name || 'ישראל'}
+                דשבורד משפחת {userProfile?.lastName || profile?.last_name || 'ישראל'}
               </h1>
               <p className="text-muted-foreground">
-                ניהול וטיפול ב-{profile?.display_name || profile?.first_name || 'אבא יקר'}
+                ניהול וטיפול ב-{userProfile?.displayName || userProfile?.firstName || profile?.display_name || profile?.first_name || 'אבא יקר'}
               </p>
             </div>
           </div>
