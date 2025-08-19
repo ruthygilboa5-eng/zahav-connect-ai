@@ -10,7 +10,8 @@ import {
   Camera, 
   Gamepad2, 
   MessageSquare,
-  User
+  User,
+  Settings
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -187,8 +188,21 @@ const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
         </Card>
       )}
 
+      {/* Settings Button */}
+      <div className="mt-8">
+        <Button
+          variant="outline"
+          size="lg"
+          onClick={() => navigate('/family-management')}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+        >
+          <Settings className="w-5 h-5" />
+          ניהול משפחה והגדרות
+        </Button>
+      </div>
+
       {/* Instructions */}
-      <div className="mt-8 text-center max-w-md">
+      <div className="mt-6 text-center max-w-md">
         <p className="text-muted-foreground text-lg">
           לחץ על הכפתור הירוק כדי לדווח שאתה בסדר
         </p>

@@ -19,6 +19,7 @@ import EmergencyApprovalPage from "./pages/EmergencyApprovalPage";
 import RemindersPage from "./pages/RemindersPage";
 import MemoriesPage from "./pages/MemoriesPage";
 import GamesPage from "./pages/GamesPage";
+import FamilyManagementPage from "./pages/FamilyManagementPage";
 import FamilyBoardPage from "./pages/FamilyBoardPage";
 
 const queryClient = new QueryClient();
@@ -78,6 +79,11 @@ const App = () => (
                 <Route path="/games" element={
                   <ProtectedRoute requiredRole="MAIN_USER">
                     <GamesPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/family-management" element={
+                  <ProtectedRoute requiredRole="MAIN_USER">
+                    <FamilyManagementPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/family-board" element={
