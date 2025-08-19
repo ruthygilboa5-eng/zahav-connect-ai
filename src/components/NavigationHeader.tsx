@@ -1,15 +1,19 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { User, Users, Heart, Settings } from 'lucide-react';
+import { User, Users, Settings } from 'lucide-react';
+import { useAuth } from '@/providers/AuthProvider';
+import { useState } from 'react';
+import AccountModal from '@/components/AccountModal';
 
 interface NavigationHeaderProps {
   currentView: 'elderly' | 'family';
   onViewChange: (view: 'elderly' | 'family') => void;
   onSettingsClick: () => void;
-  hideAuthButtons?: boolean;
 }
 
-const NavigationHeader = ({ currentView, onViewChange, onSettingsClick, hideAuthButtons = false }: NavigationHeaderProps) => {
+const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: NavigationHeaderProps) => {
+  const { authState, login } = useAuth();
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   return (
     <div className="bg-card border-b border-border sticky top-0 z-50 backdrop-blur-sm bg-card/95">
       <div className="max-w-6xl mx-auto px-4 py-3">
@@ -50,16 +54,46 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick, hideAuth
             </Button>
           </div>
 
-          {/* Status Indicator */}
-          {!hideAuthButtons && (
-            <div className="flex items-center gap-2">
-              <Badge className="bg-zahav-green text-white">
-                מחובר
-              </Badge>
-            </div>
-          )}
+          {/* Auth Section */}
+          <div className="flex items-center gap-2">
+            {!authState.isAuthenticated ? (
+              <>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => login('MAIN_USER')}
+                  className="text-sm"
+                >
+                  התחברות כקשיש
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => login('FAMILY')}
+                  className="text-sm"
+                >
+                  התחברות כבן משפחה
+                </Button>
+              </>
+            ) : (
+              <button
+                onClick={() => setIsAccountModalOpen(true)}
+                className="flex items-center gap-2 hover:bg-accent hover:text-accent-foreground p-2 rounded-lg transition-colors"
+              >
+                <Badge variant="secondary" className="bg-primary text-primary-foreground">
+                  מחובר
+                </Badge>
+                <span className="text-sm font-medium">שלום {authState.firstName}</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
+      
+      <AccountModal 
+        isOpen={isAccountModalOpen} 
+        onClose={() => setIsAccountModalOpen(false)} 
+      />
     </div>
   );
 };
