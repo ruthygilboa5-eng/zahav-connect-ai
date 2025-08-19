@@ -37,74 +37,61 @@ const EmergencyContactsPage = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white relative">
-      {/* Amber Glow Background */}
-      <div
-        className="absolute inset-0 z-0"
-        style={{
-          backgroundImage: `
-            radial-gradient(125% 125% at 50% 90%, #ffffff 40%, #f59e0b 100%)
-          `,
-          backgroundSize: "100% 100%",
-        }}
-      />
-      {/* Content */}
-      <div className="relative z-10 p-4 flex flex-col items-center justify-center min-h-screen rtl-text">
-        <div className="text-center mb-8 max-w-md">
-          <Phone className="w-16 h-16 text-primary mx-auto mb-4" />
-          <h1 className="text-4xl font-bold text-foreground mb-2">
-            מוקדי חירום
-          </h1>
-          <p className="text-xl text-muted-foreground mb-8">
-            לחץ לחיוג מיידי
-          </p>
+    <div className="p-4 flex flex-col items-center justify-center min-h-screen rtl-text">
+      <div className="text-center mb-8 max-w-md">
+        <Phone className="w-16 h-16 text-primary mx-auto mb-4" />
+        <h1 className="text-4xl font-bold text-foreground mb-2">
+          מוקדי חירום
+        </h1>
+        <p className="text-xl text-muted-foreground mb-8">
+          לחץ לחיוג מיידי
+        </p>
 
-          <div className="space-y-4 mb-8">
-            {emergencyContacts.map((contact) => (
-              <Card key={contact.name} className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-muted rounded-full">
-                      <contact.icon className="w-6 h-6 text-foreground" />
-                    </div>
-                    <div className="text-right">
-                      <h3 className="text-xl font-bold text-foreground">
-                        {contact.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {contact.description}
-                      </p>
-                    </div>
+        <div className="space-y-4 mb-8">
+          {emergencyContacts.map((contact) => (
+            <Card key={contact.name} className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-muted rounded-full">
+                    <contact.icon className="w-6 h-6 text-foreground" />
                   </div>
-                  <Button
-                    onClick={() => handleCall(contact.number, contact.name)}
-                    className={`${contact.color} text-white w-20 h-20 rounded-full text-lg font-bold`}
-                  >
-                    <div className="text-center">
-                      <Phone className="w-6 h-6 mb-1 mx-auto" />
-                      <div>{contact.number}</div>
-                    </div>
-                  </Button>
+                  <div className="text-right">
+                    <h3 className="text-xl font-bold text-foreground">
+                      {contact.name}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {contact.description}
+                    </p>
+                  </div>
                 </div>
-              </Card>
-            ))}
-          </div>
-
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
-            <p className="text-orange-800 text-sm font-medium">
-              ⚠️ השתמש במוקדים אלה רק במקרי חירום אמיתיים
-            </p>
-          </div>
-
-          <Button
-            onClick={() => navigate('/')}
-            variant="outline"
-            className="w-full"
-          >
-            <Home className="w-5 h-5 ml-2" />
-            חזרה לעמוד הראשי
-          </Button>
+                <Button
+                  onClick={() => handleCall(contact.number, contact.name)}
+                  className={`${contact.color} text-white w-20 h-20 rounded-full text-lg font-bold`}
+                >
+                  <div className="text-center">
+                    <Phone className="w-6 h-6 mb-1 mx-auto" />
+                    <div>{contact.number}</div>
+                  </div>
+                </Button>
+              </div>
+            </Card>
+          ))}
         </div>
+
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+          <p className="text-orange-800 text-sm font-medium">
+            ⚠️ השתמש במוקדים אלה רק במקרי חירום אמיתיים
+          </p>
+        </div>
+
+        <Button
+          onClick={() => navigate('/')}
+          variant="outline"
+          className="w-full"
+        >
+          <Home className="w-5 h-5 ml-2" />
+          חזרה לעמוד הראשי
+        </Button>
       </div>
     </div>
   );

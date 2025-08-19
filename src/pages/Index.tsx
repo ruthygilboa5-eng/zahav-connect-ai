@@ -31,39 +31,26 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-white relative">
-      {/* Amber Glow Background */}
-      <div
-        className="absolute inset-0 z-0"
-        style={{
-          backgroundImage: `
-            radial-gradient(125% 125% at 50% 90%, #ffffff 40%, #f59e0b 100%)
-          `,
-          backgroundSize: "100% 100%",
-        }}
+    <>
+      <DevModeBanner />
+      <NavigationHeader 
+        currentView={currentView} 
+        onViewChange={setCurrentView}
+        onSettingsClick={() => setIsSettingsOpen(true)}
+        hideAuthButtons={DEV_MODE_DEMO}
       />
-      {/* Content */}
-      <div className="relative z-10">
-        <DevModeBanner />
-        <NavigationHeader 
-          currentView={currentView} 
-          onViewChange={setCurrentView}
-          onSettingsClick={() => setIsSettingsOpen(true)}
-          hideAuthButtons={DEV_MODE_DEMO}
-        />
-        
-        {currentView === 'elderly' ? (
-          <ElderlyInterface />
-        ) : (
-          <FamilyDashboard />
-        )}
+      
+      {currentView === 'elderly' ? (
+        <ElderlyInterface />
+      ) : (
+        <FamilyDashboard />
+      )}
 
-        <NewSettingsModal
-          isOpen={isSettingsOpen}
-          onClose={() => setIsSettingsOpen(false)}
-        />
-      </div>
-    </div>
+      <NewSettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
+    </>
   );
 };
 

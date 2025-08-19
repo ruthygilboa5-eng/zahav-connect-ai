@@ -51,91 +51,78 @@ const MemoriesPage = () => {
   ];
 
   return (
-    <div className="min-h-screen w-full bg-white relative">
-      {/* Amber Glow Background */}
-      <div
-        className="absolute inset-0 z-0"
-        style={{
-          backgroundImage: `
-            radial-gradient(125% 125% at 50% 90%, #ffffff 40%, #f59e0b 100%)
-          `,
-          backgroundSize: "100% 100%",
-        }}
-      />
-      {/* Content */}
-      <div className="relative z-10 p-4 rtl-text min-h-screen">
-        <div className="max-w-md mx-auto">
-          <div className="text-center mb-8">
-            <Camera className="w-16 h-16 text-primary mx-auto mb-4" />
-            <h1 className="text-4xl font-bold text-foreground mb-2">
-              פינת זכרונות
-            </h1>
-            <p className="text-xl text-muted-foreground">
-              הסיפורים והזכרונות שלך
-            </p>
-          </div>
+    <div className="p-4 rtl-text min-h-screen">
+      <div className="max-w-md mx-auto">
+        <div className="text-center mb-8">
+          <Camera className="w-16 h-16 text-primary mx-auto mb-4" />
+          <h1 className="text-4xl font-bold text-foreground mb-2">
+            פינת זכרונות
+          </h1>
+          <p className="text-xl text-muted-foreground">
+            הסיפורים והזכרונות שלך
+          </p>
+        </div>
 
-          <div className="space-y-4 mb-8">
-            <h2 className="text-2xl font-bold text-foreground mb-4">קטגוריות</h2>
-            {memoryCategories.map((category) => (
-              <Card key={category.id} className="p-4 hover:shadow-md transition-shadow cursor-pointer">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className={`p-3 ${category.color} rounded-full`}>
-                      <category.icon className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="text-right">
-                      <h3 className="text-xl font-bold text-foreground">
-                        {category.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {category.description}
-                      </p>
-                    </div>
+        <div className="space-y-4 mb-8">
+          <h2 className="text-2xl font-bold text-foreground mb-4">קטגוריות</h2>
+          {memoryCategories.map((category) => (
+            <Card key={category.id} className="p-4 hover:shadow-md transition-shadow cursor-pointer">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className={`p-3 ${category.color} rounded-full`}>
+                    <category.icon className="w-6 h-6 text-white" />
                   </div>
-                  <div className="text-left">
-                    <div className="text-2xl font-bold text-primary">
-                      {category.count}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      פריטים
-                    </div>
+                  <div className="text-right">
+                    <h3 className="text-xl font-bold text-foreground">
+                      {category.name}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {category.description}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-left">
+                  <div className="text-2xl font-bold text-primary">
+                    {category.count}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    פריטים
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-foreground mb-4">זכרונות אחרונים</h2>
+          <div className="space-y-3">
+            {recentMemories.map((memory) => (
+              <Card key={memory.id} className="p-4">
+                <div className="text-right">
+                  <h3 className="text-lg font-bold text-foreground">
+                    {memory.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    {memory.description}
+                  </p>
+                  <div className="text-xs text-primary">
+                    {memory.date}
                   </div>
                 </div>
               </Card>
             ))}
           </div>
-
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-foreground mb-4">זכרונות אחרונים</h2>
-            <div className="space-y-3">
-              {recentMemories.map((memory) => (
-                <Card key={memory.id} className="p-4">
-                  <div className="text-right">
-                    <h3 className="text-lg font-bold text-foreground">
-                      {memory.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {memory.description}
-                    </p>
-                    <div className="text-xs text-primary">
-                      {memory.date}
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
-
-          <Button
-            onClick={() => navigate('/')}
-            variant="outline"
-            className="w-full"
-          >
-            <Home className="w-5 h-5 ml-2" />
-            חזרה לעמוד הראשי
-          </Button>
         </div>
+
+        <Button
+          onClick={() => navigate('/')}
+          variant="outline"
+          className="w-full"
+        >
+          <Home className="w-5 h-5 ml-2" />
+          חזרה לעמוד הראשי
+        </Button>
       </div>
     </div>
   );
