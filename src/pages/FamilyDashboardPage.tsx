@@ -19,19 +19,47 @@ import { useFamilyProvider } from '@/providers/FamilyProvider';
 import { FamilyScope } from '@/types/family';
 import ContentUploadModal from '@/components/ContentUploadModal';
 import FamilyMemberNotifications from '@/components/FamilyMemberNotifications';
+import AccessDeniedModal from '@/components/AccessDeniedModal';
 import RoleBasedDisplay from '@/components/RoleBasedDisplay';
 
 const FamilyDashboardPage = () => {
   const navigate = useNavigate();
   const { authState } = useAuth();
-  const { getMemberScopes, canMemberPerformAction } = useFamilyProvider();
+  const { getMemberScopes, canMemberPerformAction, memories } = useFamilyProvider();
   
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [uploadType, setUploadType] = useState<'MEDIA' | 'STORY' | 'REMINDER' | 'GAME_INVITE'>('MEDIA');
+  const [accessDeniedOpen, setAccessDeniedOpen] = useState(false);
+  const [deniedMessage, setDeniedMessage] = useState('');
 
   const memberScopes = authState.memberId ? getMemberScopes(authState.memberId) : [];
 
   const openUploadModal = (type: typeof uploadType) => {
+    // Check permissions before opening modal
+    const memberId = authState.memberId || '';
+    let requiredScope: FamilyScope;
+    
+    switch (type) {
+      case 'MEDIA':
+      case 'STORY':
+        requiredScope = 'POST_MEDIA';
+        break;
+      case 'REMINDER':
+        requiredScope = 'SUGGEST_REMINDER';
+        break;
+      case 'GAME_INVITE':
+        requiredScope = 'PLAY_GAMES';
+        break;
+      default:
+        return;
+    }
+
+    if (!canMemberPerformAction(memberId, requiredScope)) {
+      setDeniedMessage(`אין לך הרשאה ל${type === 'MEDIA' ? 'העלאת תמונות' : type === 'STORY' ? 'שיתוף סיפורים' : type === 'REMINDER' ? 'הצעת תזכורות' : 'הזמנת משחקים'}. פנה למשתמש הראשי להפעלת ההרשאה.`);
+      setAccessDeniedOpen(true);
+      return;
+    }
+
     setUploadType(type);
     setUploadModalOpen(true);
   };
@@ -72,16 +100,31 @@ const FamilyDashboardPage = () => {
           </p>
         </div>
 
-        {/* Status Card */}
-        <Card className="p-4 mb-6 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
-          <div className="flex items-center gap-3">
-            <Activity className="w-8 h-8 text-blue-600" />
-            <div>
-              <h3 className="font-bold text-blue-800">סטטוס חיבור</h3>
-              <p className="text-sm text-blue-700">
-                פעילות אחרונה: היום בערב
-              </p>
-            </div>
+        {/* Content Feed - Approved content from main user */}
+        <Card className="p-4 mb-6">
+          <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
+            <Heart className="w-5 h-5 text-primary" />
+            פיד משפחתי
+          </h3>
+          <div className="space-y-3">
+            {memories.filter(memory => memory.fromFamily).length > 0 ? (
+              memories.filter(memory => memory.fromFamily).slice(0, 3).map((memory) => (
+                <div key={memory.id} className="p-3 bg-muted/30 rounded-lg">
+                  <h4 className="font-medium text-foreground">{memory.title}</h4>
+                  <p className="text-sm text-muted-foreground mt-1">{memory.content}</p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {new Date(memory.createdAt).toLocaleDateString('he-IL')}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-6">
+                <Heart className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">
+                  אין תוכן חדש כרגע
+                </p>
+              </div>
+            )}
           </div>
         </Card>
 
@@ -207,6 +250,12 @@ const FamilyDashboardPage = () => {
           isOpen={uploadModalOpen}
           onClose={() => setUploadModalOpen(false)}
           contentType={uploadType}
+        />
+
+        <AccessDeniedModal
+          isOpen={accessDeniedOpen}
+          onClose={() => setAccessDeniedOpen(false)}
+          message={deniedMessage}
         />
       </div>
     </div>

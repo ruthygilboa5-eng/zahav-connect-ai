@@ -20,6 +20,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useDataProvider } from '@/providers/DataProvider';
+import NotificationBadge from '@/components/NotificationBadge';
 
 interface ElderlyInterfaceProps {
   userName?: string;
@@ -208,10 +209,11 @@ const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
           variant="outline"
           size="lg"
           onClick={() => navigate('/review')}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground relative"
         >
           <Clock className="w-5 h-5" />
           אישור תוכן משפחתי
+          <NotificationBadge />
         </Button>
       </div>
 
