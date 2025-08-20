@@ -1,14 +1,30 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, Heart, Shield, Clock } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
+import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
-  const { login } = useAuth();
+  const { authState, loginAsMainUser, loginAsFamily } = useAuth();
+  const navigate = useNavigate();
 
-  const handleLogin = (role: 'MAIN_USER' | 'FAMILY') => {
-    login(role);
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (authState.isAuthenticated) {
+      const targetPath = authState.role === 'MAIN_USER' ? '/home' : '/family';
+      navigate(targetPath, { replace: true });
+    }
+  }, [authState.isAuthenticated, authState.role, navigate]);
+
+  const handleMainUserLogin = () => {
+    loginAsMainUser();
+    navigate('/home');
+  };
+
+  const handleFamilyLogin = () => {
+    loginAsFamily();
+    navigate('/family');
   };
 
   return (
@@ -51,7 +67,7 @@ const Index = () => {
                 </div>
               </div>
               <Button 
-                onClick={() => handleLogin('MAIN_USER')}
+                onClick={handleMainUserLogin}
                 className="w-full"
                 size="lg"
               >
@@ -86,7 +102,7 @@ const Index = () => {
                 </div>
               </div>
               <Button 
-                onClick={() => handleLogin('FAMILY')}
+                onClick={handleFamilyLogin}
                 variant="outline"
                 className="w-full"
                 size="lg"
