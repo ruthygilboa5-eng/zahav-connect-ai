@@ -12,8 +12,8 @@ export const useRoleBasedNavigation = () => {
 
   useEffect(() => {
     if (!authState.isAuthenticated) {
-      // Not authenticated - redirect to landing page
-      if (location.pathname !== '/') {
+      // Not authenticated - allow access to home page only
+      if (location.pathname !== '/' && location.pathname !== '/home' && location.pathname !== '/family') {
         navigate('/', { replace: true });
       }
       return;

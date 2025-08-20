@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AppRole, FamilyScope } from '@/types/family';
 
 export interface AuthState {
@@ -39,13 +40,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   });
 
   const login = (role: AppRole, memberId?: string, scopes?: FamilyScope[]) => {
+    const defaultScopes: FamilyScope[] = ['POST_MEDIA', 'SUGGEST_REMINDER', 'PLAY_GAMES'];
+    
     setAuthState({
       isAuthenticated: true,
       role,
       firstName: role === 'MAIN_USER' ? 'משתמש ראשי' : 'בן משפחה',
-      memberId,
-      scopes
+      memberId: role === 'FAMILY' ? (memberId || 'family-1') : undefined,
+      scopes: role === 'FAMILY' ? (scopes || defaultScopes) : undefined
     });
+
+    // Navigate to appropriate page after login
+    if (typeof window !== 'undefined') {
+      const targetPath = role === 'MAIN_USER' ? '/home' : '/family';
+      window.location.href = targetPath;
+    }
   };
 
   const logout = () => {
@@ -56,8 +65,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       memberId: undefined,
       scopes: undefined
     });
-    // Redirect to auth page after logout
-    window.location.href = '/auth';
+    
+    // Navigate back to home
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
   };
 
   return (

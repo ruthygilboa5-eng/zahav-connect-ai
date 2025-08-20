@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,15 +15,33 @@ import {
   Heart
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useFamilyProvider } from '@/providers/FamilyProvider';
+import { useMockSupabase } from '@/hooks/useMockSupabase';
 import { PendingItem } from '@/types/family';
 import { useToast } from '@/hooks/use-toast';
 
 const ReviewPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { pendingQueue, approvePendingItem, rejectPendingItem } = useFamilyProvider();
+  const { listPending, approvePending, declinePending, loading } = useMockSupabase();
   const [selectedTab, setSelectedTab] = useState('pending');
+  const [pendingQueue, setPendingQueue] = useState<PendingItem[]>([]);
+
+  useEffect(() => {
+    loadPendingItems();
+  }, []);
+
+  const loadPendingItems = async () => {
+    try {
+      const items = await listPending();
+      setPendingQueue(items);
+    } catch (error) {
+      toast({
+        title: "שגיאה",
+        description: "לא ניתן לטעון את רשימת הפריטים הממתינים",
+        variant: "destructive"
+      });
+    }
+  };
 
   const pendingItems = pendingQueue.filter(item => !item.status || item.status === 'PENDING');
   const approvedItems = pendingQueue.filter(item => item.status === 'APPROVED');
@@ -59,21 +77,39 @@ const ReviewPage = () => {
     }
   };
 
-  const handleApprove = (item: PendingItem) => {
-    approvePendingItem(item.id);
-    toast({
-      title: "פריט אושר",
-      description: `${getItemTypeLabel(item.type)} מ${item.fromMemberName} אושר בהצלחה`,
-    });
+  const handleApprove = async (item: PendingItem) => {
+    try {
+      await approvePending(item.id);
+      await loadPendingItems();
+      toast({
+        title: "פריט אושר",
+        description: `${getItemTypeLabel(item.type)} מ${item.fromMemberName} אושר בהצלחה`,
+      });
+    } catch (error) {
+      toast({
+        title: "שגיאה",
+        description: "לא ניתן לאשר את הפריט",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleReject = (item: PendingItem) => {
-    rejectPendingItem(item.id);
-    toast({
-      title: "פריט נדחה",
-      description: `${getItemTypeLabel(item.type)} מ${item.fromMemberName} נדחה`,
-      variant: "destructive",
-    });
+  const handleReject = async (item: PendingItem) => {
+    try {
+      await declinePending(item.id);
+      await loadPendingItems();
+      toast({
+        title: "פריט נדחה",
+        description: `${getItemTypeLabel(item.type)} מ${item.fromMemberName} נדחה`,
+        variant: "destructive",
+      });
+    } catch (error) {
+      toast({
+        title: "שגיאה",
+        description: "לא ניתן לדחות את הפריט",
+        variant: "destructive"
+      });
+    }
   };
 
   const ItemCard = ({ item, showActions = true }: { item: PendingItem; showActions?: boolean }) => (
