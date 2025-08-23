@@ -17,7 +17,7 @@ import {
   Camera,
   User
 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/providers/AuthProvider';
 import { useProfile } from '@/hooks/useProfile';
 import { useDataProvider } from '@/providers/DataProvider';
 import { useAuthDisplayName } from '@/hooks/useDisplayName';
@@ -30,7 +30,6 @@ interface ElderlyInterfaceProps {
 const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
   const [lastAction, setLastAction] = useState<string>("");
   const navigate = useNavigate();
-  const { user } = useAuth();
   const { profile } = useProfile();
   const { userProfile } = useDataProvider();
   const displayName = useAuthDisplayName();

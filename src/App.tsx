@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { DataProvider } from "@/providers/DataProvider";
 import { FamilyProvider } from "@/providers/FamilyProvider";
+import { OwnerProvider } from "@/providers/OwnerProvider";
 import AppLayout from "@/components/AppLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AppInitializer from "@/components/AppInitializer";
@@ -30,8 +31,9 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <FamilyProvider>
-          <DataProvider>
+        <OwnerProvider>
+          <FamilyProvider>
+            <DataProvider>
             <Toaster />
             <Sonner />
             <BrowserRouter>
@@ -107,6 +109,7 @@ const App = () => (
             </BrowserRouter>
           </DataProvider>
         </FamilyProvider>
+        </OwnerProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

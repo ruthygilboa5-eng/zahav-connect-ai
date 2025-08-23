@@ -1,6 +1,8 @@
 import { useAuth } from '@/providers/AuthProvider';
 import { useProfile } from '@/hooks/useProfile';
 import { useDataProvider } from '@/providers/DataProvider';
+import { useOwnerContext } from '@/providers/OwnerProvider';
+import { useState, useEffect } from 'react';
 
 // Returns the currently logged-in user's display name
 export const useAuthDisplayName = () => {
@@ -24,11 +26,27 @@ export const useAuthDisplayName = () => {
 
 // Returns the main user's display name (for context when logged in as family)
 export const useMainUserDisplayName = () => {
-  const { userProfile } = useDataProvider();
-  
-  // In mock mode, this would return the main user's name
-  // For now, fallback to a default
-  return userProfile?.displayName || userProfile?.firstName || 'המשתמש הראשי';
+  const { ownerUserId } = useOwnerContext();
+  const { loadUserProfile } = useProfile();
+  const [ownerName, setOwnerName] = useState<string>('');
+
+  useEffect(() => {
+    const fetchOwnerName = async () => {
+      if (ownerUserId) {
+        const ownerProfile = await loadUserProfile(ownerUserId);
+        setOwnerName(
+          (ownerProfile?.first_name && ownerProfile.first_name.trim()) ||
+          'המשתמש הראשי'
+        );
+      } else {
+        setOwnerName('המשתמש הראשי');
+      }
+    };
+
+    fetchOwnerName();
+  }, [ownerUserId, loadUserProfile]);
+
+  return ownerName;
 };
 
 // Legacy hook for backwards compatibility
