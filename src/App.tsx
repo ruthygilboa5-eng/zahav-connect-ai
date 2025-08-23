@@ -10,7 +10,6 @@ import AppLayout from "@/components/AppLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import HomePage from "./pages/HomePage";
-import FamilyPage from "./pages/FamilyPage";
 import NotFound from "./pages/NotFound";
 import WakeUpPage from "./pages/WakeUpPage";
 import EmergencyPage from "./pages/EmergencyPage";
@@ -22,7 +21,7 @@ import GamesPage from "./pages/GamesPage";
 import FamilyManagementPage from "./pages/FamilyManagementPage";
 import FamilyBoardPage from "./pages/FamilyBoardPage";
 import ReviewPage from "./pages/ReviewPage";
-import FamilyDashboardPage from "./pages/FamilyDashboardPage";
+import FamilyDashboard from "./components/FamilyDashboard";
 
 const queryClient = new QueryClient();
 
@@ -45,7 +44,7 @@ const App = () => (
                 } />
                 <Route path="/family" element={
                   <ProtectedRoute requiredRole="FAMILY">
-                    <FamilyDashboardPage />
+                    <FamilyDashboard />
                   </ProtectedRoute>
                 } />
                 <Route path="/wakeup" element={

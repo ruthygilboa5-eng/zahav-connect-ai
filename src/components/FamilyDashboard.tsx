@@ -157,6 +157,11 @@ const FamilyDashboard = () => {
   return (
     <div className="family-dashboard p-6 rtl-text">
       <div className="max-w-6xl mx-auto">
+        {/* QA Banner */}
+        <div className="mb-4 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-center">
+          QA: Rendering 5 static cards · build=STATUS_BASED_RENDERING · ts={Date.now()}
+        </div>
+
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
