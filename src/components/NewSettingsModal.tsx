@@ -3,14 +3,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Phone, User, Building2, Users, UserCog, Heart } from 'lucide-react';
+import { Phone, User, Building2, Users, UserCog, Heart, Shield } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { useMockSupabase } from '@/hooks/useMockSupabase';
 import { useAuth } from '@/providers/AuthProvider';
-import { FamilyMember, relationOptions } from '@/types/family';
+import { FamilyMember, relationOptions, FamilyScope, scopeLabels, FAMILY_SCOPES } from '@/types/family';
 import { useToast } from '@/hooks/use-toast';
 
 interface NewSettingsModalProps {
@@ -114,6 +115,23 @@ export default function NewSettingsModal({ isOpen, onClose }: NewSettingsModalPr
       toast({
         title: "שגיאה",
         description: "לא ניתן לבטל את ההרשאות",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleScopesUpdate = async (memberId: string, scopes: FamilyScope[]) => {
+    try {
+      await updateFamilyLink(memberId, { scopes });
+      await loadData();
+      toast({
+        title: "הצלחה",
+        description: "הרשאות עודכנו בהצלחה"
+      });
+    } catch (error) {
+      toast({
+        title: "שגיאה",
+        description: "לא ניתן לעדכן את ההרשאות",
         variant: "destructive"
       });
     }
@@ -276,49 +294,15 @@ export default function NewSettingsModal({ isOpen, onClose }: NewSettingsModalPr
                     <p>לא נוספו בני משפחה עדיין</p>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {familyMembers.map((member) => (
-                      <div key={member.id} className="p-3 border rounded-lg">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-3">
-                            <div className="mt-1">
-                              <Heart className="h-4 w-4" />
-                            </div>
-                            <div className="flex-1">
-                              <div className="font-medium">{member.fullName}</div>
-                              <div className="text-sm text-muted-foreground">
-                                {member.relation}
-                              </div>
-                              <div className="text-sm text-muted-foreground mt-1">
-                                {member.phone}
-                              </div>
-                              <div className="text-xs text-muted-foreground mt-1">
-                                הרשאות: {member.scopes.join(', ')}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex flex-col gap-2">
-                            {getStatusBadge(member.status)}
-                            {member.status === 'PENDING' && (
-                              <Button 
-                                size="sm" 
-                                onClick={() => handleApproveFamily(member.id)}
-                              >
-                                אשר
-                              </Button>
-                            )}
-                            {member.status === 'APPROVED' && (
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => handleRevokeFamily(member.id)}
-                              >
-                                בטל הרשאות
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+                      <FamilyMemberScopeCard 
+                        key={member.id} 
+                        member={member}
+                        onApprove={() => handleApproveFamily(member.id)}
+                        onRevoke={() => handleRevokeFamily(member.id)}
+                        onScopesUpdate={(scopes) => handleScopesUpdate(member.id, scopes)}
+                      />
                     ))}
                   </div>
                 )}
@@ -366,5 +350,113 @@ export default function NewSettingsModal({ isOpen, onClose }: NewSettingsModalPr
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// Family Member Scope Management Component
+interface FamilyMemberScopeCardProps {
+  member: FamilyMember;
+  onApprove: () => void;
+  onRevoke: () => void;
+  onScopesUpdate: (scopes: FamilyScope[]) => void;
+}
+
+function FamilyMemberScopeCard({ member, onApprove, onRevoke, onScopesUpdate }: FamilyMemberScopeCardProps) {
+  const [localScopes, setLocalScopes] = useState(member.scopes);
+
+  const getStatusBadge = () => {
+    switch (member.status) {
+      case 'APPROVED':
+        return <Badge variant="default" className="bg-green-500">מאושר</Badge>;
+      case 'PENDING':
+        return <Badge variant="outline" className="border-yellow-500 text-yellow-600">ממתין לאישור</Badge>;
+      case 'REVOKED':
+        return <Badge variant="destructive">מבוטל</Badge>;
+      default:
+        return null;
+    }
+  };
+
+  const handleScopeToggle = (scope: FamilyScope, checked: boolean) => {
+    let newScopes;
+    if (checked) {
+      newScopes = [...localScopes, scope];
+    } else {
+      newScopes = localScopes.filter(s => s !== scope);
+    }
+    setLocalScopes(newScopes);
+  };
+
+  const handleSaveScopes = () => {
+    onScopesUpdate(localScopes);
+  };
+
+  const hasUnsavedChanges = JSON.stringify(localScopes.sort()) !== JSON.stringify(member.scopes.sort());
+
+  return (
+    <div className="p-4 border rounded-lg bg-card">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-start gap-3">
+          <div className="mt-1">
+            <Heart className="h-4 w-4" />
+          </div>
+          <div className="flex-1">
+            <div className="font-medium">{member.fullName}</div>
+            <div className="text-sm text-muted-foreground">{member.relation}</div>
+            <div className="text-sm text-muted-foreground mt-1">{member.phone}</div>
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          {getStatusBadge()}
+          {member.status === 'PENDING' && (
+            <Button size="sm" onClick={onApprove}>
+              אשר
+            </Button>
+          )}
+          {member.status === 'APPROVED' && (
+            <Button variant="outline" size="sm" onClick={onRevoke}>
+              בטל הרשאות
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Scope Management */}
+      <div className="space-y-3 pt-3 border-t">
+        <div className="flex items-center gap-2 mb-3">
+          <Shield className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium">הרשאות בן המשפחה:</span>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {Object.values(FAMILY_SCOPES).map((scope) => (
+            <div key={scope} className="flex items-center justify-between p-2 rounded border bg-muted/20">
+              <div className="flex-1">
+                <div className="text-sm font-medium">{scopeLabels[scope]}</div>
+              </div>
+              <Switch
+                checked={localScopes.includes(scope)}
+                onCheckedChange={(checked) => handleScopeToggle(scope, checked)}
+                disabled={member.status !== 'APPROVED'}
+              />
+            </div>
+          ))}
+        </div>
+
+        {member.status !== 'APPROVED' && (
+          <p className="text-xs text-muted-foreground mt-2">
+            הרשאות זמינות רק לאחר אישור בן המשפחה
+          </p>
+        )}
+
+        {hasUnsavedChanges && member.status === 'APPROVED' && (
+          <div className="flex justify-end pt-2">
+            <Button size="sm" onClick={handleSaveScopes}>
+              שמור שינויים
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

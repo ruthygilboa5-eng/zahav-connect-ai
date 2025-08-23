@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
   User, 
   Phone, 
-  Settings, 
   Check, 
   X, 
   Shield,
@@ -13,7 +12,7 @@ import {
 } from 'lucide-react';
 import { FamilyMember, scopeLabels } from '@/types/family';
 import { useFamilyProvider } from '@/providers/FamilyProvider';
-import { ScopeSelector } from '@/components/ScopeSelector';
+import { useAuth } from '@/providers/AuthProvider';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -27,18 +26,24 @@ interface FamilyMemberCardProps {
 }
 
 export const FamilyMemberCard = ({ member, showActions = false }: FamilyMemberCardProps) => {
-  const [isEditingScopes, setIsEditingScopes] = useState(false);
-  const { updateMemberStatus, updateMemberScopes, removeFamilyMember } = useFamilyProvider();
+  const { updateMemberStatus, removeFamilyMember } = useFamilyProvider();
+  const { authState } = useAuth();
+
+  // Only Main Users can manage family member scopes and actions
+  const canManageMembers = authState.role === 'MAIN_USER';
 
   const handleApprove = () => {
+    if (!canManageMembers) return;
     updateMemberStatus(member.id, 'APPROVED');
   };
 
   const handleReject = () => {
+    if (!canManageMembers) return;
     updateMemberStatus(member.id, 'REVOKED');
   };
 
   const handleRemove = () => {
+    if (!canManageMembers) return;
     if (confirm(`האם אתה בטוח שברצונך להסיר את ${member.fullName}?`)) {
       removeFamilyMember(member.id);
     }
@@ -87,50 +92,27 @@ export const FamilyMemberCard = ({ member, showActions = false }: FamilyMemberCa
                 </div>
               </div>
 
-              {/* Scopes */}
+              {/* Scopes Display - Read Only for Family Users */}
               {member.status === 'APPROVED' && (
                 <div className="mt-3">
-                  {isEditingScopes ? (
-                    <div className="space-y-3">
-                      <ScopeSelector 
-                        selectedScopes={member.scopes}
-                        onScopesChange={(scopes) => {
-                          updateMemberScopes(member.id, scopes);
-                          setIsEditingScopes(false);
-                        }}
-                      />
-                      <div className="flex gap-2">
-                        <Button 
-                          size="sm" 
-                          onClick={() => setIsEditingScopes(false)}
-                          variant="outline"
-                        >
-                          ביטול
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Shield className="w-4 h-4 text-primary" />
-                        <span className="text-sm font-medium">הרשאות:</span>
-                      </div>
-                      <div className="flex flex-wrap gap-1">
-                        {member.scopes.map((scope) => (
-                          <Badge key={scope} variant="outline" className="text-xs">
-                            {scopeLabels[scope]}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 mb-2">
+                    <Shield className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-medium">הרשאות:</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {member.scopes.map((scope) => (
+                      <Badge key={scope} variant="outline" className="text-xs">
+                        {scopeLabels[scope]}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Actions */}
-          {showActions && (
+          {/* Actions - Only for Main User */}
+          {showActions && canManageMembers && (
             <div className="flex items-center gap-2">
               {member.status === 'PENDING' && (
                 <>
@@ -159,9 +141,12 @@ export const FamilyMemberCard = ({ member, showActions = false }: FamilyMemberCa
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setIsEditingScopes(true)}>
-                      <Settings className="w-4 h-4 ml-2" />
-                      עדכן הרשאות
+                    <DropdownMenuItem 
+                      onClick={handleReject}
+                      className="text-destructive"
+                    >
+                      <X className="w-4 h-4 ml-2" />
+                      בטל הרשאות
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       onClick={handleRemove}

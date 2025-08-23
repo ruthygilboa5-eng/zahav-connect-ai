@@ -18,7 +18,8 @@ import {
   Upload,
   Calendar,
   Gamepad2,
-  Lock
+  Lock,
+  Shield
 } from 'lucide-react';
 import { useAuthDisplayName, useMainUserDisplayName } from '@/hooks/useDisplayName';
 import { useFamilyPermissions } from '@/hooks/useFamilyPermissions';
@@ -214,6 +215,25 @@ const FamilyDashboard = () => {
           <Button variant="outline" size="icon">
             <Settings className="w-4 h-4" />
           </Button>
+        </div>
+
+        {/* Info Banner */}
+        <div className="mb-6">
+          <Card className="border-l-4 border-l-primary bg-muted/20">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <Shield className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    הפיצ'רים שלך נקבעים על ידי בעל החשבון הראשי
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    חלק מהפעולות עשויות להיות מושבתות בהתאם להרשאות שלך
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
