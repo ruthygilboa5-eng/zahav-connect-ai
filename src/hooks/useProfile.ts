@@ -3,12 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { UserProfile } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
 import { useTempAuth } from '@/hooks/useTempAuth';
+import { useAuth } from '@/providers/AuthProvider';
 
 export const useProfile = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useTempAuth();
+  const { setFirstName } = useAuth();
 
   const fetchProfile = useCallback(async () => {
     console.log('fetchProfile called, user:', user);
@@ -60,6 +62,11 @@ export const useProfile = () => {
         if (error) throw error;
         
         setProfile(prev => prev ? { ...prev, ...updates } : null);
+        
+        // Sync with auth state for immediate greeting updates
+        if (updates.first_name) {
+          setFirstName(updates.first_name);
+        }
       } else {
         // Create new profile using upsert to handle duplicates
         const newProfile = {
@@ -76,6 +83,11 @@ export const useProfile = () => {
 
         if (error) throw error;
         setProfile(data);
+        
+        // Sync with auth state for immediate greeting updates
+        if (updates.first_name) {
+          setFirstName(updates.first_name);
+        }
       }
 
       toast({
