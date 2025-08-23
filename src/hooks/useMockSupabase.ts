@@ -17,7 +17,7 @@ const initMockData = () => {
       relation: 'בן',
       phone: '050-1234567',
       status: 'APPROVED',
-      scopes: ['POST_MEDIA', 'SUGGEST_REMINDER', 'PLAY_GAMES'],
+      scopes: ['POST_MEDIA', 'SUGGEST_REMINDER', 'INVITE_GAME', 'CHAT'],
       invitedAt: new Date().toISOString(),
       approvedAt: new Date().toISOString()
     });

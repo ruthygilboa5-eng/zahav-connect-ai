@@ -15,7 +15,7 @@ export const ScopeSelector = ({
   onScopesChange, 
   disabled = false 
 }: ScopeSelectorProps) => {
-  const allScopes: FamilyScope[] = ['POST_MEDIA', 'SUGGEST_REMINDER', 'PLAY_GAMES', 'EMERGENCY_ONLY'];
+  const allScopes: FamilyScope[] = ['POST_MEDIA', 'SUGGEST_REMINDER', 'INVITE_GAME', 'CHAT', 'EMERGENCY_ONLY'];
 
   const handleScopeChange = (scope: FamilyScope, checked: boolean) => {
     if (checked) {
@@ -33,7 +33,8 @@ export const ScopeSelector = ({
     const descriptions = {
       POST_MEDIA: 'בן המשפחה יוכל להעלות תמונות, וידאו וסיפורים שיגיעו לאישור',
       SUGGEST_REMINDER: 'בן המשפחה יוכל להציע תזכורות שיגיעו לאישור',
-      PLAY_GAMES: 'בן המשפחה יוכל להזמין למשחקים משותפים',
+      INVITE_GAME: 'בן המשפחה יוכל להזמין למשחקים משותפים',
+      CHAT: 'בן המשפחה יוכל להשתתף בצ\'אט המשפחה',
       EMERGENCY_ONLY: 'בן המשפחה יקבל רק התראות חירום, ללא גישה לדשבורד'
     };
     return descriptions[scope];

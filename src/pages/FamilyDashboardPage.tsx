@@ -48,7 +48,7 @@ const FamilyDashboardPage = () => {
         requiredScope = 'SUGGEST_REMINDER';
         break;
       case 'GAME_INVITE':
-        requiredScope = 'PLAY_GAMES';
+        requiredScope = 'INVITE_GAME';
         break;
       default:
         return;
@@ -70,8 +70,10 @@ const FamilyDashboardPage = () => {
         return 'העלאת תמונות וסיפורים';
       case 'SUGGEST_REMINDER':
         return 'הצעת תזכורות';
-      case 'PLAY_GAMES':
+      case 'INVITE_GAME':
         return 'הזמנת משחקים';
+      case 'CHAT':
+        return 'צ\'אט משפחה';
       case 'EMERGENCY_ONLY':
         return 'התראות חירום בלבד';
       default:
@@ -81,7 +83,8 @@ const FamilyDashboardPage = () => {
 
   const canPostMedia = canMemberPerformAction(authState.memberId || '', 'POST_MEDIA');
   const canSuggestReminder = canMemberPerformAction(authState.memberId || '', 'SUGGEST_REMINDER');
-  const canPlayGames = canMemberPerformAction(authState.memberId || '', 'PLAY_GAMES');
+  const canInviteGames = canMemberPerformAction(authState.memberId || '', 'INVITE_GAME');
+  const canChat = canMemberPerformAction(authState.memberId || '', 'CHAT');
 
   return (
     <div className="p-4 rtl-text min-h-screen">
@@ -184,7 +187,7 @@ const FamilyDashboardPage = () => {
             </Card>
           )}
 
-          {canPlayGames && (
+          {canInviteGames && (
             <Card className="p-4 cursor-pointer hover:shadow-md transition-shadow"
                   onClick={() => openUploadModal('GAME_INVITE')}>
               <div className="flex items-center gap-4">

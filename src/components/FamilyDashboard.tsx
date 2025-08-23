@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Heart, 
   AlertTriangle, 
@@ -13,9 +14,18 @@ import {
   Plus,
   Clock,
   CheckCircle,
-  User
+  User,
+  Upload,
+  Calendar,
+  Gamepad2,
+  Lock
 } from 'lucide-react';
 import { useAuthDisplayName, useMainUserDisplayName } from '@/hooks/useDisplayName';
+import { useFamilyPermissions } from '@/hooks/useFamilyPermissions';
+import { useFamilyProvider } from '@/providers/FamilyProvider';
+import ContentUploadModal from '@/components/ContentUploadModal';
+
+type ContentType = 'MEDIA' | 'STORY' | 'REMINDER' | 'GAME_INVITE';
 
 interface Activity {
   id: string;
@@ -51,6 +61,61 @@ const FamilyDashboard = () => {
   ]);
   const familyName = useAuthDisplayName();
   const mainUserName = useMainUserDisplayName();
+  const { toast } = useToast();
+  const { canPostMedia, canSuggestReminder, canInviteGame, canChat } = useFamilyPermissions();
+  const { addToPendingQueue } = useFamilyProvider();
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [uploadType, setUploadType] = useState<ContentType>('MEDIA');
+
+  const handleContentSubmit = (type: ContentType) => {
+    if (type === 'MEDIA' || type === 'STORY') {
+      if (!canPostMedia) {
+        toast({
+          title: 'אין הרשאה',
+          description: 'אין לך הרשאה להעלאת תוכן. פנה למשתמש הראשי.',
+          variant: 'destructive'
+        });
+        return;
+      }
+    } else if (type === 'REMINDER') {
+      if (!canSuggestReminder) {
+        toast({
+          title: 'אין הרשאה',
+          description: 'אין לך הרשאה להצעת תזכורות. פנה למשתמש הראשי.',
+          variant: 'destructive'
+        });
+        return;
+      }
+    } else if (type === 'GAME_INVITE') {
+      if (!canInviteGame) {
+        toast({
+          title: 'אין הרשאה',
+          description: 'אין לך הרשאה להזמנת משחקים. פנה למשתמש הראשי.',
+          variant: 'destructive'
+        });
+        return;
+      }
+    }
+    
+    setUploadType(type);
+    setUploadModalOpen(true);
+  };
+
+  const handleChatOpen = () => {
+    if (!canChat) {
+      toast({
+        title: 'אין הרשאה',
+        description: 'אין לך הרשאה לצ\'אט המשפחה. פנה למשתמש הראשי.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    // Navigate to family chat or open chat modal
+    toast({
+      title: 'צ\'אט משפחה',
+      description: 'פיצ\'ר זה יפותח בקרוב'
+    });
+  };
 
   const getActivityIcon = (type: Activity['type']) => {
     const iconClass = "w-4 h-4";
@@ -82,24 +147,51 @@ const FamilyDashboard = () => {
     }
   };
 
-  const quickActions = [
+  const actionCards = [
     {
-      name: 'הוסף תזכורת',
-      description: 'תרופות או פגישות',
-      icon: Bell,
-      color: 'zahav-blue'
-    },
-    {
-      name: 'שלח הודעה',
-      description: 'הודעה למשפחה',
-      icon: MessageSquare,
-      color: 'zahav-orange'
-    },
-    {
-      name: 'העלה זכרון',
-      description: 'תמונה או סיפור',
+      id: 'media',
+      title: 'העלאת תמונות',
+      description: 'שתף תמונות ורגעים יפים',
       icon: Camera,
-      color: 'zahav-yellow'
+      color: 'zahav-blue',
+      enabled: canPostMedia,
+      action: () => handleContentSubmit('MEDIA')
+    },
+    {
+      id: 'story',
+      title: 'שיתוף סיפור',
+      description: 'ספר על רגע מיוחד או זיכרון',
+      icon: Upload,
+      color: 'zahav-yellow',
+      enabled: canPostMedia,
+      action: () => handleContentSubmit('STORY')
+    },
+    {
+      id: 'reminder',
+      title: 'הצעת תזכורת',
+      description: 'הצע תזכורת לתרופות או פגישות',
+      icon: Bell,
+      color: 'zahav-orange',
+      enabled: canSuggestReminder,
+      action: () => handleContentSubmit('REMINDER')
+    },
+    {
+      id: 'game',
+      title: 'הזמנת משחק',
+      description: 'הזמן למשחק משותף וכיף',
+      icon: Gamepad2,
+      color: 'zahav-green',
+      enabled: canInviteGame,
+      action: () => handleContentSubmit('GAME_INVITE')
+    },
+    {
+      id: 'chat',
+      title: 'צ\'אט משפחה',
+      description: 'התכתב עם המשפחה',
+      icon: MessageSquare,
+      color: 'zahav-purple',
+      enabled: canChat,
+      action: handleChatOpen
     }
   ];
 
@@ -165,28 +257,43 @@ const FamilyDashboard = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Plus className="w-5 h-5" />
-                פעולות מהירות
+                פעולות זמינות
               </CardTitle>
               <CardDescription>
-                הוסף תוכן או תזכורות
+                פעולות שאת/ה מורשה לבצע
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {quickActions.map((action, index) => (
+                {actionCards.map((action) => (
                   <Button
-                    key={index}
-                    variant="outline"
-                    className="w-full justify-start h-auto p-3"
+                    key={action.id}
+                    variant={action.enabled ? "outline" : "ghost"}
+                    className={`w-full justify-start h-auto p-3 ${
+                      action.enabled 
+                        ? "hover:bg-muted/80" 
+                        : "opacity-50 cursor-not-allowed"
+                    }`}
+                    onClick={action.enabled ? action.action : undefined}
+                    disabled={!action.enabled}
                   >
-                    <div className="flex items-center gap-3">
-                      <action.icon className="w-5 h-5" />
-                      <div className="text-right">
+                    <div className="flex items-center gap-3 w-full">
+                      <div className="flex-shrink-0">
+                        {action.enabled ? (
+                          <action.icon className="w-5 h-5" />
+                        ) : (
+                          <Lock className="w-5 h-5" />
+                        )}
+                      </div>
+                      <div className="text-right flex-1">
                         <div className="font-medium text-sm">
-                          {action.name}
+                          {action.title}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {action.description}
+                          {action.enabled 
+                            ? action.description 
+                            : 'פיצ\'ר אינו זמין - פנה למשתמש הראשי'
+                          }
                         </div>
                       </div>
                     </div>
@@ -249,6 +356,13 @@ const FamilyDashboard = () => {
             </CardContent>
           </Card>
         </div>
+        
+        {/* Content Upload Modal */}
+        <ContentUploadModal
+          isOpen={uploadModalOpen}
+          onClose={() => setUploadModalOpen(false)}
+          contentType={uploadType}
+        />
       </div>
     </div>
   );

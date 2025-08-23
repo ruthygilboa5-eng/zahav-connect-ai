@@ -91,7 +91,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const loginAsFamily = (firstName: string = 'דנה') => {
-    const defaultScopes = ['POST_MEDIA', 'SUGGEST_REMINDER', 'PLAY_GAMES'];
+    const defaultScopes = ['POST_MEDIA', 'SUGGEST_REMINDER', 'INVITE_GAME', 'CHAT'];
     const newState = {
       isAuthenticated: true,
       role: 'FAMILY' as Role,

@@ -51,7 +51,7 @@ export const FamilyProvider = ({ children }: FamilyProviderProps) => {
       relation: 'בת',
       phone: '050-1234567',
       status: 'APPROVED',
-      scopes: ['POST_MEDIA', 'SUGGEST_REMINDER', 'PLAY_GAMES'],
+      scopes: ['POST_MEDIA', 'SUGGEST_REMINDER', 'INVITE_GAME', 'CHAT'],
       invitedAt: '2024-01-15T10:00:00Z',
       approvedAt: '2024-01-15T10:05:00Z'
     },

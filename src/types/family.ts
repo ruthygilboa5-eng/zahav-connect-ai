@@ -5,8 +5,18 @@ export type AppRole = 'MAIN_USER' | 'FAMILY';
 export type FamilyScope = 
   | 'POST_MEDIA'           // העלאת תמונות/וידאו/סיפורים לתור ממתין
   | 'SUGGEST_REMINDER'     // הצעת תזכורות (נכנס לאישור)
-  | 'PLAY_GAMES'          // הזמנת משחק משותף
+  | 'INVITE_GAME'         // הזמנת משחק משותף
+  | 'CHAT'                // גישה לצ'אט המשפחה
   | 'EMERGENCY_ONLY';     // קבלת התראות SOS (ללא גישה לדשבורד)
+
+// Scope constants for consistency
+export const FAMILY_SCOPES = {
+  POST_MEDIA: 'POST_MEDIA' as const,
+  SUGGEST_REMINDER: 'SUGGEST_REMINDER' as const,
+  INVITE_GAME: 'INVITE_GAME' as const,
+  CHAT: 'CHAT' as const,
+  EMERGENCY_ONLY: 'EMERGENCY_ONLY' as const,
+} as const;
 
 export interface FamilyMember {
   id: string;
@@ -58,7 +68,8 @@ export interface Reminder {
 export const scopeLabels: Record<FamilyScope, string> = {
   POST_MEDIA: 'העלאת תמונות וסיפורים',
   SUGGEST_REMINDER: 'הצעת תזכורות',
-  PLAY_GAMES: 'הזמנת משחקים',
+  INVITE_GAME: 'הזמנת משחקים',
+  CHAT: 'צ\'אט משפחה',
   EMERGENCY_ONLY: 'התראות חירום בלבד'
 };
 
