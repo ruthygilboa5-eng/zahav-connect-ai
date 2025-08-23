@@ -24,6 +24,8 @@ import {
 import { useAuthDisplayName, useMainUserDisplayName } from '@/hooks/useDisplayName';
 import { useFamilyPermissions } from '@/hooks/useFamilyPermissions';
 import { useFamilyProvider } from '@/providers/FamilyProvider';
+import { usePermissionRequests } from '@/hooks/usePermissionRequests';
+import { FAMILY_SCOPES, scopeLabels } from '@/types/family';
 import ContentUploadModal from '@/components/ContentUploadModal';
 
 type ContentType = 'MEDIA' | 'STORY' | 'REMINDER' | 'GAME_INVITE';
@@ -65,6 +67,7 @@ const FamilyDashboard = () => {
   const { toast } = useToast();
   const { canPostMedia, canSuggestReminder, canInviteGame, canChat } = useFamilyPermissions();
   const { addToPendingQueue } = useFamilyProvider();
+  const { requestPermission, getRequestStatus } = usePermissionRequests();
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [uploadType, setUploadType] = useState<ContentType>('MEDIA');
 
@@ -118,6 +121,36 @@ const FamilyDashboard = () => {
     });
   };
 
+  const handleRequestPermission = async (scope: keyof typeof FAMILY_SCOPES) => {
+    try {
+      await requestPermission(FAMILY_SCOPES[scope]);
+      toast({
+        title: 'בקשתך נשלחה',
+        description: 'בקשתך להרשאה נשלחה למשתמש הראשי לאישור'
+      });
+    } catch (error) {
+      toast({
+        title: 'שגיאה',
+        description: 'אירעה שגיאה בשליחת הבקשה',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const getStatusDisplay = (scope: keyof typeof FAMILY_SCOPES) => {
+    const status = getRequestStatus(FAMILY_SCOPES[scope]);
+    switch (status) {
+      case 'APPROVED':
+        return { text: 'מאושר ✅', color: 'bg-zahav-green text-white' };
+      case 'PENDING':
+        return { text: 'ממתין לאישור ⏳', color: 'bg-zahav-yellow text-foreground' };
+      case 'DECLINED':
+        return { text: 'לא מורשה ❌', color: 'bg-zahav-red text-white' };
+      default:
+        return { text: 'לא ביקשת', color: 'bg-muted text-muted-foreground' };
+    }
+  };
+
   const getActivityIcon = (type: Activity['type']) => {
     const iconClass = "w-4 h-4";
     switch (type) {
@@ -156,6 +189,7 @@ const FamilyDashboard = () => {
       icon: Camera,
       color: 'zahav-blue',
       enabled: canPostMedia,
+      scope: 'POST_MEDIA' as const,
       action: () => handleContentSubmit('MEDIA')
     },
     {
@@ -165,6 +199,7 @@ const FamilyDashboard = () => {
       icon: Upload,
       color: 'zahav-yellow',
       enabled: canPostMedia,
+      scope: 'POST_MEDIA' as const,
       action: () => handleContentSubmit('STORY')
     },
     {
@@ -174,6 +209,7 @@ const FamilyDashboard = () => {
       icon: Bell,
       color: 'zahav-orange',
       enabled: canSuggestReminder,
+      scope: 'SUGGEST_REMINDER' as const,
       action: () => handleContentSubmit('REMINDER')
     },
     {
@@ -183,6 +219,7 @@ const FamilyDashboard = () => {
       icon: Gamepad2,
       color: 'zahav-green',
       enabled: canInviteGame,
+      scope: 'INVITE_GAME' as const,
       action: () => handleContentSubmit('GAME_INVITE')
     },
     {
@@ -192,6 +229,7 @@ const FamilyDashboard = () => {
       icon: MessageSquare,
       color: 'zahav-purple',
       enabled: canChat,
+      scope: 'CHAT' as const,
       action: handleChatOpen
     }
   ];
@@ -284,41 +322,60 @@ const FamilyDashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {actionCards.map((action) => (
-                  <Button
-                    key={action.id}
-                    variant={action.enabled ? "outline" : "ghost"}
-                    className={`w-full justify-start h-auto p-3 ${
-                      action.enabled 
-                        ? "hover:bg-muted/80" 
-                        : "opacity-50 cursor-not-allowed"
-                    }`}
-                    onClick={action.enabled ? action.action : undefined}
-                    disabled={!action.enabled}
-                  >
-                    <div className="flex items-center gap-3 w-full">
-                      <div className="flex-shrink-0">
+              <div className="space-y-4">
+                {actionCards.map((action) => {
+                  const status = getStatusDisplay(action.scope);
+                  return (
+                    <div key={action.id} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <action.icon className="w-4 h-4" />
+                          <span className="font-medium text-sm">{action.title}</span>
+                        </div>
+                        <Badge className={status.color}>
+                          {status.text}
+                        </Badge>
+                      </div>
+                      
+                      <div className="space-y-2">
                         {action.enabled ? (
-                          <action.icon className="w-5 h-5" />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            onClick={action.action}
+                          >
+                            {action.title}
+                          </Button>
                         ) : (
-                          <Lock className="w-5 h-5" />
+                          <div className="space-y-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full opacity-50 cursor-not-allowed"
+                              disabled
+                            >
+                              <Lock className="w-4 h-4 ml-2" />
+                              {action.title}
+                            </Button>
+                            
+                            {(getRequestStatus(action.scope) === 'NONE' || 
+                              getRequestStatus(action.scope) === 'DECLINED') && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full text-xs"
+                                onClick={() => handleRequestPermission(action.scope)}
+                              >
+                                בקש הרשאה
+                              </Button>
+                            )}
+                          </div>
                         )}
                       </div>
-                      <div className="text-right flex-1">
-                        <div className="font-medium text-sm">
-                          {action.title}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {action.enabled 
-                            ? action.description 
-                            : 'פיצ\'ר אינו זמין - פנה למשתמש הראשי'
-                          }
-                        </div>
-                      </div>
                     </div>
-                  </Button>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>

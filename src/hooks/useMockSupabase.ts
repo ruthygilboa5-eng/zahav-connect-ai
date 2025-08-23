@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { FamilyMember, PendingItem, Memory, Reminder, FamilyScope } from '@/types/family';
+import { FamilyMember, PendingItem, Memory, Reminder, FamilyScope, FamilyPermissionRequest } from '@/types/family';
 
 // Mock data storage
 const mockProfiles = new Map();
@@ -7,6 +7,7 @@ const mockFamilyLinks = new Map<string, FamilyMember>();
 const mockPendingQueue = new Map<string, PendingItem>();
 const mockMemories = new Map<string, Memory>();
 const mockReminders = new Map<string, Reminder>();
+const mockPermissionRequests = new Map<string, FamilyPermissionRequest>();
 
 // Initialize some mock data
 const initMockData = () => {
@@ -199,6 +200,50 @@ export const useMockSupabase = () => {
     return Array.from(mockReminders.values());
   }, []);
 
+  // Permission Request functions
+  const createPermissionRequest = useCallback(async (request: Omit<FamilyPermissionRequest, 'id' | 'createdAt' | 'updatedAt'>) => {
+    setLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const newRequest: FamilyPermissionRequest = {
+      ...request,
+      id: `req-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    mockPermissionRequests.set(newRequest.id, newRequest);
+    setLoading(false);
+    return newRequest;
+  }, []);
+
+  const listPermissionRequests = useCallback(async () => {
+    setLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 150));
+    setLoading(false);
+    return Array.from(mockPermissionRequests.values());
+  }, []);
+
+  const updatePermissionRequest = useCallback(async (id: string, status: 'APPROVED' | 'DECLINED') => {
+    setLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const request = mockPermissionRequests.get(id);
+    if (request) {
+      request.status = status;
+      request.updatedAt = new Date().toISOString();
+      mockPermissionRequests.set(id, request);
+      
+      // If approved, add the scope to the family member
+      if (status === 'APPROVED') {
+        const familyMember = mockFamilyLinks.get(request.familyLinkId);
+        if (familyMember && !familyMember.scopes.includes(request.scope)) {
+          familyMember.scopes.push(request.scope);
+          mockFamilyLinks.set(request.familyLinkId, familyMember);
+        }
+      }
+    }
+    setLoading(false);
+    return request || null;
+  }, []);
+
   return {
     loading,
     // Profile
@@ -216,6 +261,10 @@ export const useMockSupabase = () => {
     declinePending,
     // Content
     getMemories,
-    getReminders
+    getReminders,
+    // Permission Requests
+    createPermissionRequest,
+    listPermissionRequests,
+    updatePermissionRequest
   };
 };

@@ -3,16 +3,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Phone, User, Building2, Users, UserCog, Heart, Shield } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { useMockSupabase } from '@/hooks/useMockSupabase';
-import { useAuth } from '@/providers/AuthProvider';
-import { FamilyMember, relationOptions, FamilyScope, scopeLabels, FAMILY_SCOPES } from '@/types/family';
 import { useToast } from '@/hooks/use-toast';
+import { User, X, Users, Camera, Shield, Heart } from 'lucide-react';
+import { useAuth } from '@/providers/AuthProvider';
+import { useFamilyProvider } from '@/providers/FamilyProvider';
+import { useMockSupabase } from '@/hooks/useMockSupabase';
+import { FamilyMember, FamilyScope, scopeLabels, FAMILY_SCOPES } from '@/types/family';
+import PermissionRequestsSection from '@/components/PermissionRequestsSection';
 
 interface NewSettingsModalProps {
   isOpen: boolean;
@@ -21,12 +23,11 @@ interface NewSettingsModalProps {
 
 export default function NewSettingsModal({ isOpen, onClose }: NewSettingsModalProps) {
   const { authState, logout, setFirstName } = useAuth();
+  const { familyMembers } = useFamilyProvider();
   const { toast } = useToast();
   const { 
     getProfile, 
     updateProfile, 
-    listFamilyLinks, 
-    inviteFamilyLink, 
     setFamilyLinkStatus,
     updateFamilyLink,
     loading 
@@ -38,24 +39,18 @@ export default function NewSettingsModal({ isOpen, onClose }: NewSettingsModalPr
     phone: '',
     email: ''
   });
-  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      loadData();
+      loadProfile();
     }
   }, [isOpen]);
 
-  const loadData = async () => {
+  const loadProfile = async () => {
     try {
-      const [profile, members] = await Promise.all([
-        getProfile(),
-        listFamilyLinks()
-      ]);
-      
+      const profile = await getProfile();
       setProfileData(profile);
-      setFamilyMembers(members);
     } catch (error) {
       toast({
         title: "שגיאה",
@@ -89,7 +84,6 @@ export default function NewSettingsModal({ isOpen, onClose }: NewSettingsModalPr
   const handleApproveFamily = async (memberId: string) => {
     try {
       await setFamilyLinkStatus(memberId, 'APPROVED');
-      await loadData();
       toast({
         title: "הצלחה",
         description: "בן המשפחה אושר בהצלחה"
@@ -106,7 +100,6 @@ export default function NewSettingsModal({ isOpen, onClose }: NewSettingsModalPr
   const handleRevokeFamily = async (memberId: string) => {
     try {
       await setFamilyLinkStatus(memberId, 'REVOKED');
-      await loadData();
       toast({
         title: "הצלחה",
         description: "הרשאות בן המשפחה בוטלו"
@@ -123,7 +116,6 @@ export default function NewSettingsModal({ isOpen, onClose }: NewSettingsModalPr
   const handleScopesUpdate = async (memberId: string, scopes: FamilyScope[]) => {
     try {
       await updateFamilyLink(memberId, { scopes });
-      await loadData();
       toast({
         title: "הצלחה",
         description: "הרשאות עודכנו בהצלחה"
@@ -140,19 +132,6 @@ export default function NewSettingsModal({ isOpen, onClose }: NewSettingsModalPr
   const handleSignOut = () => {
     logout();
     onClose();
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'APPROVED':
-        return <Badge variant="default" className="bg-green-500">מאושר</Badge>;
-      case 'PENDING':
-        return <Badge variant="outline" className="border-yellow-500 text-yellow-600">ממתין לאישור</Badge>;
-      case 'REVOKED':
-        return <Badge variant="destructive">מבוטל</Badge>;
-      default:
-        return null;
-    }
   };
 
   if (loading) {
@@ -306,6 +285,24 @@ export default function NewSettingsModal({ isOpen, onClose }: NewSettingsModalPr
                     ))}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+
+            <Separator />
+
+            {/* Permission Requests Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  בקשות הרשאות משפחה
+                </CardTitle>
+                <CardDescription>
+                  אשר או דחה בקשות הרשאות מבני המשפחה
+                </CardDescription>  
+              </CardHeader>
+              <CardContent>
+                <PermissionRequestsSection />
               </CardContent>
             </Card>
 

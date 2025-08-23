@@ -64,6 +64,16 @@ export interface Reminder {
   fromMemberName?: string;
 }
 
+export interface FamilyPermissionRequest {
+  id: string;
+  ownerUserId: string;
+  familyLinkId: string;
+  scope: FamilyScope;
+  status: 'PENDING' | 'APPROVED' | 'DECLINED';
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Scope labels for UI
 export const scopeLabels: Record<FamilyScope, string> = {
   POST_MEDIA: 'העלאת תמונות וסיפורים',
