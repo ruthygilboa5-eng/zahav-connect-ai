@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { useAuthDisplayName, useMainUserDisplayName } from '@/hooks/useDisplayName';
 import { useFamilyProvider } from '@/providers/FamilyProvider';
-import { DASHBOARD_SCOPES, FAMILY_SCOPES } from '@/types/family';
+import { FAMILY_ACTIONS } from '@/types/family';
 import ContentUploadModal from '@/components/ContentUploadModal';
 import ActionCard from '@/components/ActionCard';
 
@@ -110,44 +110,49 @@ const FamilyDashboard = () => {
     }
   };
 
-  // Always render all 5 action cards
-  const actionCards = [
-    {
-      scope: FAMILY_SCOPES.POST_MEDIA,
-      title: 'העלאת תמונות',
-      description: 'שתף תמונות ורגעים יפים',
-      icon: Camera,
-      action: () => handleContentSubmit('MEDIA')
-    },
-    {
-      scope: FAMILY_SCOPES.POST_STORY,
-      title: 'שיתוף סיפור', 
-      description: 'ספר על רגע מיוחד או זיכרון',
-      icon: Upload,
-      action: () => handleContentSubmit('STORY')
-    },
-    {
-      scope: FAMILY_SCOPES.SUGGEST_REMINDER,
-      title: 'הצעת תזכורת',
-      description: 'הצע תזכורת לתרופות או פגישות',
-      icon: Bell,
-      action: () => handleContentSubmit('REMINDER')
-    },
-    {
-      scope: FAMILY_SCOPES.INVITE_GAME,
-      title: 'הזמנת משחק',
-      description: 'הזמן למשחק משותף וכיף',
-      icon: Gamepad2,
-      action: () => handleContentSubmit('GAME_INVITE')
-    },
-    {
-      scope: FAMILY_SCOPES.CHAT,
-      title: 'צ\'אט משפחה',
-      description: 'התכתב עם המשפחה',
-      icon: MessageSquare,
-      action: handleChatOpen
+  const getActionIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'Camera': return Camera;
+      case 'Upload': return Upload;
+      case 'Bell': return Bell;
+      case 'Gamepad2': return Gamepad2;
+      case 'MessageSquare': return MessageSquare;
+      default: return Camera;
     }
-  ];
+  };
+
+  const getActionHandler = (key: string) => {
+    switch (key) {
+      case 'POST_MEDIA': return () => handleContentSubmit('MEDIA');
+      case 'POST_STORY': return () => handleContentSubmit('STORY');
+      case 'SUGGEST_REMINDER': return () => handleContentSubmit('REMINDER');
+      case 'INVITE_GAME': return () => handleContentSubmit('GAME_INVITE');
+      case 'CHAT': return handleChatOpen;
+      default: return () => {};
+    }
+  };
+
+  const getActionDescription = (key: string) => {
+    switch (key) {
+      case 'POST_MEDIA': return 'שתף תמונות ורגעים יפים';
+      case 'POST_STORY': return 'ספר על רגע מיוחד או זיכרון';
+      case 'SUGGEST_REMINDER': return 'הצע תזכורת לתרופות או פגישות';
+      case 'INVITE_GAME': return 'הזמן למשחק משותף וכיף';
+      case 'CHAT': return 'התכתב עם המשפחה';
+      default: return '';
+    }
+  };
+
+  const getPrimaryLabel = (key: string) => {
+    switch (key) {
+      case 'POST_MEDIA': return 'העלה מדיה';
+      case 'POST_STORY': return 'שתף סיפור';
+      case 'SUGGEST_REMINDER': return 'הצע תזכורת';
+      case 'INVITE_GAME': return 'הזמן משחק';
+      case 'CHAT': return 'פתח צ\'אט';
+      default: return '';
+    }
+  };
 
   return (
     <div className="family-dashboard p-6 rtl-text">
@@ -238,16 +243,20 @@ const FamilyDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {actionCards.map((action, index) => (
-                  <ActionCard
-                    key={index}
-                    scope={action.scope}
-                    title={action.title}
-                    description={action.description}
-                    icon={action.icon}
-                    onAction={action.action}
-                  />
-                ))}
+                {FAMILY_ACTIONS.map((action) => {
+                  const IconComponent = getActionIcon(action.icon);
+                  return (
+                    <ActionCard
+                      key={action.key}
+                      scope={action.scope}
+                      title={action.title}
+                      description={getActionDescription(action.key)}
+                      icon={IconComponent}
+                      onAction={getActionHandler(action.key)}
+                      primaryLabel={getPrimaryLabel(action.key)}
+                    />
+                  );
+                })}
               </div>
             </CardContent>
           </Card>

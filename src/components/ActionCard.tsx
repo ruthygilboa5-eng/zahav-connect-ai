@@ -14,6 +14,7 @@ interface ActionCardProps {
   icon: React.ComponentType<{ className?: string }>;
   onAction: () => void;
   className?: string;
+  primaryLabel?: string;
 }
 
 const ActionCard: React.FC<ActionCardProps> = ({
@@ -22,7 +23,8 @@ const ActionCard: React.FC<ActionCardProps> = ({
   description,
   icon: Icon,
   onAction,
-  className = ""
+  className = "",
+  primaryLabel = title
 }) => {
   const { toast } = useToast();
   const status = useScopeStatus(scope);
@@ -69,7 +71,7 @@ const ActionCard: React.FC<ActionCardProps> = ({
     }
   };
 
-  const handleAction = () => {
+  const handlePrimaryAction = () => {
     if (status !== 'APPROVED') {
       toast({
         title: 'אין הרשאה',
@@ -84,9 +86,10 @@ const ActionCard: React.FC<ActionCardProps> = ({
   const statusBadge = getStatusBadge(status);
   const hintText = getHintText(status);
   const isApproved = status === 'APPROVED';
+  const showSecondaryButton = status === 'NONE' || status === 'DECLINED';
 
   return (
-    <div className={`space-y-2 ${className}`}>
+    <div className={`space-y-2 ${className} ${!isApproved ? 'opacity-75' : ''}`}>
       {/* Header with title and status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -115,16 +118,16 @@ const ActionCard: React.FC<ActionCardProps> = ({
           variant={isApproved ? "outline" : "ghost"}
           size="sm"
           className="w-full"
-          onClick={handleAction}
+          onClick={handlePrimaryAction}
           disabled={!isApproved}
           title={!isApproved ? "פעולה זו דורשת הרשאה מבעל החשבון הראשי" : undefined}
         >
           {!isApproved && <Lock className="w-4 h-4 ml-2" />}
-          {title}
+          {primaryLabel}
         </Button>
         
         {/* Request permission button */}
-        {(status === 'NONE' || status === 'DECLINED') && (
+        {showSecondaryButton && (
           <Button
             variant="outline"
             size="sm"

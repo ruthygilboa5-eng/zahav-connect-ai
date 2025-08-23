@@ -10,6 +10,18 @@ export type FamilyScope =
   | 'CHAT'                // גישה לצ'אט המשפחה
   | 'EMERGENCY_ONLY';     // קבלת התראות SOS (ללא גישה לדשבורד)
 
+// Family action keys for UI consistency
+export type FamilyActionKey = 'POST_MEDIA' | 'POST_STORY' | 'SUGGEST_REMINDER' | 'INVITE_GAME' | 'CHAT';
+
+// Family actions constant - single source of truth
+export const FAMILY_ACTIONS = [
+  { key: 'POST_MEDIA' as const, title: 'העלאת מדיה', icon: 'Camera', scope: 'POST_MEDIA' as FamilyScope },
+  { key: 'POST_STORY' as const, title: 'שיתוף סיפור', icon: 'Upload', scope: 'POST_STORY' as FamilyScope },
+  { key: 'SUGGEST_REMINDER' as const, title: 'הצעת תזכורת', icon: 'Bell', scope: 'SUGGEST_REMINDER' as FamilyScope },
+  { key: 'INVITE_GAME' as const, title: 'הזמנת משחק', icon: 'Gamepad2', scope: 'INVITE_GAME' as FamilyScope },
+  { key: 'CHAT' as const, title: 'צ\'אט משפחתי', icon: 'MessageSquare', scope: 'CHAT' as FamilyScope },
+] as const;
+
 // The 5 main scopes for the dashboard (excluding EMERGENCY_ONLY)
 export const DASHBOARD_SCOPES = [
   'POST_MEDIA',
