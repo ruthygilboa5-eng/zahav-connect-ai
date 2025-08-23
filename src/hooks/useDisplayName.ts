@@ -8,19 +8,18 @@ export const useAuthDisplayName = () => {
   const { profile } = useProfile();
   const { userProfile } = useDataProvider();
 
-  // For current logged-in user
-  const displayName = profile?.first_name || 
-         profile?.display_name || 
-         userProfile?.firstName || 
-         userProfile?.displayName ||
-         authState.firstName;
+  // Priority: profile firstName -> auth firstName -> userProfile -> role fallback
+  const firstName = (profile?.first_name && profile.first_name.trim()) ||
+                   (authState.firstName && authState.firstName.trim()) ||
+                   (userProfile?.firstName && userProfile.firstName.trim()) ||
+                   (userProfile?.displayName && userProfile.displayName.trim());
 
-  // Role-based fallbacks
-  if (!displayName) {
+  // Only use role-based fallback if no real name is available
+  if (!firstName) {
     return authState.role === 'FAMILY' ? 'בן משפחה' : 'משתמש';
   }
 
-  return displayName;
+  return firstName;
 };
 
 // Returns the main user's display name (for context when logged in as family)

@@ -12,6 +12,13 @@ export const useProfile = () => {
   const { user } = useTempAuth();
   const { setFirstName } = useAuth();
 
+  // Reactive sync: when profile firstName changes, update auth state immediately
+  useEffect(() => {
+    if (profile?.first_name && profile.first_name.trim()) {
+      setFirstName(profile.first_name);
+    }
+  }, [profile?.first_name, setFirstName]);
+
   const fetchProfile = useCallback(async () => {
     console.log('fetchProfile called, user:', user);
     try {
