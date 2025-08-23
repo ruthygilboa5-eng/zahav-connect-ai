@@ -78,7 +78,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     persist(newState);
   };
 
-  const loginAsMainUser = (firstName: string = 'אבא') => {
+  const loginAsMainUser = (firstName: string = 'משתמש ראשי') => {
     const newState = {
       isAuthenticated: true,
       role: 'MAIN_USER' as Role,
@@ -90,7 +90,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     persist(newState);
   };
 
-  const loginAsFamily = (firstName: string = 'דנה') => {
+  const loginAsFamily = (firstName: string = 'בן משפחה') => {
     const defaultScopes = ['POST_MEDIA', 'SUGGEST_REMINDER', 'INVITE_GAME', 'CHAT'];
     const newState = {
       isAuthenticated: true,
