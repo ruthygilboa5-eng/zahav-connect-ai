@@ -20,7 +20,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useDataProvider } from '@/providers/DataProvider';
-import { useDisplayName } from '@/hooks/useDisplayName';
+import { useAuthDisplayName } from '@/hooks/useDisplayName';
 import NotificationBadge from '@/components/NotificationBadge';
 
 interface ElderlyInterfaceProps {
@@ -33,7 +33,7 @@ const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { userProfile } = useDataProvider();
-  const displayName = useDisplayName();
+  const displayName = useAuthDisplayName();
 
   const handleButtonClick = (action: string, buttonName: string) => {
     setLastAction(`${buttonName} נלחץ`);

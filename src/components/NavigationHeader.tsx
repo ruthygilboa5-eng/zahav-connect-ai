@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { User, Users, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
-import { useDisplayName } from '@/hooks/useDisplayName';
+import { useAuthDisplayName } from '@/hooks/useDisplayName';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AccountModal from '@/components/AccountModal';
@@ -17,7 +17,7 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: Naviga
   const { authState, loginAsMainUser, loginAsFamily, logout } = useAuth();
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const navigate = useNavigate();
-  const displayName = useDisplayName();
+  const displayName = useAuthDisplayName();
 
   const handleMainUserLogin = () => {
     loginAsMainUser();
