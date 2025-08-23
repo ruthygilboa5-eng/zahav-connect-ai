@@ -20,6 +20,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useDataProvider } from '@/providers/DataProvider';
+import { useDisplayName } from '@/hooks/useDisplayName';
 import NotificationBadge from '@/components/NotificationBadge';
 
 interface ElderlyInterfaceProps {
@@ -32,6 +33,7 @@ const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { userProfile } = useDataProvider();
+  const displayName = useDisplayName();
 
   const handleButtonClick = (action: string, buttonName: string) => {
     setLastAction(`${buttonName} נלחץ`);
@@ -141,7 +143,7 @@ const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
         <div className="flex items-center justify-center gap-3 mb-4">
           <User className="w-8 h-8 text-primary" />
           <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-            שלום, {userProfile?.displayName || userProfile?.firstName || profile?.display_name || profile?.first_name || userName || "משתמש יקר"}!
+            שלום, {displayName}!
           </h1>
         </div>
         <p className="text-xl text-muted-foreground">

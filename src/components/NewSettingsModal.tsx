@@ -19,7 +19,7 @@ interface NewSettingsModalProps {
 }
 
 export default function NewSettingsModal({ isOpen, onClose }: NewSettingsModalProps) {
-  const { authState, logout } = useAuth();
+  const { authState, logout, setFirstName } = useAuth();
   const { toast } = useToast();
   const { 
     getProfile, 
@@ -67,6 +67,10 @@ export default function NewSettingsModal({ isOpen, onClose }: NewSettingsModalPr
   const handleUpdateProfile = async () => {
     try {
       await updateProfile(profileData);
+      // Sync firstName with auth state for immediate header update
+      if (profileData.first_name) {
+        setFirstName(profileData.first_name);
+      }
       setIsEditing(false);
       toast({
         title: "הצלחה",

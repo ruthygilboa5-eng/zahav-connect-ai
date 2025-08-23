@@ -17,6 +17,7 @@ interface AuthContextType {
   loginAsFamily: (firstName?: string) => void;
   logout: () => void;
   login: (role: Role, memberId?: string, scopes?: string[]) => void; // For compatibility
+  setFirstName: (firstName: string) => void; // For profile sync
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -71,6 +72,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const setFirstName = (firstName: string) => {
+    const newState = { ...authState, firstName };
+    setAuthState(newState);
+    persist(newState);
+  };
+
   const loginAsMainUser = (firstName: string = 'אבא') => {
     const newState = {
       isAuthenticated: true,
@@ -118,7 +125,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   return (
-    <AuthContext.Provider value={{ authState, loginAsMainUser, loginAsFamily, logout, login }}>
+    <AuthContext.Provider value={{ authState, loginAsMainUser, loginAsFamily, logout, login, setFirstName }}>
       {children}
     </AuthContext.Provider>
   );

@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { User, Users, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
+import { useDisplayName } from '@/hooks/useDisplayName';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AccountModal from '@/components/AccountModal';
@@ -16,6 +17,7 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: Naviga
   const { authState, loginAsMainUser, loginAsFamily, logout } = useAuth();
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const navigate = useNavigate();
+  const displayName = useDisplayName();
 
   const handleMainUserLogin = () => {
     loginAsMainUser();
@@ -103,7 +105,7 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: Naviga
                   className="flex items-center gap-2 hover:bg-accent hover:text-accent-foreground p-2 rounded-lg transition-colors"
                 >
                   <Badge variant="secondary" className="bg-primary text-primary-foreground">
-                    שלום {authState.firstName} · מחובר
+                    שלום {displayName} · מחובר
                   </Badge>
                 </button>
                 <Button

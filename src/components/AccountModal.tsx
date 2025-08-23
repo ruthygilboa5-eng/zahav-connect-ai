@@ -47,7 +47,7 @@ const AccountModal = ({ isOpen, onClose }: AccountModalProps) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-muted-foreground">שם פרטי</label>
-                <p className="text-base">Demo</p>
+                <p className="text-base">{authState.firstName}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-muted-foreground">שם משפחה</label>
