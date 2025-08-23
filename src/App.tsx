@@ -8,6 +8,7 @@ import { DataProvider } from "@/providers/DataProvider";
 import { FamilyProvider } from "@/providers/FamilyProvider";
 import AppLayout from "@/components/AppLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AppInitializer from "@/components/AppInitializer";
 import Index from "./pages/Index";
 import HomePage from "./pages/HomePage";
 import NotFound from "./pages/NotFound";
@@ -34,8 +35,9 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-            <AppLayout>
-              <Routes>
+              <AppInitializer>
+                <AppLayout>
+                  <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/home" element={
                   <ProtectedRoute requiredRole="MAIN_USER">
@@ -98,10 +100,11 @@ const App = () => (
                   </ProtectedRoute>
                 } />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </AppLayout>
-          </BrowserRouter>
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </AppLayout>
+              </AppInitializer>
+            </BrowserRouter>
           </DataProvider>
         </FamilyProvider>
       </AuthProvider>

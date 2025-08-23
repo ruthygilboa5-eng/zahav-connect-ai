@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/providers/AuthProvider';
 import { User, Mail, Phone } from 'lucide-react';
 
+import { useNavigate } from 'react-router-dom';
+
 interface AccountModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -12,11 +14,12 @@ interface AccountModalProps {
 
 const AccountModal = ({ isOpen, onClose }: AccountModalProps) => {
   const { authState, logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
     onClose();
-    // Navigation will be handled by AuthProvider logout function
+    navigate('/', { replace: true });
   };
 
   const roleDisplay = authState.role === 'MAIN_USER' ? 'משתמש ראשי' : 'בן משפחה';

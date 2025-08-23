@@ -122,6 +122,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
     setAuthState(newState);
     clearPersist();
+    
+    // Clear any persisted route keys
+    localStorage.removeItem('lastPath');
   };
 
   return (

@@ -9,13 +9,7 @@ const Index = () => {
   const { authState, loginAsMainUser, loginAsFamily } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (authState.isAuthenticated) {
-      const targetPath = authState.role === 'MAIN_USER' ? '/home' : '/family';
-      navigate(targetPath, { replace: true });
-    }
-  }, [authState.isAuthenticated, authState.role, navigate]);
+  // AppInitializer handles auth-based routing on app boot
 
   const handleMainUserLogin = () => {
     loginAsMainUser();

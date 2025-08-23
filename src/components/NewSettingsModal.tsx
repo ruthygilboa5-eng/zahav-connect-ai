@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,6 +26,7 @@ export default function NewSettingsModal({ isOpen, onClose }: NewSettingsModalPr
   const { authState, logout, setFirstName } = useAuth();
   const { familyMembers } = useFamilyProvider();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { 
     getProfile, 
     updateProfile, 
@@ -132,6 +134,7 @@ export default function NewSettingsModal({ isOpen, onClose }: NewSettingsModalPr
   const handleSignOut = () => {
     logout();
     onClose();
+    navigate('/', { replace: true });
   };
 
   if (loading) {
