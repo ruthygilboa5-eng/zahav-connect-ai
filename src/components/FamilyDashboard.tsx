@@ -18,15 +18,13 @@ import {
   Upload,
   Calendar,
   Gamepad2,
-  Lock,
   Shield
 } from 'lucide-react';
 import { useAuthDisplayName, useMainUserDisplayName } from '@/hooks/useDisplayName';
-import { useFamilyPermissions } from '@/hooks/useFamilyPermissions';
 import { useFamilyProvider } from '@/providers/FamilyProvider';
-import { usePermissionRequests } from '@/hooks/usePermissionRequests';
-import { FAMILY_SCOPES, scopeLabels } from '@/types/family';
+import { DASHBOARD_SCOPES, FAMILY_SCOPES } from '@/types/family';
 import ContentUploadModal from '@/components/ContentUploadModal';
+import ActionCard from '@/components/ActionCard';
 
 type ContentType = 'MEDIA' | 'STORY' | 'REMINDER' | 'GAME_INVITE';
 
@@ -65,90 +63,21 @@ const FamilyDashboard = () => {
   const familyName = useAuthDisplayName();
   const mainUserName = useMainUserDisplayName();
   const { toast } = useToast();
-  const { canPostMedia, canSuggestReminder, canInviteGame, canChat } = useFamilyPermissions();
   const { addToPendingQueue } = useFamilyProvider();
-  const { requestPermission, getRequestStatus } = usePermissionRequests();
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [uploadType, setUploadType] = useState<ContentType>('MEDIA');
 
   const handleContentSubmit = (type: ContentType) => {
-    if (type === 'MEDIA' || type === 'STORY') {
-      if (!canPostMedia) {
-        toast({
-          title: 'אין הרשאה',
-          description: 'אין לך הרשאה להעלאת תוכן. פנה למשתמש הראשי.',
-          variant: 'destructive'
-        });
-        return;
-      }
-    } else if (type === 'REMINDER') {
-      if (!canSuggestReminder) {
-        toast({
-          title: 'אין הרשאה',
-          description: 'אין לך הרשאה להצעת תזכורות. פנה למשתמש הראשי.',
-          variant: 'destructive'
-        });
-        return;
-      }
-    } else if (type === 'GAME_INVITE') {
-      if (!canInviteGame) {
-        toast({
-          title: 'אין הרשאה',
-          description: 'אין לך הרשאה להזמנת משחקים. פנה למשתמש הראשי.',
-          variant: 'destructive'
-        });
-        return;
-      }
-    }
-    
     setUploadType(type);
     setUploadModalOpen(true);
   };
 
   const handleChatOpen = () => {
-    if (!canChat) {
-      toast({
-        title: 'אין הרשאה',
-        description: 'אין לך הרשאה לצ\'אט המשפחה. פנה למשתמש הראשי.',
-        variant: 'destructive'
-      });
-      return;
-    }
     // Navigate to family chat or open chat modal
     toast({
       title: 'צ\'אט משפחה',
       description: 'פיצ\'ר זה יפותח בקרוב'
     });
-  };
-
-  const handleRequestPermission = async (scope: keyof typeof FAMILY_SCOPES) => {
-    try {
-      await requestPermission(FAMILY_SCOPES[scope]);
-      toast({
-        title: 'בקשתך נשלחה',
-        description: 'בקשתך להרשאה נשלחה למשתמש הראשי לאישור'
-      });
-    } catch (error) {
-      toast({
-        title: 'שגיאה',
-        description: 'אירעה שגיאה בשליחת הבקשה',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const getStatusDisplay = (scope: keyof typeof FAMILY_SCOPES) => {
-    const status = getRequestStatus(FAMILY_SCOPES[scope]);
-    switch (status) {
-      case 'APPROVED':
-        return { text: 'מאושר ✅', color: 'bg-zahav-green text-white' };
-      case 'PENDING':
-        return { text: 'ממתין לאישור ⏳', color: 'bg-zahav-yellow text-foreground' };
-      case 'DECLINED':
-        return { text: 'לא מורשה ❌', color: 'bg-zahav-red text-white' };
-      default:
-        return { text: 'לא ביקשת', color: 'bg-muted text-muted-foreground' };
-    }
   };
 
   const getActivityIcon = (type: Activity['type']) => {
@@ -181,55 +110,41 @@ const FamilyDashboard = () => {
     }
   };
 
+  // Always render all 5 action cards
   const actionCards = [
     {
-      id: 'media',
+      scope: FAMILY_SCOPES.POST_MEDIA,
       title: 'העלאת תמונות',
       description: 'שתף תמונות ורגעים יפים',
       icon: Camera,
-      color: 'zahav-blue',
-      enabled: canPostMedia,
-      scope: 'POST_MEDIA' as const,
       action: () => handleContentSubmit('MEDIA')
     },
     {
-      id: 'story',
-      title: 'שיתוף סיפור',
+      scope: FAMILY_SCOPES.POST_STORY,
+      title: 'שיתוף סיפור', 
       description: 'ספר על רגע מיוחד או זיכרון',
       icon: Upload,
-      color: 'zahav-yellow',
-      enabled: canPostMedia,
-      scope: 'POST_MEDIA' as const,
       action: () => handleContentSubmit('STORY')
     },
     {
-      id: 'reminder',
+      scope: FAMILY_SCOPES.SUGGEST_REMINDER,
       title: 'הצעת תזכורת',
       description: 'הצע תזכורת לתרופות או פגישות',
       icon: Bell,
-      color: 'zahav-orange',
-      enabled: canSuggestReminder,
-      scope: 'SUGGEST_REMINDER' as const,
       action: () => handleContentSubmit('REMINDER')
     },
     {
-      id: 'game',
+      scope: FAMILY_SCOPES.INVITE_GAME,
       title: 'הזמנת משחק',
       description: 'הזמן למשחק משותף וכיף',
       icon: Gamepad2,
-      color: 'zahav-green',
-      enabled: canInviteGame,
-      scope: 'INVITE_GAME' as const,
       action: () => handleContentSubmit('GAME_INVITE')
     },
     {
-      id: 'chat',
+      scope: FAMILY_SCOPES.CHAT,
       title: 'צ\'אט משפחה',
       description: 'התכתב עם המשפחה',
       icon: MessageSquare,
-      color: 'zahav-purple',
-      enabled: canChat,
-      scope: 'CHAT' as const,
       action: handleChatOpen
     }
   ];
@@ -310,72 +225,29 @@ const FamilyDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Quick Actions */}
+          {/* Quick Actions - Always Show All 5 Cards */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Plus className="w-5 h-5" />
-                פעולות זמינות
+                פעולות משפחה
               </CardTitle>
               <CardDescription>
-                פעולות שאת/ה מורשה לבצע
+                כל הפעולות הזמינות במערכת
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {actionCards.map((action) => {
-                  const status = getStatusDisplay(action.scope);
-                  return (
-                    <div key={action.id} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <action.icon className="w-4 h-4" />
-                          <span className="font-medium text-sm">{action.title}</span>
-                        </div>
-                        <Badge className={status.color}>
-                          {status.text}
-                        </Badge>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        {action.enabled ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full"
-                            onClick={action.action}
-                          >
-                            {action.title}
-                          </Button>
-                        ) : (
-                          <div className="space-y-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="w-full opacity-50 cursor-not-allowed"
-                              disabled
-                            >
-                              <Lock className="w-4 h-4 ml-2" />
-                              {action.title}
-                            </Button>
-                            
-                            {(getRequestStatus(action.scope) === 'NONE' || 
-                              getRequestStatus(action.scope) === 'DECLINED') && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full text-xs"
-                                onClick={() => handleRequestPermission(action.scope)}
-                              >
-                                בקש הרשאה
-                              </Button>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                {actionCards.map((action, index) => (
+                  <ActionCard
+                    key={index}
+                    scope={action.scope}
+                    title={action.title}
+                    description={action.description}
+                    icon={action.icon}
+                    onAction={action.action}
+                  />
+                ))}
               </div>
             </CardContent>
           </Card>

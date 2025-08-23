@@ -3,15 +3,26 @@
 export type AppRole = 'MAIN_USER' | 'FAMILY';
 
 export type FamilyScope = 
-  | 'POST_MEDIA'           // העלאת תמונות/וידאו/סיפורים לתור ממתין
+  | 'POST_MEDIA'           // העלאת תמונות/וידאו לתור ממתין
+  | 'POST_STORY'           // שיתוף סיפורים לתור ממתין
   | 'SUGGEST_REMINDER'     // הצעת תזכורות (נכנס לאישור)
   | 'INVITE_GAME'         // הזמנת משחק משותף
   | 'CHAT'                // גישה לצ'אט המשפחה
   | 'EMERGENCY_ONLY';     // קבלת התראות SOS (ללא גישה לדשבורד)
 
+// The 5 main scopes for the dashboard (excluding EMERGENCY_ONLY)
+export const DASHBOARD_SCOPES = [
+  'POST_MEDIA',
+  'POST_STORY', 
+  'SUGGEST_REMINDER',
+  'INVITE_GAME',
+  'CHAT'
+] as const;
+
 // Scope constants for consistency
 export const FAMILY_SCOPES = {
   POST_MEDIA: 'POST_MEDIA' as const,
+  POST_STORY: 'POST_STORY' as const,
   SUGGEST_REMINDER: 'SUGGEST_REMINDER' as const,
   INVITE_GAME: 'INVITE_GAME' as const,
   CHAT: 'CHAT' as const,
@@ -76,12 +87,16 @@ export interface FamilyPermissionRequest {
 
 // Scope labels for UI
 export const scopeLabels: Record<FamilyScope, string> = {
-  POST_MEDIA: 'העלאת תמונות וסיפורים',
+  POST_MEDIA: 'העלאת תמונות',
+  POST_STORY: 'שיתוף סיפורים',
   SUGGEST_REMINDER: 'הצעת תזכורות',
   INVITE_GAME: 'הזמנת משחקים',
   CHAT: 'צ\'אט משפחה',
   EMERGENCY_ONLY: 'התראות חירום בלבד'
 };
+
+// Scope status types
+export type ScopeStatus = 'APPROVED' | 'PENDING' | 'DECLINED' | 'NONE';
 
 // Relation options for family members
 export const relationOptions = [
