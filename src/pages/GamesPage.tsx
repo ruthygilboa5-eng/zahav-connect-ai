@@ -2,9 +2,11 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Gamepad2, Users, User, Home, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useGoHome } from '@/hooks/useGoHome';
 
 const GamesPage = () => {
   const navigate = useNavigate();
+  const goHome = useGoHome();
 
   const familyGames = [
     {
@@ -155,7 +157,7 @@ const GamesPage = () => {
         </div>
 
         <Button
-          onClick={() => navigate('/')}
+          onClick={goHome}
           variant="outline"
           className="w-full"
         >

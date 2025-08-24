@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, ShieldCheck, ShieldX, AlertTriangle, CheckCircle, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useGoHome } from '@/hooks/useGoHome';
 
 interface ConsentDetails {
   id: string;
@@ -28,6 +29,7 @@ const EmergencyApprovalPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const goHome = useGoHome();
   
   const [consent, setConsent] = useState<ConsentDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -166,7 +168,7 @@ const EmergencyApprovalPage = () => {
             <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-4" />
             <h2 className="text-lg font-semibold mb-2">שגיאה</h2>
             <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={() => navigate('/')} variant="outline">
+            <Button onClick={goHome} variant="outline">
               חזור לעמוד הבית
             </Button>
           </CardContent>

@@ -2,9 +2,11 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Phone, Home, Shield, Ambulance, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useGoHome } from '@/hooks/useGoHome';
 
 const EmergencyContactsPage = () => {
   const navigate = useNavigate();
+  const goHome = useGoHome();
 
   const emergencyContacts = [
     {
@@ -85,7 +87,7 @@ const EmergencyContactsPage = () => {
         </div>
 
         <Button
-          onClick={() => navigate('/')}
+          onClick={goHome}
           variant="outline"
           className="w-full"
         >

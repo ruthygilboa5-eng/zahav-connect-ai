@@ -144,11 +144,6 @@
   body {
     @apply bg-background text-foreground font-medium;
     direction: rtl; /* Hebrew RTL support */
-    background-image: url('/lovable-uploads/29cd05ec-b00a-43ce-8229-525d9f632490.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
   }
 
   /* Hebrew font support */

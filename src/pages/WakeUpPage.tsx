@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Heart, ArrowRight, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useGoHome } from '@/hooks/useGoHome';
 
 interface WakeUpPageProps {
   userName?: string;
@@ -11,6 +12,7 @@ interface WakeUpPageProps {
 const WakeUpPage = ({ userName }: WakeUpPageProps) => {
   const [isWakeUpSent, setIsWakeUpSent] = useState(false);
   const navigate = useNavigate();
+  const goHome = useGoHome();
 
   const handleWakeUp = () => {
     setIsWakeUpSent(true);
@@ -58,7 +60,7 @@ const WakeUpPage = ({ userName }: WakeUpPageProps) => {
 
         <div className="mt-8 space-y-4">
           <Button
-            onClick={() => navigate('/')}
+            onClick={goHome}
             variant="outline"
             className="w-full"
           >

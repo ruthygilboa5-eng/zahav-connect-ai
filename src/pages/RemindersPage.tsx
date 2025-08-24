@@ -13,6 +13,7 @@ import { Bell, Pill, Calendar as CalendarIcon, Gift, Home, Plus, Clock, Repeat }
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useGoHome } from '@/hooks/useGoHome';
 
 interface ReminderStatus {
   id: number;
@@ -33,6 +34,7 @@ interface NewReminder {
 
 const RemindersPage = () => {
   const navigate = useNavigate();
+  const goHome = useGoHome();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [reminders] = useState([
     {
@@ -402,7 +404,7 @@ const RemindersPage = () => {
         </Dialog>
 
         <Button
-          onClick={() => navigate('/')}
+          onClick={goHome}
           variant="outline"
           className="w-full"
         >

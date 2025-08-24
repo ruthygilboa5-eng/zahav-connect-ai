@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { MessageSquare, Send, Home, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useGoHome } from '@/hooks/useGoHome';
 
 interface Message {
   id: number;
@@ -15,6 +16,7 @@ interface Message {
 
 const FamilyBoardPage = () => {
   const navigate = useNavigate();
+  const goHome = useGoHome();
   const [newMessage, setNewMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -144,7 +146,7 @@ const FamilyBoardPage = () => {
         </Card>
 
         <Button
-          onClick={() => navigate('/')}
+          onClick={goHome}
           variant="outline"
           className="w-full"
         >

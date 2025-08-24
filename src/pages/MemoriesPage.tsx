@@ -2,9 +2,11 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Camera, FileText, Video, Image, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useGoHome } from '@/hooks/useGoHome';
 
 const MemoriesPage = () => {
   const navigate = useNavigate();
+  const goHome = useGoHome();
 
   const memoryCategories = [
     {
@@ -116,7 +118,7 @@ const MemoriesPage = () => {
         </div>
 
         <Button
-          onClick={() => navigate('/')}
+          onClick={goHome}
           variant="outline"
           className="w-full"
         >
