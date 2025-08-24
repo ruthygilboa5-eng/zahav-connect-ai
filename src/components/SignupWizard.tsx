@@ -109,7 +109,7 @@ export default function SignupWizard({ onComplete }: SignupWizardProps) {
         // In demo mode, skip auth and go to next step
         setStep1Data(data);
         setCurrentStep(2);
-        toast.success("מצב דמו - ממשיך למילוי הפרופיל");
+        toast.success("מצב דמו - נתונים מתקבלים");
       } else {
         // Real mode - use Supabase auth
         const { error } = await dataProvider.signUp(data.email, data.password);

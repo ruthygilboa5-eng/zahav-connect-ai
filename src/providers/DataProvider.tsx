@@ -63,11 +63,18 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   // Initialize demo data once on mount if in demo mode
   useEffect(() => {
     if (DEV_MODE_DEMO) {
-      setUser(DEMO_USER);
+      setUser({
+        id: "demo-user",
+        role: "MAIN_USER",
+        firstName: "",
+        lastName: "",
+        email: "demo@example.com",
+        displayName: ""
+      });
       setUserProfile({
-        firstName: DEMO_USER.firstName,
-        lastName: DEMO_USER.lastName,
-        displayName: DEMO_USER.firstName
+        firstName: "",
+        lastName: "",
+        displayName: ""
       });
       setLoading(false);
     }

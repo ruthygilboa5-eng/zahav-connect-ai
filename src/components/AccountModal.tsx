@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/providers/AuthProvider';
+import { useAuthDisplayName } from '@/hooks/useDisplayName';
 import { User, Mail, Phone } from 'lucide-react';
 
 import { useNavigate } from 'react-router-dom';
@@ -14,6 +15,7 @@ interface AccountModalProps {
 
 const AccountModal = ({ isOpen, onClose }: AccountModalProps) => {
   const { authState, logout } = useAuth();
+  const displayName = useAuthDisplayName();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -40,7 +42,7 @@ const AccountModal = ({ isOpen, onClose }: AccountModalProps) => {
               <User className="w-8 h-8 text-primary-foreground" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold">שלום {authState.firstName}</h3>
+              <h3 className="text-lg font-semibold">שלום {displayName}</h3>
               <Badge variant="secondary">{roleDisplay}</Badge>
             </div>
           </div>

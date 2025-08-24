@@ -27,16 +27,16 @@ export const useProfile = () => {
   // Load user profile by ID (for both current user and owner context)
   const loadUserProfile = useCallback(async (userId: string): Promise<ExtendedProfile | null> => {
     if (DEV_MODE_DEMO) {
-      // Return mock profile
+      // Return minimal mock profile without demo names
       return {
         id: userId,
         user_id: userId,
-        first_name: 'דמו',
-        last_name: 'משתמש',
-        display_name: 'דמו',
+        first_name: '',
+        last_name: '',
+        display_name: '',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        role: 'MAIN_USER'
+        role: 'FAMILY'
       };
     }
 

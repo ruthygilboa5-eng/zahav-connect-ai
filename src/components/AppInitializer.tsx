@@ -23,6 +23,9 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
       // Clear last path persistence on production
       if (!PERSIST_LAST_ROUTE) {
         localStorage.removeItem('lastPath');
+        localStorage.removeItem('mock_firstName');
+        localStorage.removeItem('mock_profile');
+        localStorage.removeItem('authState');
       }
 
       try {
