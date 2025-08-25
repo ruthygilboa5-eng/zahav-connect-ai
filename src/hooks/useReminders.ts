@@ -16,19 +16,13 @@ export interface Reminder {
 export const useReminders = () => {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [missingTables, setMissingTables] = useState(false);
   const { authState } = useAuth();
   const { toast } = useToast();
 
-  const showMissingTableError = () => {
-    toast({
-      title: 'טבלת נתונים חסרה',
-      description: 'נא ליצור טבלת reminders ב-Supabase Dashboard',
-      variant: 'destructive',
-    });
-  };
-
   const fetchReminders = async () => {
-    if (!authState.isAuthenticated) {
+    // Guard: only run after auth and profile are ready
+    if (!authState.isAuthenticated || !authState.user || !authState.role) {
       setLoading(false);
       return;
     }
@@ -37,21 +31,30 @@ export const useReminders = () => {
       const { data, error } = await (supabase as any)
         .from('reminders')
         .select('*')
-        .eq('owner_user_id', authState.memberId || '')
+        .eq('owner_user_id', authState.user.id)
         .order('due_at', { ascending: true });
 
       if (error) {
+        // Handle missing table gracefully
         if (error.message.includes('relation') && error.message.includes('does not exist')) {
-          showMissingTableError();
+          setMissingTables(true);
           setReminders([]);
+          setLoading(false);
           return;
         }
         throw error;
       }
 
+      // Success - clear missing tables flag and set data
+      setMissingTables(false);
       setReminders(data || []);
     } catch (error: any) {
       console.error('Error fetching reminders:', error);
+      toast({
+        title: 'שגיאת טעינה',
+        description: 'לא ניתן לטעון את התזכורות',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -64,7 +67,7 @@ export const useReminders = () => {
       const { data, error } = await (supabase as any)
         .from('reminders')
         .insert({
-          owner_user_id: authState.memberId,
+          owner_user_id: authState.user?.id,
           ...reminderData
         })
         .select()
@@ -72,7 +75,7 @@ export const useReminders = () => {
 
       if (error) {
         if (error.message.includes('relation') && error.message.includes('does not exist')) {
-          showMissingTableError();
+          setMissingTables(true);
           return { error: 'Table not found' };
         }
         throw error;
@@ -107,11 +110,12 @@ export const useReminders = () => {
 
   useEffect(() => {
     fetchReminders();
-  }, [authState.isAuthenticated, authState.memberId]);
+  }, [authState.isAuthenticated, authState.role, authState.user?.id]);
 
   return {
     reminders,
     loading,
+    missingTables,
     addReminder,
     deleteReminder,
     refetch: fetchReminders

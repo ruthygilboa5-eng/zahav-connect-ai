@@ -17,19 +17,13 @@ export interface FamilyPermissionRequest {
 export const useFamilyPermissionRequests = () => {
   const [requests, setRequests] = useState<FamilyPermissionRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [missingTables, setMissingTables] = useState(false);
   const { authState } = useAuth();
   const { toast } = useToast();
 
-  const showMissingTableError = () => {
-    toast({
-      title: 'טבלת נתונים חסרה',
-      description: 'נא ליצור טבלת family_permission_requests ב-Supabase Dashboard',
-      variant: 'destructive',
-    });
-  };
-
   const fetchRequests = async () => {
-    if (!authState.isAuthenticated) {
+    // Guard: only run after auth and profile are ready
+    if (!authState.isAuthenticated || !authState.user || !authState.role) {
       setLoading(false);
       return;
     }
@@ -38,21 +32,30 @@ export const useFamilyPermissionRequests = () => {
       const { data, error } = await (supabase as any)
         .from('family_permission_requests')
         .select('*')
-        .eq('owner_user_id', authState.memberId || '')
+        .eq('owner_user_id', authState.user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
+        // Handle missing table gracefully
         if (error.message.includes('relation') && error.message.includes('does not exist')) {
-          showMissingTableError();
+          setMissingTables(true);
           setRequests([]);
+          setLoading(false);
           return;
         }
         throw error;
       }
 
+      // Success - clear missing tables flag and set data
+      setMissingTables(false);
       setRequests(data || []);
     } catch (error: any) {
       console.error('Error fetching permission requests:', error);
+      toast({
+        title: 'שגיאת טעינה',
+        description: 'לא ניתן לטעון את בקשות ההרשאה',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -66,7 +69,7 @@ export const useFamilyPermissionRequests = () => {
       const { data: existing } = await (supabase as any)
         .from('family_permission_requests')
         .select('*')
-        .eq('owner_user_id', authState.memberId)
+        .eq('owner_user_id', authState.user?.id)
         .eq('family_link_id', familyLinkId)
         .eq('scope', scope)
         .eq('status', 'PENDING')
@@ -84,7 +87,7 @@ export const useFamilyPermissionRequests = () => {
       const { data, error } = await (supabase as any)
         .from('family_permission_requests')
         .insert({
-          owner_user_id: authState.memberId,
+          owner_user_id: authState.user?.id,
           family_link_id: familyLinkId,
           scope,
           status: 'PENDING'
@@ -94,7 +97,7 @@ export const useFamilyPermissionRequests = () => {
 
       if (error) {
         if (error.message.includes('relation') && error.message.includes('does not exist')) {
-          showMissingTableError();
+          setMissingTables(true);
           return { error: 'Table not found' };
         }
         throw error;
@@ -146,11 +149,12 @@ export const useFamilyPermissionRequests = () => {
 
   useEffect(() => {
     fetchRequests();
-  }, [authState.isAuthenticated, authState.memberId]);
+  }, [authState.isAuthenticated, authState.role, authState.user?.id]);
 
   return {
     requests,
     loading,
+    missingTables,
     createRequest,
     updateRequest,
     getRequestStatus,

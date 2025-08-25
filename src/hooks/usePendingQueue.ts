@@ -16,6 +16,7 @@ export interface PendingQueueItem {
 export const usePendingQueue = () => {
   const [pendingItems, setPendingItems] = useState<PendingQueueItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [missingTables, setMissingTables] = useState(false);
   const { authState } = useAuth();
   const { toast } = useToast();
 
@@ -28,7 +29,8 @@ export const usePendingQueue = () => {
   };
 
   const fetchPendingItems = async () => {
-    if (!authState.isAuthenticated) {
+    // Guard: only run after auth and profile are ready
+    if (!authState.isAuthenticated || !authState.user || !authState.role) {
       setLoading(false);
       return;
     }
@@ -37,21 +39,30 @@ export const usePendingQueue = () => {
       const { data, error } = await (supabase as any)
         .from('pending_queue')
         .select('*')
-        .eq('owner_user_id', authState.memberId || '')
+        .eq('owner_user_id', authState.user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
+        // Handle missing table gracefully
         if (error.message.includes('relation') && error.message.includes('does not exist')) {
-          showMissingTableError();
+          setMissingTables(true);
           setPendingItems([]);
+          setLoading(false);
           return;
         }
         throw error;
       }
 
+      // Success - clear missing tables flag and set data
+      setMissingTables(false);
       setPendingItems(data || []);
     } catch (error: any) {
       console.error('Error fetching pending items:', error);
+      toast({
+        title: 'שגיאת טעינה',
+        description: 'לא ניתן לטעון את רשימת הפריטים הממתינים',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -64,7 +75,7 @@ export const usePendingQueue = () => {
       const { data, error } = await (supabase as any)
         .from('pending_queue')
         .insert({
-          owner_user_id: authState.memberId,
+          owner_user_id: authState.user?.id,
           status: 'PENDING',
           ...itemData
         })
@@ -73,7 +84,7 @@ export const usePendingQueue = () => {
 
       if (error) {
         if (error.message.includes('relation') && error.message.includes('does not exist')) {
-          showMissingTableError();
+          setMissingTables(true);
           return { error: 'Table not found' };
         }
         throw error;
@@ -128,7 +139,7 @@ export const usePendingQueue = () => {
 
   // Set up realtime subscription
   useEffect(() => {
-    if (!authState.isAuthenticated || !authState.memberId) return;
+    if (!authState.isAuthenticated || !authState.user?.id) return;
 
     const channel = supabase
       .channel('pending_queue_changes')
@@ -138,7 +149,7 @@ export const usePendingQueue = () => {
           event: '*',
           schema: 'public',
           table: 'pending_queue',
-          filter: `owner_user_id=eq.${authState.memberId}`
+          filter: `owner_user_id=eq.${authState.user.id}`
         },
         (payload) => {
           console.log('Pending queue change:', payload);
@@ -151,15 +162,16 @@ export const usePendingQueue = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [authState.isAuthenticated, authState.memberId]);
+  }, [authState.isAuthenticated, authState.user?.id]);
 
   useEffect(() => {
     fetchPendingItems();
-  }, [authState.isAuthenticated, authState.memberId]);
+  }, [authState.isAuthenticated, authState.role, authState.user?.id]);
 
   return {
     pendingItems,
     loading,
+    missingTables,
     addPendingItem,
     updatePendingItem,
     deletePendingItem,

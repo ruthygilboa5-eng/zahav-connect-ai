@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ReactNode } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/providers/AuthProvider';
 import { useFamilyLinks } from '@/hooks/useFamilyLinks';
 import { usePendingQueue } from '@/hooks/usePendingQueue';
 import { useMemories } from '@/hooks/useMemories';
@@ -7,6 +7,8 @@ import { useReminders } from '@/hooks/useReminders';
 import { useFamilyPermissionRequests } from '@/hooks/useFamilyPermissionRequests';
 import { useSupabaseStorage } from '@/hooks/useSupabaseStorage';
 import { MissingTablesBanner } from '@/components/MissingTablesBanner';
+import { useLocation } from 'react-router-dom';
+import { SHOW_ADMIN_BANNER } from '@/config/dev';
 
 interface SupabaseContextType {
   // Auth
@@ -36,6 +38,7 @@ interface SupabaseProviderProps {
 }
 
 export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
+  const location = useLocation();
   const auth = useAuth();
   const familyLinks = useFamilyLinks();
   const pendingQueue = usePendingQueue();
@@ -43,12 +46,6 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
   const reminders = useReminders();
   const permissionRequests = useFamilyPermissionRequests();
   const storage = useSupabaseStorage();
-
-  // Collect missing tables for banner
-  const missingTables: string[] = [];
-  
-  // Check if any hooks detected missing tables (based on error patterns)
-  // This is a simple detection - in a real app you might want more sophisticated checking
 
   const contextValue: SupabaseContextType = {
     auth,
@@ -60,17 +57,32 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
     storage
   };
 
+  // Collect missing tables from hooks
+  const missingTables: string[] = [];
+  if (familyLinks.missingTables) missingTables.push('family_links');
+  if (pendingQueue.missingTables) missingTables.push('pending_queue');
+  if (memories.missingTables) missingTables.push('memories');
+  if (reminders.missingTables) missingTables.push('reminders');
+  if (permissionRequests.missingTables) missingTables.push('family_permission_requests');
+  // Add other missing table checks as needed
+
+  // Show admin banner only if:
+  // - Feature flag is enabled
+  // - User is authenticated as MAIN_USER  
+  // - Not on landing page
+  // - There are actually missing tables
+  const shouldShowBanner = 
+    SHOW_ADMIN_BANNER && 
+    auth.authState.isAuthenticated && 
+    auth.authState.role === 'MAIN_USER' && 
+    location.pathname !== '/' && 
+    missingTables.length > 0;
+
   return (
     <SupabaseContext.Provider value={contextValue}>
-      <MissingTablesBanner 
-        missingTables={[
-          'family_links',
-          'pending_queue', 
-          'memories',
-          'reminders',
-          'family_permission_requests'
-        ]} 
-      />
+      {shouldShowBanner && (
+        <MissingTablesBanner missingTables={missingTables} />
+      )}
       {children}
     </SupabaseContext.Provider>
   );

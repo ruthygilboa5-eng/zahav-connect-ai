@@ -19,6 +19,7 @@ export interface FamilyLink {
 export const useFamilyLinks = () => {
   const [familyLinks, setFamilyLinks] = useState<FamilyLink[]>([]);
   const [loading, setLoading] = useState(true);
+  const [missingTables, setMissingTables] = useState(false);
   const { authState } = useAuth();
   const { toast } = useToast();
 
@@ -31,26 +32,35 @@ export const useFamilyLinks = () => {
   };
 
   const fetchFamilyLinks = async () => {
-    if (!authState.user) {
+    // Guard: only run after auth and profile are ready
+    if (!authState.isAuthenticated || !authState.user || !authState.role) {
       setLoading(false);
       return;
     }
 
     try {
-      const { data, error } = await (supabase as any)
-        .from('family_links')
-        .select('*')
-        .eq('owner_user_id', authState.user.id);
+      const uid = authState.user.id;
+      
+      // Query based on role
+      const query = authState.role === 'MAIN_USER'
+        ? (supabase as any).from('family_links').select('*').eq('owner_user_id', uid)
+        : (supabase as any).from('family_links').select('*').eq('member_user_id', uid);
+
+      const { data, error } = await query;
 
       if (error) {
+        // Handle missing table gracefully 
         if (error.message.includes('relation') && error.message.includes('does not exist')) {
-          showMissingTableError();
+          setMissingTables(true);
           setFamilyLinks([]);
+          setLoading(false);
           return;
         }
         throw error;
       }
 
+      // Success - clear missing tables flag and set data
+      setMissingTables(false);
       setFamilyLinks(data || []);
     } catch (error: any) {
       console.error('Error fetching family links:', error);
@@ -164,11 +174,12 @@ export const useFamilyLinks = () => {
 
   useEffect(() => {
     fetchFamilyLinks();
-  }, [authState.user]);
+  }, [authState.isAuthenticated, authState.role, authState.user?.id]);
 
   return {
     familyLinks,
     loading,
+    missingTables,
     createFamilyLink,
     updateFamilyLink,
     deleteFamilyLink,

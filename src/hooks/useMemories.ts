@@ -14,19 +14,13 @@ export interface Memory {
 export const useMemories = () => {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [missingTables, setMissingTables] = useState(false);
   const { authState } = useAuth();
   const { toast } = useToast();
 
-  const showMissingTableError = () => {
-    toast({
-      title: 'טבלת נתונים חסרה',
-      description: 'נא ליצור טבלת memories ב-Supabase Dashboard',
-      variant: 'destructive',
-    });
-  };
-
   const fetchMemories = async () => {
-    if (!authState.isAuthenticated) {
+    // Guard: only run after auth and profile are ready
+    if (!authState.isAuthenticated || !authState.user || !authState.role) {
       setLoading(false);
       return;
     }
@@ -35,21 +29,30 @@ export const useMemories = () => {
       const { data, error } = await (supabase as any)
         .from('memories')
         .select('*')
-        .eq('owner_user_id', authState.memberId || '')
+        .eq('owner_user_id', authState.user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
+        // Handle missing table gracefully
         if (error.message.includes('relation') && error.message.includes('does not exist')) {
-          showMissingTableError();
+          setMissingTables(true);
           setMemories([]);
+          setLoading(false);
           return;
         }
         throw error;
       }
 
+      // Success - clear missing tables flag and set data  
+      setMissingTables(false);
       setMemories(data || []);
     } catch (error: any) {
       console.error('Error fetching memories:', error);
+      toast({
+        title: 'שגיאת טעינה',
+        description: 'לא ניתן לטעון את הזיכרונות',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -62,7 +65,7 @@ export const useMemories = () => {
       const { data, error } = await (supabase as any)
         .from('memories')
         .insert({
-          owner_user_id: authState.memberId,
+          owner_user_id: authState.user?.id,
           ...memoryData
         })
         .select()
@@ -70,7 +73,7 @@ export const useMemories = () => {
 
       if (error) {
         if (error.message.includes('relation') && error.message.includes('does not exist')) {
-          showMissingTableError();
+          setMissingTables(true);
           return { error: 'Table not found' };
         }
         throw error;
@@ -103,11 +106,12 @@ export const useMemories = () => {
 
   useEffect(() => {
     fetchMemories();
-  }, [authState.isAuthenticated, authState.memberId]);
+  }, [authState.isAuthenticated, authState.role, authState.user?.id]);
 
   return {
     memories,
     loading,
+    missingTables,
     addMemory,
     deleteMemory,
     refetch: fetchMemories
