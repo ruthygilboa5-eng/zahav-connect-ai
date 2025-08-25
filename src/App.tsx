@@ -32,87 +32,87 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <SupabaseProvider>
-          <OwnerProvider>
-            <FamilyProvider>
-              <DataProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <AppInitializer>
-                <AppLayout>
-                  <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/home" element={
-                  <ProtectedRoute requiredRole="MAIN_USER">
-                    <HomePage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/family" element={
-                  <ProtectedRoute requiredRole="FAMILY">
-                    <FamilyDashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="/wakeup" element={
-                  <ProtectedRoute requiredRole="MAIN_USER">
-                    <WakeUpPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/emergency" element={
-                  <ProtectedRoute requiredRole="MAIN_USER">
-                    <EmergencyPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/emergency-contacts" element={
-                  <ProtectedRoute requiredRole="MAIN_USER">
-                    <EmergencyContactsPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/emergency-approval" element={
-                  <ProtectedRoute>
-                    <EmergencyApprovalPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/reminders" element={
-                  <ProtectedRoute requiredRole="MAIN_USER">
-                    <RemindersPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/memories" element={
-                  <ProtectedRoute requiredRole="MAIN_USER">
-                    <MemoriesPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/games" element={
-                  <ProtectedRoute requiredRole="MAIN_USER">
-                    <GamesPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/family-management" element={
-                  <ProtectedRoute requiredRole="MAIN_USER">
-                    <FamilyManagementPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/family-board" element={
-                  <ProtectedRoute requiredRole="MAIN_USER">
-                    <FamilyBoardPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/review" element={
-                  <ProtectedRoute requiredRole="MAIN_USER">
-                    <ReviewPage />
-                  </ProtectedRoute>
-                } />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </AppLayout>
-              </AppInitializer>
-            </BrowserRouter>
-              </DataProvider>
-            </FamilyProvider>
-          </OwnerProvider>
-        </SupabaseProvider>
+        <BrowserRouter>
+          <SupabaseProvider>
+            <OwnerProvider>
+              <FamilyProvider>
+                <DataProvider>
+                  <Toaster />
+                  <Sonner />
+                  <AppInitializer>
+                    <AppLayout>
+                      <Routes>
+                        <Route path="/" element={<Index />} />
+                        <Route path="/home" element={
+                          <ProtectedRoute requiredRole="MAIN_USER">
+                            <HomePage />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/family" element={
+                          <ProtectedRoute requiredRole="FAMILY">
+                            <FamilyDashboard />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/wakeup" element={
+                          <ProtectedRoute requiredRole="MAIN_USER">
+                            <WakeUpPage />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/emergency" element={
+                          <ProtectedRoute requiredRole="MAIN_USER">
+                            <EmergencyPage />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/emergency-contacts" element={
+                          <ProtectedRoute requiredRole="MAIN_USER">
+                            <EmergencyContactsPage />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/emergency-approval" element={
+                          <ProtectedRoute>
+                            <EmergencyApprovalPage />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/reminders" element={
+                          <ProtectedRoute requiredRole="MAIN_USER">
+                            <RemindersPage />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/memories" element={
+                          <ProtectedRoute requiredRole="MAIN_USER">
+                            <MemoriesPage />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/games" element={
+                          <ProtectedRoute requiredRole="MAIN_USER">
+                            <GamesPage />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/family-management" element={
+                          <ProtectedRoute requiredRole="MAIN_USER">
+                            <FamilyManagementPage />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/family-board" element={
+                          <ProtectedRoute requiredRole="MAIN_USER">
+                            <FamilyBoardPage />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/review" element={
+                          <ProtectedRoute requiredRole="MAIN_USER">
+                            <ReviewPage />
+                          </ProtectedRoute>
+                        } />
+                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </AppLayout>
+                  </AppInitializer>
+                </DataProvider>
+              </FamilyProvider>
+            </OwnerProvider>
+          </SupabaseProvider>
+        </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
