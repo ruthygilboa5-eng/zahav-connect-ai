@@ -7,6 +7,7 @@ import { AuthProvider } from "@/providers/AuthProvider";
 import { DataProvider } from "@/providers/DataProvider";
 import { FamilyProvider } from "@/providers/FamilyProvider";
 import { OwnerProvider } from "@/providers/OwnerProvider";
+import { SupabaseProvider } from "@/providers/SupabaseProvider";
 import AppLayout from "@/components/AppLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AppInitializer from "@/components/AppInitializer";
@@ -31,9 +32,10 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <OwnerProvider>
-          <FamilyProvider>
-            <DataProvider>
+        <SupabaseProvider>
+          <OwnerProvider>
+            <FamilyProvider>
+              <DataProvider>
             <Toaster />
             <Sonner />
             <BrowserRouter>
@@ -107,9 +109,10 @@ const App = () => (
                 </AppLayout>
               </AppInitializer>
             </BrowserRouter>
-          </DataProvider>
-        </FamilyProvider>
-        </OwnerProvider>
+              </DataProvider>
+            </FamilyProvider>
+          </OwnerProvider>
+        </SupabaseProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
