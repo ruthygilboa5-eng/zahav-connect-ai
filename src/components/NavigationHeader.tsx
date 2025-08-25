@@ -4,7 +4,7 @@ import { User, Users, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useAuthDisplayName } from '@/hooks/useDisplayName';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import AccountModal from '@/components/AccountModal';
 
 interface NavigationHeaderProps {
@@ -17,16 +17,44 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: Naviga
   const { authState, loginAsMainUser, loginAsFamily, logout } = useAuth();
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const displayName = useAuthDisplayName();
 
+  // Helper function to check active route
+  const isActive = (path: string) => location.pathname.startsWith(path);
+
   const handleMainUserLogin = () => {
-    loginAsMainUser();
-    navigate('/home');
+    if (authState.isAuthenticated && authState.role === 'MAIN_USER') {
+      navigate('/home');
+    } else {
+      loginAsMainUser();
+      navigate('/home');
+    }
   };
 
   const handleFamilyLogin = () => {
-    loginAsFamily();
-    navigate('/family');
+    if (authState.isAuthenticated && authState.role === 'FAMILY') {
+      navigate('/family');
+    } else {
+      loginAsFamily();
+      navigate('/family');
+    }
+  };
+
+  const handleMainUserViewClick = () => {
+    if (authState.isAuthenticated && authState.role === 'MAIN_USER') {
+      navigate('/home');
+    } else {
+      onViewChange('elderly');
+    }
+  };
+
+  const handleFamilyViewClick = () => {
+    if (authState.isAuthenticated && authState.role === 'FAMILY') {
+      navigate('/family');
+    } else {
+      onViewChange('family');
+    }
   };
 
   const handleLogout = () => {
@@ -55,18 +83,18 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: Naviga
           {/* View Toggle */}
           <div className="flex items-center gap-2 bg-muted rounded-lg p-1">
             <Button
-              variant={currentView === 'elderly' ? 'default' : 'ghost'}
+              variant={authState.role === 'MAIN_USER' && isActive('/home') ? 'default' : 'ghost'}
               size="sm"
-              onClick={() => onViewChange('elderly')}
+              onClick={handleMainUserViewClick}
               className="flex items-center gap-2"
             >
               <User className="w-4 h-4" />
               <span className="hidden sm:inline">ממשק משתמש</span>
             </Button>
             <Button
-              variant={currentView === 'family' ? 'default' : 'ghost'}
+              variant={authState.role === 'FAMILY' && isActive('/family') ? 'default' : 'ghost'}
               size="sm"
-              onClick={() => onViewChange('family')}
+              onClick={handleFamilyViewClick}
               className="flex items-center gap-2"
             >
               <Users className="w-4 h-4" />
