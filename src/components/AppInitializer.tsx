@@ -30,13 +30,10 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
 
       try {
         if (DEV_MODE_DEMO) {
-          // Demo mode - use existing auth state
-          if (!authState.isAuthenticated) {
-            navigate('/', { replace: true });
-          } else {
+          // Demo mode - load auth state but stay on current route
+          if (authState.isAuthenticated) {
             // Set owner context for demo
             setOwnerUserId('demo-user');
-            navigate(authState.role === 'MAIN_USER' ? '/home' : '/family', { replace: true });
           }
           setInitialized(true);
           return;
@@ -47,7 +44,6 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
         
         if (!session) {
           logout(); // Clear any stale auth state
-          navigate('/', { replace: true });
           setInitialized(true);
           return;
         }
@@ -74,20 +70,16 @@ const AppInitializer = ({ children }: AppInitializerProps) => {
         
         setOwnerUserId(ownerUserId);
         
-        // Update auth state with session and role
+        // Update auth state with session and role (no auto-navigation)
         if (role === 'MAIN_USER') {
           loginAsMainUser(profile?.first_name || '');
         } else {
           loginAsFamily(profile?.first_name || '');
         }
         
-        // Navigate to appropriate route
-        navigate(role === 'MAIN_USER' ? '/home' : '/family', { replace: true });
-        
       } catch (error) {
         console.error('Failed to initialize app:', error);
         logout();
-        navigate('/', { replace: true });
       } finally {
         setInitialized(true);
       }

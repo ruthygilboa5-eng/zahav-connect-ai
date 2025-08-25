@@ -12,13 +12,21 @@ const Index = () => {
   // AppInitializer handles auth-based routing on app boot
 
   const handleMainUserLogin = () => {
-    loginAsMainUser();
-    navigate('/home');
+    if (authState.isAuthenticated && authState.role === 'MAIN_USER') {
+      navigate('/home');
+    } else {
+      loginAsMainUser();
+      navigate('/home');
+    }
   };
 
   const handleFamilyLogin = () => {
-    loginAsFamily();
-    navigate('/family');
+    if (authState.isAuthenticated && authState.role === 'FAMILY') {
+      navigate('/family');
+    } else {
+      loginAsFamily();
+      navigate('/family');
+    }
   };
 
   return (
