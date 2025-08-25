@@ -1,33 +1,26 @@
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, Heart, Shield, Clock } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useNavigate } from 'react-router-dom';
+import AuthModal from '@/components/AuthModal';
 
 const Index = () => {
-  const { authState, loginAsMainUser, loginAsFamily } = useAuth();
+  const { authState } = useAuth();
   const navigate = useNavigate();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  // AppInitializer handles auth-based routing on app boot
-
-  const handleMainUserLogin = () => {
-    if (authState.isAuthenticated && authState.role === 'MAIN_USER') {
-      navigate('/home');
-    } else {
-      loginAsMainUser();
-      navigate('/home');
-    }
+  const handleAuthClick = () => {
+    setIsAuthModalOpen(true);
   };
 
-  const handleFamilyLogin = () => {
-    if (authState.isAuthenticated && authState.role === 'FAMILY') {
-      navigate('/family');
-    } else {
-      loginAsFamily();
-      navigate('/family');
-    }
-  };
+  // If already authenticated, go to appropriate page
+  if (authState.isAuthenticated) {
+    const targetPath = authState.role === 'MAIN_USER' ? '/home' : '/family';
+    navigate(targetPath, { replace: true });
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -69,11 +62,11 @@ const Index = () => {
                 </div>
               </div>
               <Button 
-                onClick={handleMainUserLogin}
+                onClick={handleAuthClick}
                 className="w-full"
                 size="lg"
               >
-                כניסה כמשתמש ראשי
+                התחברות / הרשמה
               </Button>
             </CardContent>
           </Card>
@@ -104,12 +97,12 @@ const Index = () => {
                 </div>
               </div>
               <Button 
-                onClick={handleFamilyLogin}
+                onClick={handleAuthClick}
                 variant="outline"
                 className="w-full"
                 size="lg"
               >
-                כניסה כבן משפחה
+                התחברות / הרשמה
               </Button>
             </CardContent>
           </Card>
@@ -137,6 +130,11 @@ const Index = () => {
           </div>
         </div>
       </div>
+      
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+      />
     </div>
   );
 };

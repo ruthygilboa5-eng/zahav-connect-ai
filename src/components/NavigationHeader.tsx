@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import AccountModal from '@/components/AccountModal';
+import AuthModal from '@/components/AuthModal';
 
 interface NavigationHeaderProps {
   currentView: 'elderly' | 'family';
@@ -15,8 +16,9 @@ interface NavigationHeaderProps {
 }
 
 const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: NavigationHeaderProps) => {
-  const { authState, loginAsMainUser, loginAsFamily, logout } = useAuth();
+  const { authState, logout } = useAuth();
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const displayName = useAuthDisplayName();
@@ -25,22 +27,8 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: Naviga
   // Helper function to check active route
   const isActive = (path: string) => location.pathname.startsWith(path);
 
-  const handleMainUserLogin = () => {
-    if (authState.isAuthenticated && authState.role === 'MAIN_USER') {
-      navigate('/home');
-    } else {
-      loginAsMainUser();
-      navigate('/home');
-    }
-  };
-
-  const handleFamilyLogin = () => {
-    if (authState.isAuthenticated && authState.role === 'FAMILY') {
-      navigate('/family');
-    } else {
-      loginAsFamily();
-      navigate('/family');
-    }
+  const handleAuthClick = () => {
+    setIsAuthModalOpen(true);
   };
 
   const handleMainUserViewClick = () => {
@@ -120,18 +108,10 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: Naviga
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={handleMainUserLogin}
+                  onClick={handleAuthClick}
                   className="text-sm"
                 >
-                  כניסה כמשתמש ראשי
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleFamilyLogin}
-                  className="text-sm"
-                >
-                  כניסה כבן משפחה
+                  התחבר / הירשם
                 </Button>
               </>
             ) : (
@@ -162,6 +142,11 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: Naviga
       <AccountModal 
         isOpen={isAccountModalOpen} 
         onClose={() => setIsAccountModalOpen(false)} 
+      />
+      
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
       />
     </div>
   );

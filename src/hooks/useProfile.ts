@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { UserProfile } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
-import { useTempAuth } from '@/hooks/useTempAuth';
 import { useAuth } from '@/providers/AuthProvider';
 import { DEV_MODE_DEMO } from '@/config/dev';
 
@@ -14,8 +13,7 @@ export const useProfile = () => {
   const [profile, setProfile] = useState<ExtendedProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { user } = useTempAuth();
-  const { setFirstName } = useAuth();
+  const { authState, setFirstName } = useAuth();
 
   // Reactive sync: when profile firstName changes, update auth state immediately
   useEffect(() => {
@@ -24,8 +22,7 @@ export const useProfile = () => {
     }
   }, [profile?.first_name, setFirstName]);
 
-  // Load user profile by ID (for both current user and owner context)
-  const loadUserProfile = useCallback(async (userId: string): Promise<ExtendedProfile | null> => {
+  const loadUserProfile = async (userId: string): Promise<ExtendedProfile | null> => {
     if (DEV_MODE_DEMO) {
       // Return minimal mock profile without demo names
       return {
@@ -91,31 +88,27 @@ export const useProfile = () => {
       console.error('Error loading profile:', error);
       return null;
     }
-  }, []);
+  };
 
-  const fetchProfile = useCallback(async () => {
-    console.log('fetchProfile called, user:', user);
+  const fetchProfile = async () => {
     try {
-      if (!user) {
-        console.log('No user found');
+      if (!authState.user) {
         setLoading(false);
         return;
       }
 
-      const profileData = await loadUserProfile(user.id);
+      const profileData = await loadUserProfile(authState.user.id);
       setProfile(profileData);
     } catch (error) {
       console.error('Error:', error);
     } finally {
       setLoading(false);
     }
-  }, [user, loadUserProfile]);
+  };
 
   const updateProfile = async (updates: Partial<Pick<ExtendedProfile, 'first_name' | 'last_name'>>) => {
-    console.log('updateProfile called with:', updates, 'user:', user);
     try {
-      if (!user) {
-        console.log('No user for profile update');
+      if (!authState.user) {
         return false;
       }
 
@@ -124,7 +117,7 @@ export const useProfile = () => {
         const { error } = await supabase
           .from('user_profiles')
           .update(updates)
-          .eq('user_id', user.id);
+          .eq('user_id', authState.user.id);
 
         if (error) throw error;
         
@@ -137,7 +130,7 @@ export const useProfile = () => {
       } else {
         // Create new profile using upsert to handle duplicates
         const newProfile = {
-          user_id: user.id,
+          user_id: authState.user.id,
           first_name: updates.first_name || '',
           last_name: updates.last_name || ''
         };
@@ -176,7 +169,7 @@ export const useProfile = () => {
 
   useEffect(() => {
     fetchProfile();
-  }, [fetchProfile]);
+  }, [authState.user]);
 
   return {
     profile,

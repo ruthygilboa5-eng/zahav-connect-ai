@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { User, Session } from '@supabase/supabase-js';
 
 type Role = 'MAIN_USER' | 'FAMILY' | null;
 
@@ -9,6 +10,8 @@ export interface AuthState {
   firstName: string;
   memberId?: string; // For compatibility with existing code
   scopes?: string[]; // For compatibility with existing code
+  user?: User | null;
+  session?: Session | null;
 }
 
 interface AuthContextType {
@@ -18,6 +21,8 @@ interface AuthContextType {
   logout: () => void;
   login: (role: Role, memberId?: string, scopes?: string[]) => void; // For compatibility
   setFirstName: (firstName: string) => void; // For profile sync
+  signOut: () => Promise<{ error: any }>;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,24 +42,88 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
+  const [loading, setLoading] = useState(true);
   const [authState, setAuthState] = useState<AuthState>(() => {
-    // Initialize from localStorage if available
-    try {
-      const stored = localStorage.getItem(AUTH_KEY);
-      if (stored) {
-        return JSON.parse(stored);
-      }
-    } catch (error) {
-      console.error('Failed to load auth state from localStorage:', error);
-    }
     return {
       isAuthenticated: false,
       role: null,
       firstName: '',
       memberId: undefined,
-      scopes: undefined
+      scopes: undefined,
+      user: null,
+      session: null
     };
   });
+
+  useEffect(() => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session?.user) {
+          // Load user profile to determine role
+          setTimeout(async () => {
+            try {
+              const { data: profile } = await supabase
+                .from('user_profiles')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .single();
+
+              // Check user role
+              const { data: roleData } = await supabase
+                .from('user_roles')
+                .select('role')
+                .eq('user_id', session.user.id)
+                .maybeSingle();
+
+              const userRole = roleData?.role === 'main_user' ? 'MAIN_USER' : 'FAMILY';
+              
+              setAuthState({
+                isAuthenticated: true,
+                role: userRole,
+                firstName: profile?.first_name || '',
+                user: session.user,
+                session,
+                memberId: userRole === 'FAMILY' ? 'family-1' : undefined,
+                scopes: userRole === 'FAMILY' ? ['POST_MEDIA', 'SUGGEST_REMINDER', 'INVITE_GAME', 'CHAT'] : undefined
+              });
+            } catch (error) {
+              console.error('Error loading profile:', error);
+              setAuthState({
+                isAuthenticated: true,
+                role: 'FAMILY',
+                firstName: '',
+                user: session.user,
+                session,
+                memberId: 'family-1',
+                scopes: ['POST_MEDIA', 'SUGGEST_REMINDER', 'INVITE_GAME', 'CHAT']
+              });
+            }
+          }, 0);
+        } else {
+          setAuthState({
+            isAuthenticated: false,
+            role: null,
+            firstName: '',
+            user: null,
+            session: null,
+            memberId: undefined,
+            scopes: undefined
+          });
+        }
+        setLoading(false);
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const persist = (state: AuthState) => {
     try {
@@ -112,23 +181,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const logout = () => {
-    const newState = {
-      isAuthenticated: false,
-      role: null,
-      firstName: '',
-      memberId: undefined,
-      scopes: undefined
-    };
-    setAuthState(newState);
-    clearPersist();
-    
-    // Clear any persisted route keys
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    return { error };
+  };
+
+  const logout = async () => {
+    await signOut();
+    // State will be updated automatically via onAuthStateChange
     localStorage.removeItem('lastPath');
   };
 
   return (
-    <AuthContext.Provider value={{ authState, loginAsMainUser, loginAsFamily, logout, login, setFirstName }}>
+    <AuthContext.Provider value={{ 
+      authState, 
+      loginAsMainUser, 
+      loginAsFamily, 
+      logout, 
+      login, 
+      setFirstName, 
+      signOut, 
+      loading 
+    }}>
       {children}
     </AuthContext.Provider>
   );

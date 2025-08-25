@@ -31,7 +31,7 @@ export const useFamilyLinks = () => {
   };
 
   const fetchFamilyLinks = async () => {
-    if (!authState.isAuthenticated) {
+    if (!authState.user) {
       setLoading(false);
       return;
     }
@@ -40,7 +40,7 @@ export const useFamilyLinks = () => {
       const { data, error } = await (supabase as any)
         .from('family_links')
         .select('*')
-        .eq('owner_user_id', authState.memberId || '');
+        .eq('owner_user_id', authState.user.id);
 
       if (error) {
         if (error.message.includes('relation') && error.message.includes('does not exist')) {
@@ -65,13 +65,13 @@ export const useFamilyLinks = () => {
   };
 
   const createFamilyLink = async (linkData: Omit<FamilyLink, 'id' | 'owner_user_id' | 'created_at'>) => {
-    if (!authState.isAuthenticated) return { error: 'Not authenticated' };
+    if (!authState.user) return { error: 'Not authenticated' };
 
     try {
       const { data, error } = await (supabase as any)
         .from('family_links')
         .insert({
-          owner_user_id: authState.memberId,
+          owner_user_id: authState.user.id,
           ...linkData
         })
         .select()
@@ -164,7 +164,7 @@ export const useFamilyLinks = () => {
 
   useEffect(() => {
     fetchFamilyLinks();
-  }, [authState.isAuthenticated, authState.memberId]);
+  }, [authState.user]);
 
   return {
     familyLinks,
