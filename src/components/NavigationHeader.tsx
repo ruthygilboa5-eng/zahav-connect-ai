@@ -5,6 +5,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useAuthDisplayName } from '@/hooks/useDisplayName';
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 import AccountModal from '@/components/AccountModal';
 
 interface NavigationHeaderProps {
@@ -19,6 +20,7 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: Naviga
   const navigate = useNavigate();
   const location = useLocation();
   const displayName = useAuthDisplayName();
+  const { toast } = useToast();
 
   // Helper function to check active route
   const isActive = (path: string) => location.pathname.startsWith(path);
@@ -44,6 +46,12 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: Naviga
   const handleMainUserViewClick = () => {
     if (authState.isAuthenticated && authState.role === 'MAIN_USER') {
       navigate('/home');
+    } else if (authState.isAuthenticated && authState.role === 'FAMILY') {
+      toast({
+        title: 'אין לך הרשאה',
+        description: 'רק משתמש ראשי יכול לגשת לאזור זה',
+        variant: 'destructive',
+      });
     } else {
       onViewChange('elderly');
     }
