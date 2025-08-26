@@ -55,7 +55,7 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
 
   const refreshUserData = useCallback(async () => {
     try {
-      console.log('refreshUserData called');
+      console.log('refreshUserData called - current path:', window.location.pathname);
       setGlobalState(prev => ({ ...prev, isLoading: true }));
 
       // Get current auth user
@@ -128,14 +128,14 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
         targetPath = '/dashboard';
       }
 
-      console.log('Current path:', currentPath, 'Target path:', targetPath);
+      console.log('Current path:', currentPath, 'Target path:', targetPath, 'User role:', userRole);
       
-      // Only navigate if we're not already on the correct path
-      if (currentPath !== targetPath) {
+      // Only navigate if we're not already on the correct path and we're not on the home page
+      if (currentPath !== targetPath && currentPath !== '/') {
         console.log('Navigating to:', targetPath);
         navigate(targetPath, { replace: true });
       } else {
-        console.log('Already on correct path, skipping navigation');
+        console.log('Already on correct path or home page, skipping navigation');
       }
 
     } catch (error) {
@@ -148,9 +148,11 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
   // Initialize on mount and listen for auth changes
   useEffect(() => {
     let isMounted = true;
+    console.log('GlobalStateProvider useEffect mounting');
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth state change:', event, 'isMounted:', isMounted);
         if (!isMounted) return;
         
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
@@ -162,10 +164,14 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
       }
     );
 
-    // Initial load
-    refreshUserData();
+    // Only do initial load if we don't have user data yet
+    if (!globalState.currentUserId) {
+      console.log('Doing initial refreshUserData');
+      refreshUserData();
+    }
 
     return () => {
+      console.log('GlobalStateProvider useEffect cleanup');
       isMounted = false;
       subscription.unsubscribe();
     };
