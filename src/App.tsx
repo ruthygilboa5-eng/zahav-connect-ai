@@ -4,12 +4,13 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/providers/AuthProvider";
+import { GlobalStateProvider } from "@/providers/GlobalStateProvider";
 import { DataProvider } from "@/providers/DataProvider";
 import { FamilyProvider } from "@/providers/FamilyProvider";
 import { OwnerProvider } from "@/providers/OwnerProvider";
 import { SupabaseProvider } from "@/providers/SupabaseProvider";
-import { AuthNavigationHandler } from "@/components/AuthNavigationHandler";
 import AppLayout from "@/components/AppLayout";
+import GlobalStateWrapper from "@/components/GlobalStateWrapper";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AppInitializer from "@/components/AppInitializer";
 import Index from "./pages/Index";
@@ -34,16 +35,14 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <AuthProvider>
-        <BrowserRouter>
-          <AuthNavigationHandler />
+    <AuthProvider>
+      <BrowserRouter>
+        <GlobalStateProvider>
           <SupabaseProvider>
             <OwnerProvider>
               <FamilyProvider>
                 <DataProvider>
-                  <Toaster />
-                  <Sonner />
-                  <AppInitializer>
+                  <GlobalStateWrapper>
                     <AppLayout>
                       <Routes>
                         <Route path="/" element={<Index />} />
@@ -121,13 +120,16 @@ const App = () => (
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </AppLayout>
-                  </AppInitializer>
+                  </GlobalStateWrapper>
+                  <Toaster />
+                  <Sonner />
                 </DataProvider>
               </FamilyProvider>
             </OwnerProvider>
           </SupabaseProvider>
-        </BrowserRouter>
-      </AuthProvider>
+        </GlobalStateProvider>
+      </BrowserRouter>
+    </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
