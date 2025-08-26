@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SimpleAuthProvider } from "@/providers/SimpleAuthProvider";
-import Index from "./pages/Index";
+import SimpleIndex from "./pages/SimpleIndex";
 import HomePage from "./pages/HomePage";
 import DashboardPage from "./pages/DashboardPage";
 import NotFound from "./pages/NotFound";
@@ -32,7 +32,7 @@ const App = () => {
               />
               <div className="relative z-10">
                 <Routes>
-                  <Route path="/" element={<Index />} />
+                  <Route path="/" element={<SimpleIndex />} />
                   <Route path="/home" element={<HomePage />} />
                   <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="/family" element={<DashboardPage />} />
