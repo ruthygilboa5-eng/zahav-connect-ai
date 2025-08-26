@@ -36,42 +36,22 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <BrowserRouter>
-        <AuthProvider>
-          {/* Starting with minimal provider chain to test stability */}
-          <div className="min-h-screen w-full bg-white relative">
-            {/* Background */}
-            <div
-              className="absolute inset-0 z-0"
-              style={{
-                backgroundImage: `
-                  radial-gradient(125% 125% at 50% 90%, #ffffff 40%, #f59e0b 100%)
-                `,
-                backgroundSize: "100% 100%",
-              }}
-            />
-            <div className="relative z-10">
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/dashboard" element={
-                  <ProtectedRoute requiredRole="FAMILY">
-                    <DashboardPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/home" element={
-                  <ProtectedRoute requiredRole="MAIN_USER">
-                    <HomePage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/family" element={
-                  <ProtectedRoute requiredRole="MAIN_USER">
-                    <FamilyDashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </div>
+        {/* Remove AuthProvider temporarily to isolate the issue */}
+        <div className="min-h-screen w-full bg-white relative">
+          <div className="absolute inset-0 z-0" style={{
+            backgroundImage: `radial-gradient(125% 125% at 50% 90%, #ffffff 40%, #f59e0b 100%)`,
+            backgroundSize: "100% 100%",
+          }} />
+          <div className="relative z-10 p-8">
+            <h1 className="text-2xl font-bold mb-4">Debug: Testing without AuthProvider</h1>
+            <p>Current route: {window.location.pathname}</p>
+            <Routes>
+              <Route path="/" element={<div>Home route - no auth</div>} />
+              <Route path="/family" element={<div>Family route - no auth needed</div>} />
+              <Route path="*" element={<div>Catch-all route</div>} />
+            </Routes>
           </div>
-        </AuthProvider>
+        </div>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
