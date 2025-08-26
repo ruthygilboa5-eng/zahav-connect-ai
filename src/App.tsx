@@ -8,6 +8,7 @@ import { DataProvider } from "@/providers/DataProvider";
 import { FamilyProvider } from "@/providers/FamilyProvider";
 import { OwnerProvider } from "@/providers/OwnerProvider";
 import { SupabaseProvider } from "@/providers/SupabaseProvider";
+import { AuthNavigationHandler } from "@/components/AuthNavigationHandler";
 import AppLayout from "@/components/AppLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AppInitializer from "@/components/AppInitializer";
@@ -35,6 +36,7 @@ const App = () => (
     <TooltipProvider>
       <AuthProvider>
         <BrowserRouter>
+          <AuthNavigationHandler />
           <SupabaseProvider>
             <OwnerProvider>
               <FamilyProvider>
@@ -46,7 +48,7 @@ const App = () => (
                       <Routes>
                         <Route path="/" element={<Index />} />
                         <Route path="/dashboard" element={
-                          <ProtectedRoute requiredRole="MAIN_USER">
+                          <ProtectedRoute requiredRole="FAMILY">
                             <DashboardPage />
                           </ProtectedRoute>
                         } />
@@ -61,7 +63,7 @@ const App = () => (
                           </ProtectedRoute>
                         } />
                         <Route path="/family" element={
-                          <ProtectedRoute requiredRole="FAMILY">
+                          <ProtectedRoute requiredRole="MAIN_USER">
                             <FamilyDashboard />
                           </ProtectedRoute>
                         } />
