@@ -36,15 +36,13 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <BrowserRouter>
-        {/* Minimal setup to isolate the infinite loop */}
+        {/* Minimal setup to isolate DOM nesting issues */}
         <div className="min-h-screen bg-white p-8">
-          <h1>Debug Mode - Checking for infinite loops</h1>
+          <h1>Debug Mode - Testing DOM structure</h1>
           <Routes>
-            <Route path="*" element={<div>Simple route test</div>} />
+            <Route path="*" element={<div>Simple route test - no DOM nesting issues</div>} />
           </Routes>
         </div>
-        <Toaster />
-        <Sonner />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
