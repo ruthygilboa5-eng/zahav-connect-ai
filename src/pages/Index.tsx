@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, Heart, Shield, Clock } from 'lucide-react';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth } from '@/providers/SimpleAuthProvider';
 import { useNavigate } from 'react-router-dom';
 import AuthModal from '@/components/AuthModal';
 
