@@ -169,7 +169,7 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [refreshUserData, clearGlobalState, navigate]);
+  }, []); // Remove dependencies to prevent infinite loop
 
   return (
     <GlobalStateContext.Provider value={{ 
