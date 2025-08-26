@@ -59,8 +59,18 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
           .eq('user_id', data.user.id)
           .maybeSingle();
 
-        const userRole = roleData?.role === 'main_user' ? 'MAIN_USER' : 'FAMILY';
         const displayName = profile?.first_name || 'משתמש';
+        
+        if (!roleData) {
+          toast({
+            title: "שגיאה",
+            description: "סוג משתמש לא תקין",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const userRole = roleData.role;
         
         toast({
           title: "התחברת בהצלחה",
@@ -68,7 +78,19 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         });
 
         onClose();
-        navigate(userRole === 'MAIN_USER' ? '/dashboard' : '/waiting-approval', { replace: true });
+        
+        // Navigate based on role
+        if (userRole === 'main_user') {
+          navigate('/dashboard', { replace: true });
+        } else if (userRole === 'family_basic') {
+          navigate('/family', { replace: true });
+        } else {
+          toast({
+            title: "שגיאה",
+            description: "סוג משתמש לא תקין",
+            variant: "destructive",
+          });
+        }
       }
     } catch (error: any) {
       toast({
