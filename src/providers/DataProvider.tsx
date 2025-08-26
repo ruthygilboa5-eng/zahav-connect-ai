@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { DEV_MODE_DEMO, DEMO_USER } from '@/config/dev';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/providers/AuthProvider';
 
 // Types
 export interface User {
@@ -58,7 +58,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   
-  const { user: supabaseUser, loading: supabaseLoading, signOut: supabaseSignOut } = useAuth();
+  const { authState, signOut: supabaseSignOut, loading: supabaseLoading } = useAuth();
 
   // Initialize demo data once on mount if in demo mode
   useEffect(() => {
@@ -83,13 +83,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   // Handle supabase auth changes
   useEffect(() => {
     if (!DEV_MODE_DEMO) {
-      if (supabaseUser) {
+      if (authState.user) {
         setUser({
-          id: supabaseUser.id,
+          id: authState.user.id,
           role: "MAIN_USER",
           firstName: "",
           lastName: "",
-          email: supabaseUser.email,
+          email: authState.user.email || "",
           displayName: ""
         });
       } else {
@@ -99,7 +99,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       }
       setLoading(supabaseLoading);
     }
-  }, [supabaseUser, supabaseLoading]);
+  }, [authState.user, supabaseLoading]);
 
   const providerValue: DataProviderType = {
     user,
