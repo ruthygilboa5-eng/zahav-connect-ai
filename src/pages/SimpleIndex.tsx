@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, Heart } from 'lucide-react';
-import { useAuth } from '@/providers/SimpleAuthProvider';
+import { useAuth } from '@/providers/FixedAuthProvider';
 import { useNavigate } from 'react-router-dom';
 
 const SimpleIndex = () => {

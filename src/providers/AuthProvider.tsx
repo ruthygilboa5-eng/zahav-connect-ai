@@ -1,2 +1,2 @@
-// This file now exports the SimpleAuthProvider to maintain compatibility
-export { SimpleAuthProvider as AuthProvider, useAuth } from './SimpleAuthProvider';
+// This file now exports the FixedAuthProvider to maintain compatibility
+export { FixedAuthProvider as AuthProvider, useAuth } from './FixedAuthProvider';

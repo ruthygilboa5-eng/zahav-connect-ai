@@ -15,9 +15,10 @@ import {
   Phone,
   Bell,
   Camera,
-  User
+  User,
+  LogOut
 } from 'lucide-react';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth } from '@/providers/FixedAuthProvider';
 import { useProfile } from '@/hooks/useProfile';
 import { useDataProvider } from '@/providers/DataProvider';
 import { useAuthDisplayName } from '@/hooks/useDisplayName';
@@ -33,6 +34,12 @@ const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
   const { profile } = useProfile();
   const { userProfile } = useDataProvider();
   const displayName = useAuthDisplayName();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   const handleButtonClick = (action: string, buttonName: string) => {
     setLastAction(`${buttonName} נלחץ`);
@@ -137,6 +144,18 @@ const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
 
   return (
     <div className="min-h-screen bg-background p-4 flex flex-col items-center justify-center rtl-text">
+      {/* Logout Button */}
+      <div className="absolute top-4 right-4">
+        <Button 
+          variant="outline" 
+          onClick={handleLogout}
+          className="flex items-center gap-2"
+        >
+          <LogOut className="w-4 h-4" />
+          התנתק
+        </Button>
+      </div>
+
       {/* Header */}
       <div className="text-center mb-8">
         <div className="flex items-center justify-center gap-3 mb-4">
