@@ -35,7 +35,7 @@ export const OwnerProvider = ({ children }: OwnerProviderProps) => {
       try {
         setLoading(true);
 
-        if (!authState.isAuthenticated || !authState.user) {
+        if (!authState.isAuthenticated) {
           console.log('No auth, clearing owner state');
           setOwnerUserId(null);
           setIsApproved(false);
@@ -45,7 +45,7 @@ export const OwnerProvider = ({ children }: OwnerProviderProps) => {
         if (authState.role === 'MAIN_USER') {
           // For main users, they are their own owner
           console.log('Main user, setting as own owner');
-          setOwnerUserId(authState.user.id);
+          setOwnerUserId(authState.user?.id || 'demo-main-user');
           setIsApproved(true);
           return;
         }
@@ -54,7 +54,7 @@ export const OwnerProvider = ({ children }: OwnerProviderProps) => {
           console.log('Family member, checking if demo mode or real user');
           
           // If this is demo mode (no real session), auto-approve
-          if (!authState.session) {
+          if (!authState.session || !authState.user) {
             console.log('Demo mode - auto approving family member');
             setOwnerUserId('demo-main-user');
             setIsApproved(true);
