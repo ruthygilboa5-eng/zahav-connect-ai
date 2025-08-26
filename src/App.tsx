@@ -36,13 +36,42 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <BrowserRouter>
-        {/* Minimal setup to isolate DOM nesting issues */}
-        <div className="min-h-screen bg-white p-8">
-          <h1>Debug Mode - Testing DOM structure</h1>
-          <Routes>
-            <Route path="*" element={<div>Simple route test - no DOM nesting issues</div>} />
-          </Routes>
-        </div>
+        <AuthProvider>
+          {/* Starting with minimal provider chain to test stability */}
+          <div className="min-h-screen w-full bg-white relative">
+            {/* Background */}
+            <div
+              className="absolute inset-0 z-0"
+              style={{
+                backgroundImage: `
+                  radial-gradient(125% 125% at 50% 90%, #ffffff 40%, #f59e0b 100%)
+                `,
+                backgroundSize: "100% 100%",
+              }}
+            />
+            <div className="relative z-10">
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/dashboard" element={
+                  <ProtectedRoute requiredRole="FAMILY">
+                    <DashboardPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/home" element={
+                  <ProtectedRoute requiredRole="MAIN_USER">
+                    <HomePage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/family" element={
+                  <ProtectedRoute requiredRole="MAIN_USER">
+                    <FamilyDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
+          </div>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
