@@ -30,11 +30,13 @@ export const OwnerProvider = ({ children }: OwnerProviderProps) => {
   const { authState } = useAuth();
 
   useEffect(() => {
+    console.log('OwnerProvider useEffect triggered, authState:', authState.isAuthenticated, authState.role, authState.user?.id);
     const determineOwnerUserId = async () => {
       try {
         setLoading(true);
 
         if (!authState.isAuthenticated || !authState.user) {
+          console.log('No auth, clearing owner state');
           setOwnerUserId(null);
           setIsApproved(false);
           return;
@@ -42,12 +44,14 @@ export const OwnerProvider = ({ children }: OwnerProviderProps) => {
 
         if (authState.role === 'MAIN_USER') {
           // For main users, they are their own owner
+          console.log('Main user, setting as own owner');
           setOwnerUserId(authState.user.id);
           setIsApproved(true);
           return;
         }
 
         if (authState.role === 'FAMILY') {
+          console.log('Family member, looking for approved link');
           // For family members, find their approved link
           const { data: familyLinks } = await supabase
             .from('family_links')
@@ -57,9 +61,11 @@ export const OwnerProvider = ({ children }: OwnerProviderProps) => {
             .limit(1);
 
           if (familyLinks && familyLinks.length > 0 && familyLinks[0].owner_user_id) {
+            console.log('Found approved link:', familyLinks[0].owner_user_id);
             setOwnerUserId(familyLinks[0].owner_user_id);
             setIsApproved(true);
           } else {
+            console.log('No approved link found');
             setOwnerUserId(null);
             setIsApproved(false);
           }
@@ -74,7 +80,7 @@ export const OwnerProvider = ({ children }: OwnerProviderProps) => {
     };
 
     determineOwnerUserId();
-  }, [authState.isAuthenticated, authState.user?.id, authState.role]);
+  }, [authState.isAuthenticated, authState.user?.id, authState.role]); // Keep minimal dependencies
 
   return (
     <OwnerContext.Provider value={{ ownerUserId, setOwnerUserId, isApproved, loading }}>

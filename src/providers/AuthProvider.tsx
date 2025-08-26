@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 
@@ -56,9 +56,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   });
 
   useEffect(() => {
+    console.log('AuthProvider useEffect mounting');
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('AuthProvider auth state change:', event, 'session exists:', !!session);
         if (session?.user) {
           // Load user profile to determine role
           setTimeout(async () => {
@@ -71,6 +73,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
               const userRole: Role = (profile as any)?.role === 'primary_user' ? 'MAIN_USER' : 'FAMILY';
               
+              console.log('Setting auth state for user:', session.user.id, 'role:', userRole);
               setAuthState({
                 isAuthenticated: true,
                 role: userRole,
@@ -94,6 +97,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             }
           }, 0);
         } else {
+          console.log('No session, clearing auth state');
           setAuthState({
             isAuthenticated: false,
             role: null,
@@ -115,8 +119,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      console.log('AuthProvider cleanup');
+      subscription.unsubscribe();
+    };
+  }, []); // No dependencies to prevent infinite loop
 
   const persist = (state: AuthState) => {
     try {
@@ -185,17 +192,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     localStorage.removeItem('lastPath');
   };
 
+  const contextValue = useMemo(() => ({
+    authState, 
+    loginAsMainUser, 
+    loginAsFamily, 
+    logout, 
+    login, 
+    setFirstName, 
+    signOut, 
+    loading 
+  }), [authState, loading]); // Only recreate when authState or loading changes
+
   return (
-    <AuthContext.Provider value={{ 
-      authState, 
-      loginAsMainUser, 
-      loginAsFamily, 
-      logout, 
-      login, 
-      setFirstName, 
-      signOut, 
-      loading 
-    }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

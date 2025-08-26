@@ -82,6 +82,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   // Handle supabase auth changes
   useEffect(() => {
+    console.log('DataProvider useEffect triggered, DEV_MODE_DEMO:', DEV_MODE_DEMO, 'authState.user:', !!authState.user);
     if (!DEV_MODE_DEMO) {
       if (authState.user) {
         setUser({
@@ -99,7 +100,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       }
       setLoading(supabaseLoading);
     }
-  }, [authState.user, supabaseLoading]);
+  }, [authState.user, supabaseLoading]); // Keep dependencies minimal
 
   const providerValue: DataProviderType = {
     user,
