@@ -24,6 +24,7 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
   const [role, setRole] = useState<Role>('MAIN_USER');
   const [ownerPhone, setOwnerPhone] = useState('');
   const [loading, setLoading] = useState(false);
@@ -67,7 +68,7 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         });
 
         onClose();
-        navigate(userRole === 'MAIN_USER' ? '/home' : '/family', { replace: true });
+        navigate(userRole === 'MAIN_USER' ? '/dashboard' : '/waiting-approval', { replace: true });
       }
     } catch (error: any) {
       toast({
@@ -104,10 +105,19 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       return;
     }
 
+    if (role === 'MAIN_USER' && !phone.trim()) {
+      toast({
+        title: "שגיאה",
+        description: "נא להזין מספר טלפון",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (role === 'FAMILY' && !ownerPhone.trim()) {
       toast({
         title: "שגיאה",
-        description: "נא להזין מספר טלפון של בעל החשבון הראשי",
+        description: "נא להזין מספר טלפון של המשתמש הראשי שאליו אתה שייך",
         variant: "destructive",
       });
       return;
@@ -139,6 +149,7 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             user_id: uid,
             first_name: firstName.trim(),
             last_name: lastName.trim(),
+            phone: role === 'MAIN_USER' ? phone.trim() : null,
           });
 
         // 2) Set role
@@ -150,25 +161,25 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
           });
 
         if (role === 'MAIN_USER') {
-          // Ready; route to /home
+          // Ready; route to /dashboard
           toast({
             title: "נרשמת בהצלחה",
             description: `ברוך הבא ${firstName}! מכניס אותך למערכת...`,
           });
           onClose();
-          navigate('/home', { replace: true });
+          navigate('/dashboard', { replace: true });
           return;
         }
 
-        // 3) FAMILY: link to Main User by PHONE
-        await handleFamilyLinking(uid, ownerPhone.trim(), `${firstName} ${lastName}`.trim());
+        // 3) FAMILY: find primary user by phone and create permission request
+        await handleFamilyPermissionRequest(uid, ownerPhone.trim(), firstName.trim(), email);
 
         toast({
           title: "נרשמת בהצלחה",
-          description: "הבקשה נשלחה לבעל החשבון הראשי לאישור",
+          description: "הבקשה נשלחה, ממתין לאישור",
         });
         onClose();
-        navigate('/family', { replace: true });
+        navigate('/waiting-approval', { replace: true });
       }
     } catch (error: any) {
       toast({
@@ -183,33 +194,32 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     }
   };
 
-  const handleFamilyLinking = async (memberUserId: string, ownerPhone: string, fullName: string) => {
+  const handleFamilyPermissionRequest = async (memberUserId: string, ownerPhone: string, memberName: string, memberEmail: string) => {
     try {
-      // Try to find main user by phone in existing family_links
-      const { data: existingLinks } = await supabase
-        .from('family_links')
-        .select('owner_user_id')
-        .eq('owner_phone', ownerPhone)
-        .not('owner_user_id', 'is', null)
-        .limit(1);
+      // Find primary user by phone
+      const { data: primaryUser } = await supabase
+        .from('user_profiles')
+        .select('user_id')
+        .eq('phone', ownerPhone)
+        .maybeSingle();
 
-      const ownerUserId = existingLinks?.[0]?.owner_user_id || null;
+      if (!primaryUser) {
+        throw new Error('מספר טלפון לא נמצא. בדוק עם בן המשפחה שלך');
+      }
 
-      // Create family link
+      // Create permission request
       await supabase
-        .from('family_links')
+        .from('permissions_requests')
         .insert({
-          owner_user_id: ownerUserId, // null if no owner found yet
-          owner_phone: ownerPhone,
-          member_user_id: memberUserId,
-          full_name: fullName,
-          relation: 'FAMILY',
-          phone: '',
+          primary_user_id: primaryUser.user_id,
+          family_member_id: memberUserId,
+          family_member_name: memberName,
+          family_member_email: memberEmail,
           status: 'PENDING',
-          scopes: [],
+          requested_permissions: [],
         });
     } catch (error) {
-      console.error('Error creating family link:', error);
+      console.error('Error creating permission request:', error);
       throw error;
     }
   };
@@ -258,6 +268,7 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     setConfirmPassword('');
     setFirstName('');
     setLastName('');
+    setPhone('');
     setOwnerPhone('');
     setRole('MAIN_USER');
     setShowPassword(false);
@@ -360,23 +371,37 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                 <RadioGroup value={role} onValueChange={(value: Role) => setRole(value)} className="mt-2">
                   <div className="flex items-center space-x-2 space-x-reverse">
                     <RadioGroupItem value="MAIN_USER" id="main" />
-                    <Label htmlFor="main">משתמש ראשי</Label>
+                    <Label htmlFor="main">אני משתמש ראשי</Label>
                   </div>
                   <div className="flex items-center space-x-2 space-x-reverse">
                     <RadioGroupItem value="FAMILY" id="family" />
-                    <Label htmlFor="family">בן משפחה</Label>
+                    <Label htmlFor="family">אני בן משפחה</Label>
                   </div>
                 </RadioGroup>
               </div>
 
+              {role === 'MAIN_USER' && (
+                <div>
+                  <Label htmlFor="phone">מספר טלפון*</Label>
+                  <Input
+                    id="phone"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="הזן מספר טלפון"
+                    required
+                    dir="ltr"
+                  />
+                </div>
+              )}
+
               {role === 'FAMILY' && (
                 <div>
-                  <Label htmlFor="ownerPhone">מספר הטלפון של בעל החשבון הראשי*</Label>
+                  <Label htmlFor="ownerPhone">הכנס את מספר הטלפון של המשתמש הראשי שאליו אתה שייך*</Label>
                   <Input
                     id="ownerPhone"
                     value={ownerPhone}
                     onChange={(e) => setOwnerPhone(e.target.value)}
-                    placeholder="הזן מספר טלפון של בעל החשבון"
+                    placeholder="הזן מספר טלפון של המשתמש הראשי"
                     required
                     dir="ltr"
                   />

@@ -25,6 +25,8 @@ import FamilyManagementPage from "./pages/FamilyManagementPage";
 import FamilyBoardPage from "./pages/FamilyBoardPage";
 import ReviewPage from "./pages/ReviewPage";
 import FamilyDashboard from "./components/FamilyDashboard";
+import DashboardPage from "./pages/DashboardPage";
+import WaitingApprovalPage from "./pages/WaitingApprovalPage";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +45,16 @@ const App = () => (
                     <AppLayout>
                       <Routes>
                         <Route path="/" element={<Index />} />
+                        <Route path="/dashboard" element={
+                          <ProtectedRoute requiredRole="MAIN_USER">
+                            <DashboardPage />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/waiting-approval" element={
+                          <ProtectedRoute requiredRole="FAMILY">
+                            <WaitingApprovalPage />
+                          </ProtectedRoute>
+                        } />
                         <Route path="/home" element={
                           <ProtectedRoute requiredRole="MAIN_USER">
                             <HomePage />

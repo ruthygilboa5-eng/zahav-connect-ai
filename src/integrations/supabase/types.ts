@@ -133,6 +133,42 @@ export type Database = {
         }
         Relationships: []
       }
+      permissions_requests: {
+        Row: {
+          created_at: string
+          family_member_email: string
+          family_member_id: string
+          family_member_name: string
+          id: string
+          primary_user_id: string
+          requested_permissions: string[] | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          family_member_email: string
+          family_member_id: string
+          family_member_name: string
+          id?: string
+          primary_user_id: string
+          requested_permissions?: string[] | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          family_member_email?: string
+          family_member_id?: string
+          family_member_name?: string
+          id?: string
+          primary_user_id?: string
+          requested_permissions?: string[] | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           created_at: string
@@ -140,6 +176,7 @@ export type Database = {
           first_name: string
           id: string
           last_name: string
+          phone: string | null
           updated_at: string
           user_id: string
         }
@@ -149,6 +186,7 @@ export type Database = {
           first_name: string
           id?: string
           last_name: string
+          phone?: string | null
           updated_at?: string
           user_id: string
         }
@@ -158,6 +196,7 @@ export type Database = {
           first_name?: string
           id?: string
           last_name?: string
+          phone?: string | null
           updated_at?: string
           user_id?: string
         }
