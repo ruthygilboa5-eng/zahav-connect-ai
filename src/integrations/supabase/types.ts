@@ -170,6 +170,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          owner_user_id: string
           title: string
           updated_at: string
           user_id: string
@@ -180,6 +181,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          owner_user_id: string
           title: string
           updated_at?: string
           user_id: string
@@ -190,6 +192,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          owner_user_id?: string
           title?: string
           updated_at?: string
           user_id?: string
@@ -202,6 +205,7 @@ export type Database = {
           id: string
           item_data: Json
           item_type: string
+          owner_user_id: string
           status: string
           updated_at: string
           user_id: string
@@ -211,6 +215,7 @@ export type Database = {
           id?: string
           item_data: Json
           item_type: string
+          owner_user_id: string
           status?: string
           updated_at?: string
           user_id: string
@@ -220,6 +225,7 @@ export type Database = {
           id?: string
           item_data?: Json
           item_type?: string
+          owner_user_id?: string
           status?: string
           updated_at?: string
           user_id?: string
@@ -268,6 +274,7 @@ export type Database = {
           description: string | null
           id: string
           is_completed: boolean
+          owner_user_id: string
           reminder_time: string
           title: string
           updated_at: string
@@ -278,6 +285,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_completed?: boolean
+          owner_user_id: string
           reminder_time: string
           title: string
           updated_at?: string
@@ -288,6 +296,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_completed?: boolean
+          owner_user_id?: string
           reminder_time?: string
           title?: string
           updated_at?: string
