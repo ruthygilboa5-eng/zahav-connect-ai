@@ -52,16 +52,9 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
           .eq('user_id', data.user.id)
           .maybeSingle();
 
-        // Check user role
-        const { data: roleData } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', data.user.id)
-          .maybeSingle();
-
         const displayName = profile?.first_name || 'משתמש';
         
-        if (!roleData) {
+        if (!profile || !(profile as any).role) {
           toast({
             title: "שגיאה",
             description: "סוג משתמש לא תקין",
@@ -70,7 +63,7 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
           return;
         }
 
-        const userRole = roleData.role;
+        const userRole = (profile as any).role;
         
         toast({
           title: "התחברת בהצלחה",
@@ -85,11 +78,7 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         } else if (userRole === 'family_member') {
           navigate('/dashboard', { replace: true });
         } else {
-          toast({
-            title: "שגיאה",
-            description: "סוג משתמש לא תקין",
-            variant: "destructive",
-          });
+          navigate('/', { replace: true });
         }
       }
     } catch (error: any) {
@@ -163,22 +152,15 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       if (data.user) {
         const uid = data.user.id;
 
-        // 1) Create profile
+        // Save user profile with role
         await supabase
           .from('user_profiles')
           .upsert({
-            id: uid,
             user_id: uid,
+            email: email,
             first_name: firstName.trim(),
             last_name: lastName.trim(),
             phone: role === 'MAIN_USER' ? phone.trim() : null,
-          });
-
-        // 2) Set role
-        await supabase
-          .from('user_roles')
-          .upsert({
-            user_id: uid,
             role: role === 'MAIN_USER' ? 'primary_user' : 'family_member',
           });
 

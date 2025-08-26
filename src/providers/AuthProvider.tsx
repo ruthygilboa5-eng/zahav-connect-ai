@@ -69,14 +69,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 .eq('user_id', session.user.id)
                 .single();
 
-              // Check user role
-              const { data: roleData } = await supabase
-                .from('user_roles')
-                .select('role')
-                .eq('user_id', session.user.id)
-                .maybeSingle();
-
-              const userRole: Role = roleData?.role === 'primary_user' ? 'MAIN_USER' : 'FAMILY';
+              const userRole: Role = (profile as any)?.role === 'primary_user' ? 'MAIN_USER' : 'FAMILY';
               
               setAuthState({
                 isAuthenticated: true,
