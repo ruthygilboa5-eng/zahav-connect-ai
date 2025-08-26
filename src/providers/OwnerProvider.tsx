@@ -51,8 +51,18 @@ export const OwnerProvider = ({ children }: OwnerProviderProps) => {
         }
 
         if (authState.role === 'FAMILY') {
-          console.log('Family member, looking for approved link');
-          // For family members, find their approved link
+          console.log('Family member, checking if demo mode or real user');
+          
+          // If this is demo mode (no real session), auto-approve
+          if (!authState.session) {
+            console.log('Demo mode - auto approving family member');
+            setOwnerUserId('demo-main-user');
+            setIsApproved(true);
+            return;
+          }
+          
+          console.log('Real user - looking for approved link');
+          // For real family members, find their approved link
           const { data: familyLinks } = await supabase
             .from('family_links')
             .select('owner_user_id, status')
