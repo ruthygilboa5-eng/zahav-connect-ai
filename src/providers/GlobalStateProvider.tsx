@@ -62,8 +62,8 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
       const { data: { user: authUser } } = await supabase.auth.getUser();
 
       if (!authUser) {
-        console.log('No authenticated user, navigating to /');
-        // No authenticated user - clear state and navigate to home
+        console.log('No authenticated user, clearing state');
+        // No authenticated user - clear state but don't navigate (let AuthProvider handle this)
         setGlobalState({
           currentUserId: null,
           currentRole: null,
@@ -71,14 +71,10 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
           currentPhone: null,
           isLoading: false,
         });
-        navigate('/', { replace: true });
         return;
       }
 
       console.log('User found:', authUser.id);
-
-      // Set currentUserId
-      setGlobalState(prev => ({ ...prev, currentUserId: authUser.id }));
 
       // Fetch user profile from user_profiles table
       const { data: profile, error } = await supabase
@@ -89,13 +85,13 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
 
       if (error) {
         console.error('Error fetching user profile:', error);
-        navigate('/', { replace: true });
+        setGlobalState(prev => ({ ...prev, isLoading: false }));
         return;
       }
 
       if (!profile) {
         console.error('No profile found for user');
-        navigate('/', { replace: true });
+        setGlobalState(prev => ({ ...prev, isLoading: false }));
         return;
       }
 
@@ -109,41 +105,20 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
       const userRole = roleData?.role || null;
       console.log('User role:', userRole);
 
-      // Update global state with profile data
-      setGlobalState(prev => ({
-        ...prev,
+      // Update global state with profile data - NO NAVIGATION, let AuthProvider handle that
+      setGlobalState({
+        currentUserId: authUser.id,
         currentRole: userRole as 'primary_user' | 'family_member' | null,
         currentFirstName: profile.first_name,
         currentPhone: profile.phone,
         isLoading: false,
-      }));
-
-      // Navigate based on role - but check current location first
-      const currentPath = window.location.pathname;
-      let targetPath = '/';
-      
-      if (userRole === 'primary_user') {
-        targetPath = '/family';
-      } else if (userRole === 'family_member') {
-        targetPath = '/dashboard';
-      }
-
-      console.log('Current path:', currentPath, 'Target path:', targetPath, 'User role:', userRole);
-      
-      // Only navigate if we're not already on the correct path and we're not on the home page
-      if (currentPath !== targetPath && currentPath !== '/') {
-        console.log('Navigating to:', targetPath);
-        navigate(targetPath, { replace: true });
-      } else {
-        console.log('Already on correct path or home page, skipping navigation');
-      }
+      });
 
     } catch (error) {
       console.error('Error in refreshUserData:', error);
       setGlobalState(prev => ({ ...prev, isLoading: false }));
-      navigate('/', { replace: true });
     }
-  }, [navigate]);
+  }, []); // Remove navigate dependency
 
   // Initialize on mount and listen for auth changes
   useEffect(() => {
@@ -159,7 +134,7 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
           refreshUserData();
         } else if (event === 'SIGNED_OUT') {
           clearGlobalState();
-          navigate('/', { replace: true });
+          // Don't navigate - let AuthProvider handle this
         }
       }
     );
@@ -175,7 +150,7 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []); // Remove dependencies to prevent infinite loop
+  }, []); // Remove all dependencies to prevent infinite loop
 
   return (
     <GlobalStateContext.Provider value={{ 
