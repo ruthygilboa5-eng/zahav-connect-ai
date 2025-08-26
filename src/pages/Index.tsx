@@ -34,6 +34,18 @@ const Index = () => {
           </p>
         </div>
 
+        {/* Authentication Info */}
+        <div className="text-center mb-8 p-6 bg-card rounded-lg border border-border">
+          <h2 className="text-xl font-semibold text-foreground mb-3">עם אימייל אישי</h2>
+          <p className="text-muted-foreground mb-4">
+            כדי לשמור על המידע שלכם באופן קבוע ולהנות מכל התכונות, תוכלו להירשם עם כתובת מייל אישית
+          </p>
+          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+            <Shield className="w-4 h-4 text-green-600" />
+            <span>מידע מוגן ובטוח</span>
+          </div>
+        </div>
+
         {/* Login Options */}
         <div className="grid md:grid-cols-2 gap-8 mb-12">
           <Card className="cursor-pointer hover:shadow-lg transition-shadow">

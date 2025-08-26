@@ -26,6 +26,7 @@ import { useOwnerContext } from '@/providers/OwnerProvider';
 import { FAMILY_ACTIONS } from '@/types/family';
 import ContentUploadModal from '@/components/ContentUploadModal';
 import ActionCard from '@/components/ActionCard';
+import ProfileSettingsModal from '@/components/ProfileSettingsModal';
 
 type ContentType = 'MEDIA' | 'STORY' | 'REMINDER' | 'GAME_INVITE';
 
@@ -67,6 +68,7 @@ const FamilyDashboard = () => {
   const { addToPendingQueue } = useFamilyProvider();
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [uploadType, setUploadType] = useState<ContentType>('MEDIA');
+  const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState(false);
   const { ownerUserId, isApproved, loading: ownerLoading } = useOwnerContext();
 
   const handleContentSubmit = (type: ContentType) => {
@@ -232,14 +234,19 @@ const FamilyDashboard = () => {
           <div className="flex items-center gap-2">
             <Button 
               variant="outline" 
-              onClick={() => window.location.href = '/'}
+              onClick={() => setIsProfileSettingsOpen(true)}
               className="flex items-center gap-2"
             >
               <User className="w-4 h-4" />
-              חזרה לעמוד הבית
+              פרופיל
             </Button>
-            <Button variant="outline" size="icon">
+            <Button 
+              variant="outline" 
+              onClick={() => window.location.href = '/'}
+              className="flex items-center gap-2"
+            >
               <Settings className="w-4 h-4" />
+              חזרה לבית
             </Button>
           </div>
         </div>
@@ -384,11 +391,16 @@ const FamilyDashboard = () => {
           </Card>
         </div>
         
-        {/* Content Upload Modal */}
+        {/* Modals */}
         <ContentUploadModal
           isOpen={uploadModalOpen}
           onClose={() => setUploadModalOpen(false)}
           contentType={uploadType}
+        />
+        
+        <ProfileSettingsModal
+          isOpen={isProfileSettingsOpen}
+          onClose={() => setIsProfileSettingsOpen(false)}
         />
       </div>
     </div>

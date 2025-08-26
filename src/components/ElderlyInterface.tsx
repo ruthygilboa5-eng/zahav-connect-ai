@@ -23,6 +23,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useDataProvider } from '@/providers/DataProvider';
 import { useAuthDisplayName } from '@/hooks/useDisplayName';
 import NotificationBadge from '@/components/NotificationBadge';
+import ProfileSettingsModal from '@/components/ProfileSettingsModal';
 
 interface ElderlyInterfaceProps {
   userName?: string;
@@ -30,6 +31,7 @@ interface ElderlyInterfaceProps {
 
 const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
   const [lastAction, setLastAction] = useState<string>("");
+  const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState(false);
   const navigate = useNavigate();
   const { profile } = useProfile();
   const { userProfile } = useDataProvider();
@@ -144,8 +146,16 @@ const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
 
   return (
     <div className="min-h-screen bg-background p-4 flex flex-col items-center justify-center rtl-text">
-      {/* Logout Button */}
-      <div className="absolute top-4 right-4">
+      {/* Profile & Logout Buttons */}
+      <div className="absolute top-4 right-4 flex gap-2">
+        <Button 
+          variant="outline" 
+          onClick={() => setIsProfileSettingsOpen(true)}
+          className="flex items-center gap-2"
+        >
+          <User className="w-4 h-4" />
+          פרופיל
+        </Button>
         <Button 
           variant="outline" 
           onClick={handleLogout}
@@ -246,6 +256,11 @@ const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
           כפתור אדום לחירום בלבד
         </p>
       </div>
+      
+      <ProfileSettingsModal
+        isOpen={isProfileSettingsOpen}
+        onClose={() => setIsProfileSettingsOpen(false)}
+      />
     </div>
   );
 };
