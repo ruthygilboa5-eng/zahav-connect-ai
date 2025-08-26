@@ -91,6 +91,48 @@ export type Database = {
           },
         ]
       }
+      family_links: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          member_user_id: string | null
+          owner_phone: string | null
+          owner_user_id: string | null
+          phone: string | null
+          relation: string
+          scopes: string[] | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          full_name: string
+          id?: string
+          member_user_id?: string | null
+          owner_phone?: string | null
+          owner_user_id?: string | null
+          phone?: string | null
+          relation: string
+          scopes?: string[] | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          member_user_id?: string | null
+          owner_phone?: string | null
+          owner_user_id?: string | null
+          phone?: string | null
+          relation?: string
+          scopes?: string[] | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           created_at: string

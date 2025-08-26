@@ -22,8 +22,10 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [role, setRole] = useState<Role>('MAIN_USER');
-  const [inviteCode, setInviteCode] = useState('');
+  const [ownerPhone, setOwnerPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
@@ -42,12 +44,12 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       if (error) throw error;
 
       if (data.user) {
-        // Load profile to determine role
+        // Load profile to get role + firstName
         const { data: profile } = await supabase
           .from('user_profiles')
           .select('*')
           .eq('user_id', data.user.id)
-          .single();
+          .maybeSingle();
 
         // Check user role
         const { data: roleData } = await supabase
@@ -57,10 +59,11 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
           .maybeSingle();
 
         const userRole = roleData?.role === 'main_user' ? 'MAIN_USER' : 'FAMILY';
+        const displayName = profile?.first_name || 'משתמש';
         
         toast({
           title: "התחברת בהצלחה",
-          description: `ברוך הבא${userRole === 'MAIN_USER' ? '' : 'ה'}!`,
+          description: `ברוך הבא ${displayName}!`,
         });
 
         onClose();
@@ -81,10 +84,30 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation
+    if (!firstName.trim()) {
+      toast({
+        title: "שגיאה",
+        description: "נא להזין שם פרטי",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (password !== confirmPassword) {
       toast({
         title: "שגיאה",
         description: "הסיסמאות אינן תואמות",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (role === 'FAMILY' && !ownerPhone.trim()) {
+      toast({
+        title: "שגיאה",
+        description: "נא להזין מספר טלפון של בעל החשבון הראשי",
         variant: "destructive",
       });
       return;
@@ -106,42 +129,46 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       if (error) throw error;
 
       if (data.user) {
-        // Create profile
+        const uid = data.user.id;
+
+        // 1) Create profile
         await supabase
           .from('user_profiles')
           .upsert({
-            id: data.user.id,
-            user_id: data.user.id,
-            first_name: '',
-            last_name: '',
+            id: uid,
+            user_id: uid,
+            first_name: firstName.trim(),
+            last_name: lastName.trim(),
           });
 
-        // Set role
+        // 2) Set role
         await supabase
           .from('user_roles')
           .upsert({
-            user_id: data.user.id,
+            user_id: uid,
             role: role === 'MAIN_USER' ? 'main_user' : 'family_basic',
           });
 
-        // Handle invite code for family members
-        if (role === 'FAMILY' && inviteCode.trim()) {
-          await attachInviteToMember(inviteCode.trim(), data.user.id);
+        if (role === 'MAIN_USER') {
+          // Ready; route to /home
+          toast({
+            title: "נרשמת בהצלחה",
+            description: `ברוך הבא ${firstName}! מכניס אותך למערכת...`,
+          });
+          onClose();
+          navigate('/home', { replace: true });
+          return;
         }
+
+        // 3) FAMILY: link to Main User by PHONE
+        await handleFamilyLinking(uid, ownerPhone.trim(), `${firstName} ${lastName}`.trim());
 
         toast({
           title: "נרשמת בהצלחה",
-          description: data.user?.email_confirmed_at 
-            ? "ברוך הבא! מכניס אותך למערכת..."
-            : "נשלח אימייל אימות. אנא בדוק את תיבת הדואר שלך.",
+          description: "הבקשה נשלחה לבעל החשבון הראשי לאישור",
         });
-
-        if (data.user?.email_confirmed_at) {
-          onClose();
-          navigate(role === 'MAIN_USER' ? '/home' : '/family', { replace: true });
-        } else {
-          onClose();
-        }
+        onClose();
+        navigate('/family', { replace: true });
       }
     } catch (error: any) {
       toast({
@@ -153,6 +180,37 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFamilyLinking = async (memberUserId: string, ownerPhone: string, fullName: string) => {
+    try {
+      // Try to find main user by phone in existing family_links
+      const { data: existingLinks } = await supabase
+        .from('family_links')
+        .select('owner_user_id')
+        .eq('owner_phone', ownerPhone)
+        .not('owner_user_id', 'is', null)
+        .limit(1);
+
+      const ownerUserId = existingLinks?.[0]?.owner_user_id || null;
+
+      // Create family link
+      await supabase
+        .from('family_links')
+        .insert({
+          owner_user_id: ownerUserId, // null if no owner found yet
+          owner_phone: ownerPhone,
+          member_user_id: memberUserId,
+          full_name: fullName,
+          relation: 'FAMILY',
+          phone: '',
+          status: 'PENDING',
+          scopes: [],
+        });
+    } catch (error) {
+      console.error('Error creating family link:', error);
+      throw error;
     }
   };
 
@@ -193,24 +251,14 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     }
   };
 
-  const attachInviteToMember = async (code: string, memberUserId: string) => {
-    try {
-      // For now, just show a success message
-      // Family links functionality will be implemented when tables are created
-      toast({
-        title: "קוד הזמנה נשמר",
-        description: "הקוד יחובר כאשר הטבלאות יהיו זמינות",
-      });
-    } catch (error) {
-      console.error('Error attaching invite:', error);
-    }
-  };
 
   const resetForm = () => {
     setEmail('');
     setPassword('');
     setConfirmPassword('');
-    setInviteCode('');
+    setFirstName('');
+    setLastName('');
+    setOwnerPhone('');
     setRole('MAIN_USER');
     setShowPassword(false);
   };
@@ -274,6 +322,27 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
           {mode === 'signup' && (
             <>
               <div>
+                <Label htmlFor="firstName">שם פרטי*</Label>
+                <Input
+                  id="firstName"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="הזן שם פרטי"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="lastName">שם משפחה</Label>
+                <Input
+                  id="lastName"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="הזן שם משפחה (אופציונלי)"
+                />
+              </div>
+
+              <div>
                 <Label htmlFor="confirmPassword">אימות סיסמה</Label>
                 <Input
                   id="confirmPassword"
@@ -302,12 +371,13 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
               {role === 'FAMILY' && (
                 <div>
-                  <Label htmlFor="inviteCode">קוד הזמנה (אופציונלי)</Label>
+                  <Label htmlFor="ownerPhone">מספר הטלפון של בעל החשבון הראשי*</Label>
                   <Input
-                    id="inviteCode"
-                    value={inviteCode}
-                    onChange={(e) => setInviteCode(e.target.value)}
-                    placeholder="הזן קוד הזמנה אם יש לך"
+                    id="ownerPhone"
+                    value={ownerPhone}
+                    onChange={(e) => setOwnerPhone(e.target.value)}
+                    placeholder="הזן מספר טלפון של בעל החשבון"
+                    required
                     dir="ltr"
                   />
                 </div>

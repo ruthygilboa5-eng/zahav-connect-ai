@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useAuthDisplayName, useMainUserDisplayName } from '@/hooks/useDisplayName';
 import { useFamilyProvider } from '@/providers/FamilyProvider';
+import { useOwnerContext } from '@/providers/OwnerProvider';
 import { FAMILY_ACTIONS } from '@/types/family';
 import ContentUploadModal from '@/components/ContentUploadModal';
 import ActionCard from '@/components/ActionCard';
@@ -66,6 +67,7 @@ const FamilyDashboard = () => {
   const { addToPendingQueue } = useFamilyProvider();
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [uploadType, setUploadType] = useState<ContentType>('MEDIA');
+  const { ownerUserId, isApproved, loading: ownerLoading } = useOwnerContext();
 
   const handleContentSubmit = (type: ContentType) => {
     setUploadType(type);
@@ -153,6 +155,63 @@ const FamilyDashboard = () => {
       default: return '';
     }
   };
+
+  // Show pending state if family member is not approved yet
+  if (ownerLoading) {
+    return (
+      <div className="family-dashboard p-6 rtl-text">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-4 animate-pulse" />
+              <h2 className="text-xl font-semibold text-foreground mb-2">טוען...</h2>
+              <p className="text-muted-foreground">בודק סטטוס החיבור למערכת</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isApproved || !ownerUserId) {
+    return (
+      <div className="family-dashboard p-6 rtl-text">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <User className="w-8 h-8 text-primary" />
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">
+                  שלום {familyName}
+                </h1>
+              </div>
+            </div>
+          </div>
+
+          {/* Pending Approval State */}
+          <div className="flex items-center justify-center h-64">
+            <Card className="w-full max-w-md">
+              <CardContent className="p-8 text-center">
+                <Clock className="w-16 h-16 text-primary mx-auto mb-4" />
+                <h2 className="text-2xl font-bold text-foreground mb-4">
+                  ממתין לאישור
+                </h2>
+                <p className="text-muted-foreground mb-6">
+                  הבקשה נשלחה לבעל החשבון הראשי. לאחר אישור תופיע כאן הפעילות.
+                </p>
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <p className="text-sm text-muted-foreground">
+                    בעל החשבון הראשי יקבל הודעה על הבקשה ויוכל לאשר אותה ממסך ההגדרות
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="family-dashboard p-6 rtl-text">
