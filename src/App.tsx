@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SimpleAuthProvider } from "@/providers/SimpleAuthProvider";
+import { DataProvider } from "@/providers/DataProvider";
 import SimpleIndex from "./pages/SimpleIndex";
 import HomePage from "./pages/HomePage";
 import DashboardPage from "./pages/DashboardPage";
@@ -19,6 +20,7 @@ const App = () => {
       <TooltipProvider>
         <BrowserRouter>
           <SimpleAuthProvider>
+            <DataProvider>
             <div className="min-h-screen w-full bg-white relative">
               {/* Amber Glow Background */}
               <div
@@ -40,8 +42,9 @@ const App = () => {
                 </Routes>
               </div>
             </div>
-            <Toaster />
-            <Sonner />
+              <Toaster />
+              <Sonner />
+            </DataProvider>
           </SimpleAuthProvider>
         </BrowserRouter>
       </TooltipProvider>
