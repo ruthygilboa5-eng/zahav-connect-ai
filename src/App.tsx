@@ -1,29 +1,43 @@
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Index from "./pages/Index";
+import NotFound from "./pages/NotFound";
+
+const queryClient = new QueryClient();
+
 const App = () => {
-  console.log('App component rendering...');
+  console.log('App rendering with basic routing...');
   
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      backgroundColor: 'white', 
-      padding: '20px',
-      fontFamily: 'Arial, sans-serif'
-    }}>
-      <h1 style={{ color: 'black', fontSize: '24px', marginBottom: '20px' }}>
-        🔍 DEBUG MODE - Minimal App
-      </h1>
-      <div style={{ backgroundColor: '#f0f0f0', padding: '15px', borderRadius: '8px' }}>
-        <p style={{ margin: '0 0 10px 0' }}>✅ App component is rendering</p>
-        <p style={{ margin: '0 0 10px 0' }}>📍 Current route: {window.location.pathname}</p>
-        <p style={{ margin: '0' }}>⏰ Timestamp: {new Date().toLocaleString()}</p>
-      </div>
-      
-      <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#e8f5e8', borderRadius: '8px' }}>
-        <h2 style={{ margin: '0 0 10px 0', color: '#2d5a2d' }}>Status:</h2>
-        <p style={{ margin: '0', color: '#2d5a2d' }}>
-          If you can see this message, the basic React app is working without any providers or complex components.
-        </p>
-      </div>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <BrowserRouter>
+          <div className="min-h-screen w-full bg-white relative">
+            {/* Amber Glow Background */}
+            <div
+              className="absolute inset-0 z-0"
+              style={{
+                backgroundImage: `
+                  radial-gradient(125% 125% at 50% 90%, #ffffff 40%, #f59e0b 100%)
+                `,
+                backgroundSize: "100% 100%",
+              }}
+            />
+            <div className="relative z-10">
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
+          </div>
+          <Toaster />
+          <Sonner />
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 };
 
