@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SimpleAuthProvider } from "@/providers/SimpleAuthProvider";
 import { DataProvider } from "@/providers/DataProvider";
+import { FamilyProvider } from "@/providers/FamilyProvider";
 import SimpleIndex from "./pages/SimpleIndex";
 import HomePage from "./pages/HomePage";
 import DashboardPage from "./pages/DashboardPage";
@@ -21,6 +22,7 @@ const App = () => {
         <BrowserRouter>
           <SimpleAuthProvider>
             <DataProvider>
+              <FamilyProvider>
             <div className="min-h-screen w-full bg-white relative">
               {/* Amber Glow Background */}
               <div
@@ -42,8 +44,9 @@ const App = () => {
                 </Routes>
               </div>
             </div>
-              <Toaster />
-              <Sonner />
+                <Toaster />
+                <Sonner />
+              </FamilyProvider>
             </DataProvider>
           </SimpleAuthProvider>
         </BrowserRouter>
