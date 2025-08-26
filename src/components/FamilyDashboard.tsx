@@ -229,9 +229,19 @@ const FamilyDashboard = () => {
               </p>
             </div>
           </div>
-          <Button variant="outline" size="icon">
-            <Settings className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => window.location.href = '/'}
+              className="flex items-center gap-2"
+            >
+              <User className="w-4 h-4" />
+              חזרה לעמוד הבית
+            </Button>
+            <Button variant="outline" size="icon">
+              <Settings className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Info Banner */}

@@ -1,94 +1,60 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Loader2, Mail, Lock, User, Phone } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-type AuthMode = 'signin' | 'signup' | 'reset';
-type Role = 'MAIN_USER' | 'FAMILY';
-
 export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
-  const [mode, setMode] = useState<AuthMode>('signin');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [activeTab, setActiveTab] = useState('signin');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const { toast } = useToast();
+
+  // Sign In Form
+  const [signInEmail, setSignInEmail] = useState('');
+  const [signInPassword, setSignInPassword] = useState('');
+
+  // Sign Up Form  
+  const [signUpEmail, setSignUpEmail] = useState('');
+  const [signUpPassword, setSignUpPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
-  const [role, setRole] = useState<Role>('MAIN_USER');
-  const [ownerPhone, setOwnerPhone] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const { toast } = useToast();
-  const navigate = useNavigate();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const { error } = await supabase.auth.signInWithPassword({
+        email: signInEmail,
+        password: signInPassword,
       });
 
-      if (error) throw error;
-
-      if (data.user) {
-        // Load profile to get role + firstName
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('user_id', data.user.id)
-          .maybeSingle();
-
-        const displayName = profile?.first_name || 'משתמש';
-        
-        if (!profile || !(profile as any).role) {
-          toast({
-            title: "שגיאה",
-            description: "סוג משתמש לא תקין",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        const userRole = (profile as any).role;
-        
+      if (error) {
+        setError(error.message);
+      } else {
         toast({
-          title: "התחברת בהצלחה",
-          description: `ברוך הבא ${displayName}!`,
+          title: 'התחברות הצליחה',
+          description: 'ברוך הבא למערכת!',
         });
-
         onClose();
-        
-        // Navigate based on role
-        if (userRole === 'primary_user') {
-          navigate('/family', { replace: true });
-        } else if (userRole === 'family_member') {
-          navigate('/dashboard', { replace: true });
-        } else {
-          navigate('/', { replace: true });
-        }
       }
-    } catch (error: any) {
-      toast({
-        title: "שגיאת התחברות",
-        description: error.message === 'Invalid login credentials' 
-          ? 'אימייל או סיסמה שגויים' 
-          : error.message,
-        variant: "destructive",
-      });
+    } catch (err: any) {
+      setError('שגיאה בהתחברות. אנא נסה שוב.');
     } finally {
       setLoading(false);
     }
@@ -96,358 +62,279 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validation
-    if (!firstName.trim()) {
-      toast({
-        title: "שגיאה",
-        description: "נא להזין שם פרטי",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      toast({
-        title: "שגיאה",
-        description: "הסיסמאות אינן תואמות",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (role === 'MAIN_USER' && !phone.trim()) {
-      toast({
-        title: "שגיאה",
-        description: "נא להזין מספר טלפון",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (role === 'FAMILY' && !ownerPhone.trim()) {
-      toast({
-        title: "שגיאה",
-        description: "נא להזין מספר טלפון של המשתמש הראשי שאליו אתה שייך",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setLoading(true);
+    setError('');
+
+    if (signUpPassword !== confirmPassword) {
+      setError('הסיסמאות אינן תואמות');
+      setLoading(false);
+      return;
+    }
+
+    if (signUpPassword.length < 6) {
+      setError('הסיסמה חייבת להכיל לפחות 6 תווים');
+      setLoading(false);
+      return;
+    }
 
     try {
       const redirectUrl = `${window.location.origin}/`;
       
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
+      const { error } = await supabase.auth.signUp({
+        email: signUpEmail,
+        password: signUpPassword,
         options: {
-          emailRedirectTo: redirectUrl
+          emailRedirectTo: redirectUrl,
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+            phone: phone,
+          }
         }
       });
 
-      if (error) throw error;
-
-      if (data.user) {
-        const uid = data.user.id;
-
-        // Save user profile with role
-        await supabase
-          .from('user_profiles')
-          .upsert({
-            user_id: uid,
-            email: email,
-            first_name: firstName.trim(),
-            last_name: lastName.trim(),
-            phone: role === 'MAIN_USER' ? phone.trim() : null,
-            role: role === 'MAIN_USER' ? 'primary_user' : 'family_member',
-          });
-
-        if (role === 'MAIN_USER') {
-          // Ready; route to /family
-          toast({
-            title: "נרשמת בהצלחה",
-            description: `ברוך הבא ${firstName}! מכניס אותך למערכת...`,
-          });
-          onClose();
-          navigate('/family', { replace: true });
-          return;
-        }
-
-        // 3) FAMILY: find primary user by phone and create permission request
-        await handleFamilyPermissionRequest(uid, ownerPhone.trim(), firstName.trim(), email);
-
+      if (error) {
+        setError(error.message);
+      } else {
         toast({
-          title: "נרשמת בהצלחה",
-          description: "הבקשה נשלחה, ממתין לאישור",
+          title: 'הרשמה הצליחה',
+          description: 'בדוק את האימייל שלך לאימות החשבון',
         });
-        onClose();
-        navigate('/dashboard', { replace: true });
+        setActiveTab('signin');
       }
-    } catch (error: any) {
-      toast({
-        title: "שגיאת הרשמה",
-        description: error.message === 'User already registered'
-          ? 'משתמש זה כבר רשום במערכת'
-          : error.message,
-        variant: "destructive",
-      });
+    } catch (err: any) {
+      setError('שגיאה בהרשמה. אנא נסה שוב.');
     } finally {
       setLoading(false);
     }
   };
-
-  const handleFamilyPermissionRequest = async (memberUserId: string, ownerPhone: string, memberName: string, memberEmail: string) => {
-    try {
-      // Find primary user by phone
-      const { data: primaryUser } = await supabase
-        .from('user_profiles')
-        .select('user_id')
-        .eq('phone', ownerPhone)
-        .maybeSingle();
-
-      if (!primaryUser) {
-        throw new Error('מספר טלפון לא נמצא. בדוק עם בן המשפחה שלך');
-      }
-
-      // Create permission request
-      await supabase
-        .from('permissions_requests')
-        .insert({
-          primary_user_id: primaryUser.user_id,
-          family_member_id: memberUserId,
-          family_member_name: memberName,
-          family_member_email: memberEmail,
-          status: 'PENDING',
-          requested_permissions: [],
-        });
-    } catch (error) {
-      console.error('Error creating permission request:', error);
-      throw error;
-    }
-  };
-
-  const handleReset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) {
-      toast({
-        title: "שגיאה",
-        description: "נא להזין כתובת אימייל",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/`,
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "נשלח אימייל לאיפוס סיסמה",
-        description: "בדוק את תיבת הדואר שלך",
-      });
-
-      setMode('signin');
-    } catch (error: any) {
-      toast({
-        title: "שגיאה",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
 
   const resetForm = () => {
-    setEmail('');
-    setPassword('');
+    setSignInEmail('');
+    setSignInPassword('');
+    setSignUpEmail('');
+    setSignUpPassword('');
     setConfirmPassword('');
     setFirstName('');
     setLastName('');
     setPhone('');
-    setOwnerPhone('');
-    setRole('MAIN_USER');
-    setShowPassword(false);
+    setError('');
+    setActiveTab('signin');
   };
 
-  const switchMode = (newMode: AuthMode) => {
-    setMode(newMode);
+  const handleClose = () => {
     resetForm();
+    onClose();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="max-w-md rtl-text">
         <DialogHeader>
-          <DialogTitle className="text-center">
-            {mode === 'signin' && 'התחברות למערכת'}
-            {mode === 'signup' && 'הרשמה למערכת'}
-            {mode === 'reset' && 'איפוס סיסמה'}
+          <DialogTitle className="text-center text-2xl font-bold">
+            התחברות למערכת זהב
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={mode === 'signin' ? handleSignIn : mode === 'signup' ? handleSignUp : handleReset} className="space-y-4">
-          <div>
-            <Label htmlFor="email">אימייל</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="הזן כתובת אימייל"
-              required
-              dir="ltr"
-            />
-          </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="signin">התחברות</TabsTrigger>
+            <TabsTrigger value="signup">הרשמה</TabsTrigger>
+          </TabsList>
 
-          {mode !== 'reset' && (
-            <div>
-              <Label htmlFor="password">סיסמה</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="הזן סיסמה"
-                  required
-                  dir="ltr"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute left-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
-              </div>
-            </div>
+          {error && (
+            <Alert className="mt-4 border-destructive">
+              <AlertDescription className="text-right">
+                {error}
+              </AlertDescription>
+            </Alert>
           )}
 
-          {mode === 'signup' && (
-            <>
-              <div>
-                <Label htmlFor="firstName">שם פרטי*</Label>
-                <Input
-                  id="firstName"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="הזן שם פרטי"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="lastName">שם משפחה</Label>
-                <Input
-                  id="lastName"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="הזן שם משפחה (אופציונלי)"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="confirmPassword">אימות סיסמה</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="הזן את הסיסמה שוב"
-                  required
-                  dir="ltr"
-                />
-              </div>
-
-              <div>
-                <Label>סוג משתמש</Label>
-                <RadioGroup value={role} onValueChange={(value: Role) => setRole(value)} className="mt-2">
-                  <div className="flex items-center space-x-2 space-x-reverse">
-                    <RadioGroupItem value="MAIN_USER" id="main" />
-                    <Label htmlFor="main">אני משתמש ראשי</Label>
+          <TabsContent value="signin">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-right">התחברות</CardTitle>
+                <CardDescription className="text-right">
+                  הכנס את פרטי ההתחברות שלך
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSignIn} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signin-email" className="text-right block">אימייל</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="signin-email"
+                        type="email"
+                        value={signInEmail}
+                        onChange={(e) => setSignInEmail(e.target.value)}
+                        placeholder="דוא״ל שלך"
+                        className="pl-10 text-right"
+                        required
+                      />
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2 space-x-reverse">
-                    <RadioGroupItem value="FAMILY" id="family" />
-                    <Label htmlFor="family">אני בן משפחה</Label>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signin-password" className="text-right block">סיסמה</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="signin-password"
+                        type="password"
+                        value={signInPassword}
+                        onChange={(e) => setSignInPassword(e.target.value)}
+                        placeholder="הסיסמה שלך"
+                        className="pl-10 text-right"
+                        required
+                      />
+                    </div>
                   </div>
-                </RadioGroup>
-              </div>
 
-              {role === 'MAIN_USER' && (
-                <div>
-                  <Label htmlFor="phone">מספר טלפון*</Label>
-                  <Input
-                    id="phone"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="הזן מספר טלפון"
-                    required
-                    dir="ltr"
-                  />
-                </div>
-              )}
+                  <Button 
+                    type="submit" 
+                    className="w-full" 
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        מתחבר...
+                      </>
+                    ) : (
+                      'התחבר'
+                    )}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-              {role === 'FAMILY' && (
-                <div>
-                  <Label htmlFor="ownerPhone">הכנס את מספר הטלפון של המשתמש הראשי שאליו אתה שייך*</Label>
-                  <Input
-                    id="ownerPhone"
-                    value={ownerPhone}
-                    onChange={(e) => setOwnerPhone(e.target.value)}
-                    placeholder="הזן מספר טלפון של המשתמש הראשי"
-                    required
-                    dir="ltr"
-                  />
-                </div>
-              )}
-            </>
-          )}
+          <TabsContent value="signup">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-right">הרשמה</CardTitle>
+                <CardDescription className="text-right">
+                  צור חשבון חדש במערכת זהב
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSignUp} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="first-name" className="text-right block">שם פרטי</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="first-name"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          placeholder="שם פרטי"
+                          className="pl-10 text-right"
+                          required
+                        />
+                      </div>
+                    </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {mode === 'signin' && 'התחבר'}
-            {mode === 'signup' && 'הירשם'}
-            {mode === 'reset' && 'שלח אימייל איפוס'}
-          </Button>
+                    <div className="space-y-2">
+                      <Label htmlFor="last-name" className="text-right block">שם משפחה</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="last-name"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          placeholder="שם משפחה"
+                          className="pl-10 text-right"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-          <div className="text-center space-y-2">
-            {mode === 'signin' && (
-              <>
-                <Button type="button" variant="link" onClick={() => switchMode('signup')}>
-                  אין לך חשבון? הירשם כאן
-                </Button>
-                <br />
-                <Button type="button" variant="link" onClick={() => switchMode('reset')}>
-                  שכחת את הסיסמה?
-                </Button>
-              </>
-            )}
-            {mode === 'signup' && (
-              <Button type="button" variant="link" onClick={() => switchMode('signin')}>
-                יש לך כבר חשבון? התחבר כאן
-              </Button>
-            )}
-            {mode === 'reset' && (
-              <Button type="button" variant="link" onClick={() => switchMode('signin')}>
-                חזור להתחברות
-              </Button>
-            )}
-          </div>
-        </form>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-right block">טלפון (אופציונלי)</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="phone"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="מספר טלפון"
+                        className="pl-10 text-right"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-email" className="text-right block">אימייל</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="signup-email"
+                        type="email"
+                        value={signUpEmail}
+                        onChange={(e) => setSignUpEmail(e.target.value)}
+                        placeholder="דוא״ל שלך"
+                        className="pl-10 text-right"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-password" className="text-right block">סיסמה</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="signup-password"
+                        type="password"
+                        value={signUpPassword}
+                        onChange={(e) => setSignUpPassword(e.target.value)}
+                        placeholder="בחר סיסמה"
+                        className="pl-10 text-right"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-password" className="text-right block">אימות סיסמה</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="confirm-password"
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="חזור על הסיסמה"
+                        className="pl-10 text-right"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    className="w-full" 
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        נרשם...
+                      </>
+                    ) : (
+                      'הירשם'
+                    )}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
 };
-
-export default AuthModal;

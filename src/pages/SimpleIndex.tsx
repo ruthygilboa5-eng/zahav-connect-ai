@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Heart } from 'lucide-react';
+import { Users, Heart, Mail } from 'lucide-react';
 import { useAuth } from '@/providers/FixedAuthProvider';
 import { useNavigate } from 'react-router-dom';
+import { AuthModal } from '@/components/AuthModal';
 
 const SimpleIndex = () => {
   const { authState, loginAsMainUser, loginAsFamily } = useAuth();
   const navigate = useNavigate();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   console.log('SimpleIndex rendering, authState:', authState);
 
@@ -42,7 +44,7 @@ const SimpleIndex = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-3 gap-8">
           {/* Main User Card */}
           <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={handleMainUserLogin}>
             <CardHeader className="text-center">
@@ -78,8 +80,32 @@ const SimpleIndex = () => {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Email Auth Card */}
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setShowAuthModal(true)}>
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-4 p-4 bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center">
+                <Mail className="w-8 h-8 text-purple-600" />
+              </div>
+              <CardTitle className="text-2xl text-purple-800">התחברות במייל</CardTitle>
+              <CardDescription className="text-lg">
+                התחבר עם חשבון קיים או צור חדש
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button className="w-full bg-purple-600 hover:bg-purple-700" onClick={() => setShowAuthModal(true)}>
+                התחבר במייל
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
+      
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
+      />
     </div>
   );
 };

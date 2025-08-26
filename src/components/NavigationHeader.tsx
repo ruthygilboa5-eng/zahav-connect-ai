@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import AccountModal from '@/components/AccountModal';
-import AuthModal from '@/components/AuthModal';
+import { AuthModal } from '@/components/AuthModal';
 
 interface NavigationHeaderProps {
   currentView: 'elderly' | 'family';

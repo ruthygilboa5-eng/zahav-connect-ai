@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Users, Heart, Shield, Clock } from 'lucide-react';
 import { useAuth } from '@/providers/SimpleAuthProvider';
 import { useNavigate } from 'react-router-dom';
-import AuthModal from '@/components/AuthModal';
+import { AuthModal } from '@/components/AuthModal';
 
 const Index = () => {
   const { authState } = useAuth();

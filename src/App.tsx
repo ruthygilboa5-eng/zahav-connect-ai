@@ -15,6 +15,12 @@ import RemindersPage from "./pages/RemindersPage";
 import MemoriesPage from "./pages/MemoriesPage";
 import ReviewPage from "./pages/ReviewPage";
 import EmergencyContactsPage from "./pages/EmergencyContactsPage";
+import WakeUpPage from "./pages/WakeUpPage";
+import EmergencyPage from "./pages/EmergencyPage";
+import GamesPage from "./pages/GamesPage";
+import FamilyBoardPage from "./pages/FamilyBoardPage";
+import FamilyManagementPage from "./pages/FamilyManagementPage";
+import FamilyDashboard from "./components/FamilyDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,11 +53,16 @@ const App = () => {
                   <Route path="/" element={<SimpleIndex />} />
                   <Route path="/home" element={<HomePage />} />
                   <Route path="/dashboard" element={<DashboardPage />} />
-                  <Route path="/family" element={<DashboardPage />} />
+                  <Route path="/family" element={<FamilyDashboard />} />
                   <Route path="/memories" element={<MemoriesPage />} />
                   <Route path="/reminders" element={<RemindersPage />} />
                   <Route path="/review" element={<ReviewPage />} />
                   <Route path="/emergency-contacts" element={<EmergencyContactsPage />} />
+                  <Route path="/wakeup" element={<WakeUpPage />} />
+                  <Route path="/emergency" element={<EmergencyPage />} />
+                  <Route path="/games" element={<GamesPage />} />
+                  <Route path="/family-board" element={<FamilyBoardPage />} />
+                  <Route path="/family-management" element={<FamilyManagementPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </div>
