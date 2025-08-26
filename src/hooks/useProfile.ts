@@ -109,45 +109,58 @@ export const useProfile = () => {
   const updateProfile = async (updates: Partial<Pick<ExtendedProfile, 'first_name' | 'last_name'>>) => {
     try {
       if (!authState.user) {
+        console.error('No authenticated user found');
+        toast({
+          title: 'שגיאה',
+          description: 'לא נמצא משתמש מחובר',
+          variant: 'destructive'
+        });
         return false;
       }
 
-      if (profile) {
-        // Update existing profile
-        const { error } = await supabase
-          .from('user_profiles')
-          .update(updates)
-          .eq('user_id', authState.user.id);
+      console.log('Updating profile for user:', authState.user.id, 'with data:', updates);
 
-        if (error) throw error;
-        
+      if (DEV_MODE_DEMO) {
+        // In demo mode, just update local state
         setProfile(prev => prev ? { ...prev, ...updates } : null);
         
-        // Sync with auth state for immediate greeting updates
         if (updates.first_name) {
           setFirstName(updates.first_name);
         }
-      } else {
-        // Create new profile using upsert to handle duplicates
-        const newProfile = {
-          user_id: authState.user.id,
-          first_name: updates.first_name || '',
-          last_name: updates.last_name || ''
-        };
-
-        const { data, error } = await supabase
-          .from('user_profiles')
-          .upsert(newProfile, { onConflict: 'user_id' })
-          .select()
-          .single();
-
-        if (error) throw error;
-        setProfile(data);
         
-        // Sync with auth state for immediate greeting updates
-        if (updates.first_name) {
-          setFirstName(updates.first_name);
-        }
+        toast({
+          title: "הצלחה",
+          description: "הפרופיל עודכן בהצלחה (מצב דמו)",
+        });
+        return true;
+      }
+
+      // Update existing profile or create new one
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .upsert(
+          {
+            user_id: authState.user.id,
+            first_name: updates.first_name || '',
+            last_name: updates.last_name || '',
+            updated_at: new Date().toISOString()
+          },
+          { onConflict: 'user_id' }
+        )
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Supabase error updating profile:', error);
+        throw error;
+      }
+      
+      console.log('Profile updated successfully:', data);
+      setProfile(prev => prev ? { ...prev, ...updates } : { ...data, role: prev?.role || 'FAMILY' });
+      
+      // Sync with auth state for immediate greeting updates
+      if (updates.first_name) {
+        setFirstName(updates.first_name);
       }
 
       toast({
@@ -160,7 +173,7 @@ export const useProfile = () => {
       console.error('Error updating profile:', error);
       toast({
         title: "שגיאה",
-        description: "לא ניתן לעדכן את הפרופיל",
+        description: "לא ניתן לעדכן את הפרופיל. אנא נסה שוב.",
         variant: "destructive",
       });
       return false;

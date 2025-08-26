@@ -240,14 +240,14 @@ const FamilyDashboard = () => {
               <User className="w-4 h-4" />
               פרופיל
             </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => window.location.href = '/'}
-              className="flex items-center gap-2"
-            >
-              <Settings className="w-4 h-4" />
-              חזרה לבית
-            </Button>
+        <Button 
+          variant="outline" 
+          onClick={() => window.location.href = '/dashboard'}
+          className="flex items-center gap-2"
+        >
+          <Settings className="w-4 h-4" />
+          דשבורד ראשי
+        </Button>
           </div>
         </div>
 

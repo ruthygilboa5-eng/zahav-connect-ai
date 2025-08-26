@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { 
   Heart, 
   MessageSquare, 
@@ -16,12 +17,15 @@ import {
   Bell,
   Camera,
   User,
-  LogOut
+  LogOut,
+  Shield
 } from 'lucide-react';
 import { useAuth } from '@/providers/FixedAuthProvider';
 import { useProfile } from '@/hooks/useProfile';
 import { useDataProvider } from '@/providers/DataProvider';
 import { useAuthDisplayName } from '@/hooks/useDisplayName';
+import { PendingApprovals } from '@/components/PendingApprovals';
+import PermissionRequestsSection from '@/components/PermissionRequestsSection';
 import NotificationBadge from '@/components/NotificationBadge';
 import ProfileSettingsModal from '@/components/ProfileSettingsModal';
 
@@ -245,6 +249,24 @@ const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
           אישור תוכן משפחתי
           <NotificationBadge />
         </Button>
+      </div>
+
+      {/* Family Permissions Section */}
+      <div className="mt-8 w-full max-w-4xl">
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle className="flex items-center justify-center gap-2 text-xl">
+              <Shield className="w-6 h-6 text-primary" />
+              ניהול הרשאות בני המשפחה
+            </CardTitle>
+            <CardDescription>
+              בקשות הרשאות ממתינות לאישור מבני המשפחה
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PermissionRequestsSection />
+          </CardContent>
+        </Card>
       </div>
 
       {/* Instructions */}
