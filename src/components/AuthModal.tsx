@@ -80,10 +80,10 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         onClose();
         
         // Navigate based on role
-        if (userRole === 'main_user') {
-          navigate('/dashboard', { replace: true });
-        } else if (userRole === 'family_basic') {
+        if (userRole === 'primary_user') {
           navigate('/family', { replace: true });
+        } else if (userRole === 'family_member') {
+          navigate('/dashboard', { replace: true });
         } else {
           toast({
             title: "שגיאה",
@@ -179,17 +179,17 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
           .from('user_roles')
           .upsert({
             user_id: uid,
-            role: role === 'MAIN_USER' ? 'main_user' : 'family_basic',
+            role: role === 'MAIN_USER' ? 'primary_user' : 'family_member',
           });
 
         if (role === 'MAIN_USER') {
-          // Ready; route to /dashboard
+          // Ready; route to /family
           toast({
             title: "נרשמת בהצלחה",
             description: `ברוך הבא ${firstName}! מכניס אותך למערכת...`,
           });
           onClose();
-          navigate('/dashboard', { replace: true });
+          navigate('/family', { replace: true });
           return;
         }
 
@@ -201,7 +201,7 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
           description: "הבקשה נשלחה, ממתין לאישור",
         });
         onClose();
-        navigate('/waiting-approval', { replace: true });
+        navigate('/dashboard', { replace: true });
       }
     } catch (error: any) {
       toast({

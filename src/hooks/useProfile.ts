@@ -77,7 +77,7 @@ export const useProfile = () => {
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
-        .eq('role', 'main_user')
+        .eq('role', 'primary_user')
         .maybeSingle();
 
       return { 

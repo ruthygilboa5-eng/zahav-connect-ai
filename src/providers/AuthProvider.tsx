@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
+import { useNavigate } from 'react-router-dom';
 
 type Role = 'MAIN_USER' | 'FAMILY' | null;
 
@@ -54,6 +55,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       session: null
     };
   });
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -76,9 +78,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 .eq('user_id', session.user.id)
                 .maybeSingle();
 
-              const userRole = roleData?.role === 'main_user' ? 'MAIN_USER' : 'FAMILY';
+              const userRole: Role = roleData?.role === 'primary_user' ? 'MAIN_USER' : 'FAMILY';
               
-              setAuthState({
+              const newAuthState = {
                 isAuthenticated: true,
                 role: userRole,
                 firstName: profile?.first_name || '',
@@ -86,7 +88,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 session,
                 memberId: userRole === 'FAMILY' ? 'family-1' : undefined,
                 scopes: userRole === 'FAMILY' ? ['POST_MEDIA', 'SUGGEST_REMINDER', 'INVITE_GAME', 'CHAT'] : undefined
-              });
+              };
+              
+              setAuthState(newAuthState);
+              
+              // Navigate based on role on initial load
+              if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                if (userRole === 'MAIN_USER') {
+                  navigate('/family', { replace: true });
+                } else {
+                  navigate('/dashboard', { replace: true });
+                }
+              }
             } catch (error) {
               console.error('Error loading profile:', error);
               setAuthState({
@@ -110,6 +123,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             memberId: undefined,
             scopes: undefined
           });
+          
+          // Navigate to home when logged out
+          if (event === 'SIGNED_OUT') {
+            navigate('/', { replace: true });
+          }
         }
         setLoading(false);
       }
