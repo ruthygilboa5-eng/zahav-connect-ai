@@ -36,99 +36,15 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <BrowserRouter>
-        <AuthProvider>
-          <GlobalStateProvider>
-            <SupabaseProvider>
-              <OwnerProvider>
-                <FamilyProvider>
-                  <DataProvider>
-                    <GlobalStateWrapper>
-                      <AppLayout>
-                        <Routes>
-                          <Route path="/" element={<Index />} />
-                          <Route path="/dashboard" element={
-                            <ProtectedRoute requiredRole="FAMILY">
-                              <DashboardPage />
-                            </ProtectedRoute>
-                          } />
-                          <Route path="/waiting-approval" element={
-                            <ProtectedRoute requiredRole="FAMILY">
-                              <WaitingApprovalPage />
-                            </ProtectedRoute>
-                          } />
-                          <Route path="/home" element={
-                            <ProtectedRoute requiredRole="MAIN_USER">
-                              <HomePage />
-                            </ProtectedRoute>
-                          } />
-                          <Route path="/family" element={
-                            <ProtectedRoute requiredRole="MAIN_USER">
-                              <FamilyDashboard />
-                            </ProtectedRoute>
-                          } />
-                          <Route path="/wakeup" element={
-                            <ProtectedRoute requiredRole="MAIN_USER">
-                              <WakeUpPage />
-                            </ProtectedRoute>
-                          } />
-                          <Route path="/emergency" element={
-                            <ProtectedRoute requiredRole="MAIN_USER">
-                              <EmergencyPage />
-                            </ProtectedRoute>
-                          } />
-                          <Route path="/emergency-contacts" element={
-                            <ProtectedRoute requiredRole="MAIN_USER">
-                              <EmergencyContactsPage />
-                            </ProtectedRoute>
-                          } />
-                          <Route path="/emergency-approval" element={
-                            <ProtectedRoute>
-                              <EmergencyApprovalPage />
-                            </ProtectedRoute>
-                          } />
-                          <Route path="/reminders" element={
-                            <ProtectedRoute requiredRole="MAIN_USER">
-                              <RemindersPage />
-                            </ProtectedRoute>
-                          } />
-                          <Route path="/memories" element={
-                            <ProtectedRoute requiredRole="MAIN_USER">
-                              <MemoriesPage />
-                            </ProtectedRoute>
-                          } />
-                          <Route path="/games" element={
-                            <ProtectedRoute requiredRole="MAIN_USER">
-                              <GamesPage />
-                            </ProtectedRoute>
-                          } />
-                          <Route path="/family-management" element={
-                            <ProtectedRoute requiredRole="MAIN_USER">
-                              <FamilyManagementPage />
-                            </ProtectedRoute>
-                          } />
-                          <Route path="/family-board" element={
-                            <ProtectedRoute requiredRole="MAIN_USER">
-                              <FamilyBoardPage />
-                            </ProtectedRoute>
-                          } />
-                          <Route path="/review" element={
-                            <ProtectedRoute requiredRole="MAIN_USER">
-                              <ReviewPage />
-                            </ProtectedRoute>
-                          } />
-                          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                          <Route path="*" element={<NotFound />} />
-                        </Routes>
-                      </AppLayout>
-                    </GlobalStateWrapper>
-                    <Toaster />
-                    <Sonner />
-                  </DataProvider>
-                </FamilyProvider>
-              </OwnerProvider>
-            </SupabaseProvider>
-          </GlobalStateProvider>
-        </AuthProvider>
+        {/* Minimal setup to isolate the infinite loop */}
+        <div className="min-h-screen bg-white p-8">
+          <h1>Debug Mode - Checking for infinite loops</h1>
+          <Routes>
+            <Route path="*" element={<div>Simple route test</div>} />
+          </Routes>
+        </div>
+        <Toaster />
+        <Sonner />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
