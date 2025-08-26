@@ -1,33 +1,42 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Heart, Mail } from 'lucide-react';
+import { Users, Heart, LogIn, Play } from 'lucide-react';
 import { useAuth } from '@/providers/FixedAuthProvider';
-import { useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { AuthModal } from '@/components/AuthModal';
 
 const SimpleIndex = () => {
   const { authState, loginAsMainUser, loginAsFamily } = useAuth();
-  const navigate = useNavigate();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalRole, setAuthModalRole] = useState<'MAIN_USER' | 'FAMILY'>('MAIN_USER');
 
   console.log('SimpleIndex rendering, authState:', authState);
 
   // If already authenticated, redirect
   if (authState.isAuthenticated) {
     const targetPath = authState.role === 'MAIN_USER' ? '/home' : '/family';
-    navigate(targetPath);
-    return null;
+    return <Navigate to={targetPath} replace />;
   }
 
-  const handleMainUserLogin = () => {
-    console.log('Logging in as main user');
+  const handleMainUserDemo = () => {
+    console.log('Demo login as main user');
     loginAsMainUser('משתמש ראשי');
   };
 
-  const handleFamilyLogin = () => {
-    console.log('Logging in as family member');
+  const handleFamilyDemo = () => {
+    console.log('Demo login as family member');
     loginAsFamily('בן משפחה');
+  };
+
+  const handleMainUserAuth = () => {
+    setAuthModalRole('MAIN_USER');
+    setShowAuthModal(true);
+  };
+
+  const handleFamilyAuth = () => {
+    setAuthModalRole('FAMILY');
+    setShowAuthModal(true);
   };
 
   return (
@@ -39,62 +48,77 @@ const SimpleIndex = () => {
           <h1 className="text-5xl font-bold text-gray-800 mb-4">
             מערכת זהב
           </h1>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-gray-600 mb-2">
             בחר את סוג המשתמש שלך
+          </p>
+          <p className="text-sm text-gray-500">
+            ניתן לנסות דמו או להתחבר עם חשבון אישי
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {/* Main User Card */}
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={handleMainUserLogin}>
+          <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="text-center">
               <div className="mx-auto mb-4 p-4 bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center">
                 <Heart className="w-8 h-8 text-blue-600" />
               </div>
               <CardTitle className="text-2xl text-blue-800">משתמש ראשי</CardTitle>
-              <CardDescription className="text-lg">
+              <CardDescription className="text-lg mb-4">
                 הורה או בני זוג הזקוקים לתמיכה
               </CardDescription>
+              <CardDescription className="text-sm text-muted-foreground">
+                ניהול מלא של המערכת, הגדרות ואישור תכנים
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={handleMainUserLogin}>
-                היכנס כמשתמש ראשי
+            <CardContent className="space-y-3">
+              <Button 
+                className="w-full bg-blue-600 hover:bg-blue-700" 
+                onClick={handleMainUserDemo}
+              >
+                <Play className="w-4 h-4 ml-2" />
+                דמו כמשתמש ראשי
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full border-blue-200 text-blue-600 hover:bg-blue-50" 
+                onClick={handleMainUserAuth}
+              >
+                <LogIn className="w-4 h-4 ml-2" />
+                התחבר / הירשם
               </Button>
             </CardContent>
           </Card>
 
           {/* Family Member Card */}
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={handleFamilyLogin}>
+          <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="text-center">
               <div className="mx-auto mb-4 p-4 bg-green-100 rounded-full w-16 h-16 flex items-center justify-center">
                 <Users className="w-8 h-8 text-green-600" />
               </div>
               <CardTitle className="text-2xl text-green-800">בן משפחה</CardTitle>
-              <CardDescription className="text-lg">
+              <CardDescription className="text-lg mb-4">
                 ילדים או קרובי משפחה המעוניינים לעזור
               </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full bg-green-600 hover:bg-green-700" onClick={handleFamilyLogin}>
-                היכנס כבן משפחה
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Email Auth Card */}
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setShowAuthModal(true)}>
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-4 p-4 bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center">
-                <Mail className="w-8 h-8 text-purple-600" />
-              </div>
-              <CardTitle className="text-2xl text-purple-800">התחברות במייל</CardTitle>
-              <CardDescription className="text-lg">
-                התחבר עם חשבון קיים או צור חדש
+              <CardDescription className="text-sm text-muted-foreground">
+                מחובר לחשבון של המשתמש הראשי לעזרה ותמיכה
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Button className="w-full bg-purple-600 hover:bg-purple-700" onClick={() => setShowAuthModal(true)}>
-                התחבר במייל
+            <CardContent className="space-y-3">
+              <Button 
+                className="w-full bg-green-600 hover:bg-green-700" 
+                onClick={handleFamilyDemo}
+              >
+                <Play className="w-4 h-4 ml-2" />
+                דמו כבן משפחה
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full border-green-200 text-green-600 hover:bg-green-50" 
+                onClick={handleFamilyAuth}
+              >
+                <LogIn className="w-4 h-4 ml-2" />
+                התחבר / הירשם
               </Button>
             </CardContent>
           </Card>
@@ -104,7 +128,8 @@ const SimpleIndex = () => {
       {/* Auth Modal */}
       <AuthModal 
         isOpen={showAuthModal} 
-        onClose={() => setShowAuthModal(false)} 
+        onClose={() => setShowAuthModal(false)}
+        defaultRole={authModalRole}
       />
     </div>
   );

@@ -13,9 +13,10 @@ import { useToast } from '@/hooks/use-toast';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  defaultRole?: 'MAIN_USER' | 'FAMILY';
 }
 
-export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
+export const AuthModal = ({ isOpen, onClose, defaultRole = 'MAIN_USER' }: AuthModalProps) => {
   const [activeTab, setActiveTab] = useState('signin');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -132,7 +133,7 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       <DialogContent className="max-w-md rtl-text">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-bold">
-            התחברות למערכת זהב
+            התחברות כ{defaultRole === 'MAIN_USER' ? 'משתמש ראשי' : 'בן משפחה'}
           </DialogTitle>
         </DialogHeader>
 
