@@ -133,6 +133,99 @@ export type Database = {
         }
         Relationships: []
       }
+      family_permission_requests: {
+        Row: {
+          created_at: string
+          family_link_id: string
+          id: string
+          owner_user_id: string
+          scope: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          family_link_id: string
+          id?: string
+          owner_user_id: string
+          scope: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          family_link_id?: string
+          id?: string
+          owner_user_id?: string
+          scope?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      memories: {
+        Row: {
+          content_type: string | null
+          content_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content_type?: string | null
+          content_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content_type?: string | null
+          content_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pending_queue: {
+        Row: {
+          created_at: string
+          id: string
+          item_data: Json
+          item_type: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_data: Json
+          item_type: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_data?: Json
+          item_type?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       permissions_requests: {
         Row: {
           created_at: string
@@ -166,6 +259,39 @@ export type Database = {
           requested_permissions?: string[] | null
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      reminders: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_completed: boolean
+          reminder_time: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_completed?: boolean
+          reminder_time: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_completed?: boolean
+          reminder_time?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
