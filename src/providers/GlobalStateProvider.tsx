@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
@@ -43,14 +43,26 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
 
   const navigate = useNavigate();
 
-  const refreshUserData = async () => {
+  const clearGlobalState = useCallback(() => {
+    setGlobalState({
+      currentUserId: null,
+      currentRole: null,
+      currentFirstName: null,
+      currentPhone: null,
+      isLoading: false,
+    });
+  }, []);
+
+  const refreshUserData = useCallback(async () => {
     try {
+      console.log('refreshUserData called');
       setGlobalState(prev => ({ ...prev, isLoading: true }));
 
       // Get current auth user
       const { data: { user: authUser } } = await supabase.auth.getUser();
 
       if (!authUser) {
+        console.log('No authenticated user, navigating to /');
         // No authenticated user - clear state and navigate to home
         setGlobalState({
           currentUserId: null,
@@ -62,6 +74,8 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
         navigate('/', { replace: true });
         return;
       }
+
+      console.log('User found:', authUser.id);
 
       // Set currentUserId
       setGlobalState(prev => ({ ...prev, currentUserId: authUser.id }));
@@ -93,6 +107,7 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
         .maybeSingle();
 
       const userRole = roleData?.role || null;
+      console.log('User role:', userRole);
 
       // Update global state with profile data
       setGlobalState(prev => ({
@@ -103,13 +118,24 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
         isLoading: false,
       }));
 
-      // Navigate based on role
+      // Navigate based on role - but check current location first
+      const currentPath = window.location.pathname;
+      let targetPath = '/';
+      
       if (userRole === 'primary_user') {
-        navigate('/family', { replace: true });
+        targetPath = '/family';
       } else if (userRole === 'family_member') {
-        navigate('/dashboard', { replace: true });
+        targetPath = '/dashboard';
+      }
+
+      console.log('Current path:', currentPath, 'Target path:', targetPath);
+      
+      // Only navigate if we're not already on the correct path
+      if (currentPath !== targetPath) {
+        console.log('Navigating to:', targetPath);
+        navigate(targetPath, { replace: true });
       } else {
-        navigate('/', { replace: true });
+        console.log('Already on correct path, skipping navigation');
       }
 
     } catch (error) {
@@ -117,24 +143,18 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
       setGlobalState(prev => ({ ...prev, isLoading: false }));
       navigate('/', { replace: true });
     }
-  };
-
-  const clearGlobalState = () => {
-    setGlobalState({
-      currentUserId: null,
-      currentRole: null,
-      currentFirstName: null,
-      currentPhone: null,
-      isLoading: false,
-    });
-  };
+  }, [navigate]);
 
   // Initialize on mount and listen for auth changes
   useEffect(() => {
+    let isMounted = true;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
+        if (!isMounted) return;
+        
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          await refreshUserData();
+          refreshUserData();
         } else if (event === 'SIGNED_OUT') {
           clearGlobalState();
           navigate('/', { replace: true });
@@ -145,8 +165,11 @@ export const GlobalStateProvider = ({ children }: GlobalStateProviderProps) => {
     // Initial load
     refreshUserData();
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [refreshUserData, clearGlobalState, navigate]);
 
   return (
     <GlobalStateContext.Provider value={{ 
