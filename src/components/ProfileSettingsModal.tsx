@@ -65,7 +65,8 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
 
       const success = await updateProfile({
         first_name: profileData.first_name,
-        last_name: profileData.last_name
+        last_name: profileData.last_name,
+        phone: profileData.phone
       });
 
       if (success) {
@@ -419,6 +420,29 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
             {authState.role === 'FAMILY' && (
               <>
                 <Separator />
+                
+                {/* Main User Connection Info */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Phone className="h-5 w-5" />
+                      פרטי התחברות למשתמש ראשי
+                    </CardTitle>
+                    <CardDescription>
+                      הזיהוי מתבצע לפי מספר הטלפון של המשתמש הראשי
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="p-4 bg-muted rounded-lg">
+                      <div className="text-sm font-medium mb-1">מחובר למשתמש ראשי:</div>
+                      <div className="text-lg font-bold">טלפון: 050-1234567</div>
+                      <div className="text-sm text-muted-foreground mt-2">
+                        השם: משה כהן (דוגמה)
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">

@@ -18,7 +18,8 @@ import {
   Upload,
   Calendar,
   Gamepad2,
-  Shield
+  Shield,
+  Home
 } from 'lucide-react';
 import { useAuthDisplayName, useMainUserDisplayName } from '@/hooks/useDisplayName';
 import { useFamilyProvider } from '@/providers/FamilyProvider';
@@ -202,11 +203,19 @@ const FamilyDashboard = () => {
                 <p className="text-muted-foreground mb-6">
                   הבקשה נשלחה לבעל החשבון הראשי. לאחר אישור תופיע כאן הפעילות.
                 </p>
-                <div className="bg-muted/50 rounded-lg p-4">
+                <div className="bg-muted/50 rounded-lg p-4 mb-6">
                   <p className="text-sm text-muted-foreground">
                     בעל החשבון הראשי יקבל הודעה על הבקשה ויוכל לאשר אותה ממסך ההגדרות
                   </p>
                 </div>
+                <Button 
+                  variant="outline"
+                  onClick={() => window.location.href = '/'}
+                  className="w-full flex items-center gap-2"
+                >
+                  <Home className="w-4 h-4" />
+                  חזרה לעמוד הראשי
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -221,6 +230,14 @@ const FamilyDashboard = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
+            <Button 
+              variant="outline"
+              onClick={() => window.location.href = '/'}
+              className="flex items-center gap-2"
+            >
+              <Home className="w-4 h-4" />
+              <span className="hidden sm:inline">עמוד ראשי</span>
+            </Button>
             <User className="w-8 h-8 text-primary" />
             <div>
               <h1 className="text-3xl font-bold text-foreground">

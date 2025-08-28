@@ -131,7 +131,23 @@ export const useProfile = () => {
         return true;
       }
 
-      // בדיקת אימות - גם למשתמש אמיתי וגם לדמו
+      // במצב לא אמיתי (demo functions) גם כן עדכון מקומי
+      if (!authState.user?.id && authState.isAuthenticated) {
+        console.log('Demo authenticated mode - updating local state only');
+        setProfile(prev => prev ? { ...prev, ...updates } : null);
+        
+        if (updates.first_name) {
+          setFirstName(updates.first_name);
+        }
+        
+        toast({
+          title: "הצלחה",
+          description: "הפרופיל עודכן בהצלחה",
+        });
+        return true;
+      }
+
+      // בדיקת אימות למשתמש אמיתי
       if (!authState.user?.id) {
         console.error('No user ID found in authState:', authState);
         toast({

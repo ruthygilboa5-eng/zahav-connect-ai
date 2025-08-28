@@ -121,7 +121,7 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: Naviga
                   className="flex items-center gap-2 hover:bg-accent hover:text-accent-foreground p-2 rounded-lg transition-colors"
                 >
                   <Badge variant="secondary" className="bg-primary text-primary-foreground">
-                    שלום {displayName} · מחובר
+                    שלום {displayName || (authState.role === 'MAIN_USER' ? 'משתמש ראשי' : 'בן משפחה')} · מחובר
                   </Badge>
                 </button>
                 <Button
