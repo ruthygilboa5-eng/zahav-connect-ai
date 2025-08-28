@@ -26,7 +26,7 @@ interface ProfileSettingsModalProps {
 export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSettingsModalProps) {
   const { authState, logout } = useAuth();
   const { profile, updateProfile, loading } = useProfile();
-  const { familyMembers, updateMemberScopes, approveFamilyMember, revokeFamilyMember } = useFamilyProvider();
+  const { familyMembers, updateMemberScopes, updateMemberStatus } = useFamilyProvider();
   const { requests, approveRequest, declineRequest, requestPermission, getRequestStatus } = usePermissionRequests();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -113,7 +113,7 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
 
   const handleApproveFamily = async (memberId: string) => {
     try {
-      await approveFamilyMember(memberId);
+      await updateMemberStatus(memberId, 'APPROVED');
       toast({
         title: "הצלחה",
         description: "בן המשפחה אושר בהצלחה"
@@ -129,7 +129,7 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
 
   const handleRevokeFamily = async (memberId: string) => {
     try {
-      await revokeFamilyMember(memberId);
+      await updateMemberStatus(memberId, 'REVOKED');
       toast({
         title: "הצלחה",
         description: "הרשאות בן המשפחה בוטלו"
