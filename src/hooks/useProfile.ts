@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { UserProfile } from '@/types/database';
@@ -7,6 +8,7 @@ import { DEV_MODE_DEMO } from '@/config/dev';
 
 interface ExtendedProfile extends UserProfile {
   role?: 'MAIN_USER' | 'FAMILY';
+  phone?: string;
 }
 
 export const useProfile = () => {
@@ -31,6 +33,7 @@ export const useProfile = () => {
         first_name: '',
         last_name: '',
         display_name: '',
+        phone: '',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         role: 'FAMILY'
@@ -55,7 +58,8 @@ export const useProfile = () => {
           user_id: userId,
           first_name: '',
           last_name: '',
-          display_name: ''
+          display_name: '',
+          phone: ''
         };
 
         const { data: created, error: createError } = await supabase
@@ -106,22 +110,14 @@ export const useProfile = () => {
     }
   };
 
-  const updateProfile = async (updates: Partial<Pick<ExtendedProfile, 'first_name' | 'last_name'>>) => {
+  const updateProfile = async (updates: Partial<Pick<ExtendedProfile, 'first_name' | 'last_name' | 'phone'>>) => {
     try {
-      if (!authState.user) {
-        console.error('No authenticated user found');
-        toast({
-          title: 'שגיאה',
-          description: 'לא נמצא משתמש מחובר',
-          variant: 'destructive'
-        });
-        return false;
-      }
+      console.log('updateProfile called with:', updates);
+      console.log('Current authState:', authState);
 
-      console.log('Updating profile for user:', authState.user.id, 'with data:', updates);
-
+      // עבור מצב דמו - רק עדכון מקומי
       if (DEV_MODE_DEMO) {
-        // In demo mode, just update local state
+        console.log('Demo mode - updating local state only');
         setProfile(prev => prev ? { ...prev, ...updates } : null);
         
         if (updates.first_name) {
@@ -135,18 +131,34 @@ export const useProfile = () => {
         return true;
       }
 
-      // Update existing profile or create new one
+      // בדיקת אימות - גם למשתמש אמיתי וגם לדמו
+      if (!authState.user?.id) {
+        console.error('No user ID found in authState:', authState);
+        toast({
+          title: 'שגיאה',
+          description: 'לא נמצא משתמש מחובר. אנא התחבר מחדש.',
+          variant: 'destructive'
+        });
+        return false;
+      }
+
+      console.log('Updating profile for user:', authState.user.id, 'with data:', updates);
+
+      // עדכון פרופיל קיים או יצירת חדש
+      const updateData = {
+        user_id: authState.user.id,
+        first_name: updates.first_name || profile?.first_name || '',
+        last_name: updates.last_name || profile?.last_name || '',
+        phone: updates.phone || profile?.phone || '',
+        updated_at: new Date().toISOString()
+      };
+
       const { data, error } = await supabase
         .from('user_profiles')
-        .upsert(
-          {
-            user_id: authState.user.id,
-            first_name: updates.first_name || '',
-            last_name: updates.last_name || '',
-            updated_at: new Date().toISOString()
-          },
-          { onConflict: 'user_id' }
-        )
+        .upsert(updateData, { 
+          onConflict: 'user_id',
+          ignoreDuplicates: false 
+        })
         .select()
         .single();
 
@@ -158,7 +170,7 @@ export const useProfile = () => {
       console.log('Profile updated successfully:', data);
       setProfile(prev => prev ? { ...prev, ...updates } : { ...data, role: prev?.role || 'FAMILY' });
       
-      // Sync with auth state for immediate greeting updates
+      // סינכרון עם auth state לעדכון ברכה מיידי
       if (updates.first_name) {
         setFirstName(updates.first_name);
       }
