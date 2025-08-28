@@ -35,7 +35,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     }
     
     // Redirect to appropriate route based on role
-    const redirectPath = authState.role === 'MAIN_USER' ? '/home' : '/family';
+    const redirectPath = authState.role === 'MAIN_USER' ? '/family' : '/dashboard';
     return <Navigate to={redirectPath} replace />;
   }
 

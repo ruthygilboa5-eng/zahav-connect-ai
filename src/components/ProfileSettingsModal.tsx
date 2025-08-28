@@ -15,6 +15,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useProfile } from '@/hooks/useProfile';
 import { useFamilyProvider } from '@/providers/FamilyProvider';
 import { usePermissionRequests } from '@/hooks/usePermissionRequests';
+import { useOwnerContext } from '@/providers/OwnerProvider';
 import { useNavigate } from 'react-router-dom';
 import { FamilyScope, FAMILY_SCOPES, scopeLabels } from '@/types/family';
 
@@ -25,9 +26,10 @@ interface ProfileSettingsModalProps {
 
 export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSettingsModalProps) {
   const { authState, logout } = useAuth();
-  const { profile, updateProfile, loading } = useProfile();
+  const { profile, updateProfile, loading, loadUserProfile } = useProfile();
   const { familyMembers, updateMemberScopes, updateMemberStatus } = useFamilyProvider();
   const { requests, approveRequest, declineRequest, requestPermission, getRequestStatus } = usePermissionRequests();
+  const { ownerUserId } = useOwnerContext();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -37,6 +39,7 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
     phone: ''
   });
   const [isEditing, setIsEditing] = useState(false);
+  const [ownerProfile, setOwnerProfile] = useState<any>(null);
 
   useEffect(() => {
     if (isOpen && profile) {
@@ -46,8 +49,13 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
         last_name: profile.last_name || '',
         phone: profile.phone || ''
       });
+      
+      // Load owner profile for family members
+      if (authState.role === 'FAMILY' && ownerUserId && loadUserProfile) {
+        loadUserProfile(ownerUserId).then(setOwnerProfile);
+      }
     }
-  }, [isOpen, profile]);
+  }, [isOpen, profile, authState.role, ownerUserId, loadUserProfile]);
 
   const handleUpdateProfile = async () => {
     try {
@@ -435,9 +443,11 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
                   <CardContent>
                     <div className="p-4 bg-muted rounded-lg">
                       <div className="text-sm font-medium mb-1">מחובר למשתמש ראשי:</div>
-                      <div className="text-lg font-bold">טלפון: 050-1234567</div>
+                      <div className="text-lg font-bold">
+                        טלפון: {ownerProfile?.phone || 'לא זמין'}
+                      </div>
                       <div className="text-sm text-muted-foreground mt-2">
-                        השם: משה כהן (דוגמה)
+                        השם: {ownerProfile?.first_name} {ownerProfile?.last_name}
                       </div>
                     </div>
                   </CardContent>

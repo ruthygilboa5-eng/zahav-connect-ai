@@ -8,6 +8,7 @@ import { GlobalStateProvider } from "@/providers/GlobalStateProvider";
 import { DataProvider } from "@/providers/DataProvider";
 import { FamilyProvider } from "@/providers/FamilyProvider";
 import { OwnerProvider } from "@/providers/OwnerProvider";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import SimpleIndex from "./pages/SimpleIndex";
 import HomePage from "./pages/HomePage";
 import DashboardPage from "./pages/DashboardPage";
@@ -51,18 +52,44 @@ const App = () => {
               <div className="relative z-10">
                 <Routes>
                   <Route path="/" element={<SimpleIndex />} />
-                  <Route path="/home" element={<HomePage />} />
-                  <Route path="/dashboard" element={<DashboardPage />} />
-                  <Route path="/family" element={<FamilyDashboard />} />
+                  
+                  {/* Main User Routes */}
+                  <Route path="/home" element={
+                    <ProtectedRoute requiredRole="MAIN_USER">
+                      <HomePage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/family" element={
+                    <ProtectedRoute requiredRole="MAIN_USER">  
+                      <FamilyDashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/family-management" element={
+                    <ProtectedRoute requiredRole="MAIN_USER">
+                      <FamilyManagementPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/review" element={
+                    <ProtectedRoute requiredRole="MAIN_USER">
+                      <ReviewPage />
+                    </ProtectedRoute>
+                  } />
+                  
+                  {/* Family Member Routes */}
+                  <Route path="/dashboard" element={
+                    <ProtectedRoute requiredRole="FAMILY">
+                      <DashboardPage />
+                    </ProtectedRoute>
+                  } />
+                  
+                  {/* Shared Routes */}
                   <Route path="/memories" element={<MemoriesPage />} />
                   <Route path="/reminders" element={<RemindersPage />} />
-                  <Route path="/review" element={<ReviewPage />} />
                   <Route path="/emergency-contacts" element={<EmergencyContactsPage />} />
                   <Route path="/wakeup" element={<WakeUpPage />} />
                   <Route path="/emergency" element={<EmergencyPage />} />
                   <Route path="/games" element={<GamesPage />} />
                   <Route path="/family-board" element={<FamilyBoardPage />} />
-                  <Route path="/family-management" element={<FamilyManagementPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </div>
