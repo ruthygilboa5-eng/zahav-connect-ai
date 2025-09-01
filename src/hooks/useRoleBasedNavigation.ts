@@ -24,6 +24,7 @@ export const useRoleBasedNavigation = () => {
 
     // Define role-specific paths
     const mainUserOnlyPaths = [
+      '/dashboard',
       '/home',
       '/wakeup', 
       '/emergency',
@@ -31,7 +32,9 @@ export const useRoleBasedNavigation = () => {
       '/reminders',
       '/memories',
       '/games',
-      '/family-board'
+      '/family-board',
+      '/family-management',
+      '/review'
     ];
 
     const familyOnlyPaths = ['/family'];
@@ -40,7 +43,7 @@ export const useRoleBasedNavigation = () => {
     if (role === 'MAIN_USER') {
       // Main user trying to access family-only paths
       if (familyOnlyPaths.includes(currentPath)) {
-        navigate('/home', { replace: true });
+        navigate('/dashboard', { replace: true });
       }
     } else if (role === 'FAMILY') {
       // Family member trying to access main user paths
@@ -52,7 +55,7 @@ export const useRoleBasedNavigation = () => {
 
   // Return helper functions for navigation
   const navigateToUserHome = () => {
-    const targetPath = authState.role === 'MAIN_USER' ? '/home' : '/family';
+    const targetPath = authState.role === 'MAIN_USER' ? '/dashboard' : '/family';
     navigate(targetPath);
   };
 
@@ -60,8 +63,8 @@ export const useRoleBasedNavigation = () => {
     if (!authState.isAuthenticated) return false;
     
     const mainUserOnlyPaths = [
-      '/home', '/wakeup', '/emergency', '/emergency-contacts',
-      '/reminders', '/memories', '/games', '/family-board'
+      '/dashboard', '/home', '/wakeup', '/emergency', '/emergency-contacts',
+      '/reminders', '/memories', '/games', '/family-board', '/family-management', '/review'
     ];
     
     const familyOnlyPaths = ['/family'];

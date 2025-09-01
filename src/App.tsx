@@ -59,9 +59,9 @@ const App = () => {
                       <HomePage />
                     </ProtectedRoute>
                   } />
-                  <Route path="/family" element={
-                    <ProtectedRoute requiredRole="MAIN_USER">  
-                      <FamilyDashboard />
+                  <Route path="/dashboard" element={
+                    <ProtectedRoute requiredRole="MAIN_USER">
+                      <DashboardPage />
                     </ProtectedRoute>
                   } />
                   <Route path="/family-management" element={
@@ -76,9 +76,9 @@ const App = () => {
                   } />
                   
                   {/* Family Member Routes */}
-                  <Route path="/dashboard" element={
+                  <Route path="/family" element={
                     <ProtectedRoute requiredRole="FAMILY">
-                      <DashboardPage />
+                      <FamilyDashboard />
                     </ProtectedRoute>
                   } />
                   
