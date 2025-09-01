@@ -441,13 +441,34 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="p-4 bg-muted rounded-lg">
-                      <div className="text-sm font-medium mb-1">מחובר למשתמש ראשי:</div>
-                      <div className="text-lg font-bold">
-                        טלפון: {ownerProfile?.phone || 'לא זמין'}
-                      </div>
-                      <div className="text-sm text-muted-foreground mt-2">
-                        השם: {ownerProfile?.first_name} {ownerProfile?.last_name}
+                    <div className="space-y-4">
+                      <div className="p-4 bg-muted rounded-lg">
+                        <div className="text-sm font-medium mb-1">מחובר למשתמש ראשי:</div>
+                        <div className="text-lg font-bold">
+                          טלפון: {ownerProfile?.phone || 'לא צוין'}
+                        </div>
+                        <div className="text-sm text-muted-foreground mt-2">
+                          השם: {ownerProfile?.first_name} {ownerProfile?.last_name}
+                        </div>
+                        {(!ownerProfile?.phone || ownerProfile.phone === '') && (
+                          <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <p className="text-sm text-yellow-800 mb-2">
+                              לא נמצא מספר טלפון למשתמש הראשי
+                            </p>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                toast({
+                                  title: "פנה למשתמש הראשי",
+                                  description: "בקש מהמשתמש הראשי להוסיף מספר טלפון בהגדרות הפרופיל שלו"
+                                });
+                              }}
+                            >
+                              איך להוסיף טלפון?
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -499,6 +520,9 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
+                      <div className="text-sm text-muted-foreground mb-4">
+                        אתה יכול לבקש הרשאות נוספות מהמשתמש הראשי. הבקשות יישלחו לאישור.
+                      </div>
                       {Object.values(FAMILY_SCOPES).filter(scope => scope !== 'EMERGENCY_ONLY').map((scope) => {
                         const status = getRequestStatus(scope);
                         const hasPermission = status === 'APPROVED';
@@ -506,33 +530,44 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
                         const wasDeclined = status === 'DECLINED';
                         
                         return (
-                          <div key={scope} className="flex items-center justify-between p-3 border rounded-lg">
-                            <div>
-                              <div className="font-medium">{scopeLabels[scope]}</div>
-                              <div className="text-sm text-muted-foreground">
-                                {hasPermission && "יש לך הרשאה זו"}
-                                {hasPendingRequest && "הבקשה ממתינה לאישור"}
-                                {wasDeclined && "הבקשה נדחתה"}
-                                {status === 'NONE' && "לא בקשת הרשאה זו עדיין"}
+                          <div key={scope} className="flex items-center justify-between p-4 border rounded-lg bg-card">
+                            <div className="flex-1">
+                              <div className="font-medium text-sm">{scopeLabels[scope]}</div>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {hasPermission && "✅ יש לך הרשאה זו - יכול לבצע פעולה"}
+                                {hasPendingRequest && "⏳ הבקשה נשלחה - ממתין לאישור המשתמש הראשי"}
+                                {wasDeclined && "❌ הבקשה נדחתה - ניתן לבקש שוב"}
+                                {status === 'NONE' && "💡 הרשאה זו לא נבקשה עדיין"}
                               </div>
                             </div>
-                            <div>
-                              {hasPermission && <Badge className="bg-green-500 text-white">מאושר</Badge>}
-                              {hasPendingRequest && <Badge variant="outline" className="border-yellow-500 text-yellow-600">ממתין</Badge>}
-                              {wasDeclined && <Badge variant="destructive">נדחה</Badge>}
-                              {status === 'NONE' && (
+                            <div className="flex items-center gap-2">
+                              {hasPermission && <Badge className="bg-green-500 text-white text-xs">מאושר</Badge>}
+                              {hasPendingRequest && <Badge variant="outline" className="border-yellow-500 text-yellow-600 text-xs">ממתין</Badge>}
+                              {wasDeclined && <Badge variant="destructive" className="text-xs">נדחה</Badge>}
+                              {(status === 'NONE' || wasDeclined) && (
                                 <Button 
                                   size="sm" 
                                   variant="outline"
                                   onClick={() => handleRequestPermission(scope)}
+                                  className="text-xs px-3 py-1"
                                 >
-                                  בקש הרשאה
+                                  {wasDeclined ? 'בקש שוב' : 'בקש הרשאה'}
                                 </Button>
                               )}
                             </div>
                           </div>
                         );
                       })}
+                      
+                      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-start gap-2">
+                          <Shield className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                          <div className="text-xs text-blue-700">
+                            <p className="font-medium">טיפ:</p>
+                            <p>כל בקשה נשלחת למשתמש הראשי לאישור. תוכל לראות את הסטטוס כאן.</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
