@@ -19,9 +19,12 @@ import {
   Calendar,
   Gamepad2,
   Shield,
-  Home
+  Home,
+  Users,
+  X
 } from 'lucide-react';
 import { useAuthDisplayName, useMainUserDisplayName } from '@/hooks/useDisplayName';
+import { useAuth } from '@/providers/AuthProvider';
 import { useFamilyProvider } from '@/providers/FamilyProvider';
 import { useOwnerContext } from '@/providers/OwnerProvider';
 import { FAMILY_ACTIONS } from '@/types/family';
@@ -66,11 +69,12 @@ const FamilyDashboard = () => {
   const familyName = useAuthDisplayName();
   const mainUserName = useMainUserDisplayName();
   const { toast } = useToast();
-  const { addToPendingQueue } = useFamilyProvider();
+  const { familyMembers, addToPendingQueue } = useFamilyProvider();
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [uploadType, setUploadType] = useState<ContentType>('MEDIA');
   const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState(false);
   const { ownerUserId, isApproved, loading: ownerLoading } = useOwnerContext();
+  const { authState } = useAuth();
 
   const handleContentSubmit = (type: ContentType) => {
     setUploadType(type);
@@ -112,6 +116,19 @@ const FamilyDashboard = () => {
       case 'missed': return 'הוחמץ';
       case 'active': return 'פעיל';
       default: return 'לא ידוע';
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'APPROVED':
+        return <Badge className="bg-green-500 text-white"><CheckCircle className="w-3 h-3 mr-1" />מאושר</Badge>;
+      case 'PENDING':
+        return <Badge variant="outline" className="border-yellow-500 text-yellow-600"><Clock className="w-3 h-3 mr-1" />ממתין</Badge>;
+      case 'REVOKED':
+        return <Badge variant="destructive"><X className="w-3 h-3 mr-1" />מבוטל</Badge>;
+      default:
+        return null;
     }
   };
 
@@ -257,14 +274,6 @@ const FamilyDashboard = () => {
               <User className="w-4 h-4" />
               פרופיל
             </Button>
-        <Button 
-          variant="outline" 
-          onClick={() => window.location.href = '/dashboard'}
-          className="flex items-center gap-2"
-        >
-          <Settings className="w-4 h-4" />
-          דשבורד ראשי
-        </Button>
           </div>
         </div>
 

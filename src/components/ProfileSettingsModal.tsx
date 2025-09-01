@@ -453,6 +453,40 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
                   </CardContent>
                 </Card>
 
+                {/* Other Family Members */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      בני משפחה אחרים
+                    </CardTitle>
+                    <CardDescription>
+                      בני משפחה אחרים המחוברים לאותו משתמש ראשי
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {familyMembers && familyMembers.filter(m => m.id !== authState.memberId).length > 0 ? (
+                      <div className="space-y-3">
+                        {familyMembers.filter(m => m.id !== authState.memberId).map((member) => (
+                          <div key={member.id} className="flex items-center gap-3 p-3 border rounded-lg bg-muted/20">
+                            <User className="w-4 h-4 text-muted-foreground" />
+                            <div className="flex-1">
+                              <div className="font-medium">{member.fullName}</div>
+                              <div className="text-sm text-muted-foreground">{member.relation}</div>
+                            </div>
+                            {getStatusBadge(member.status)}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-6 text-muted-foreground">
+                        <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">אין בני משפחה אחרים מחוברים</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
