@@ -24,9 +24,9 @@ export const AuthNavigationHandler = () => {
     } else {
       // Authenticated - navigate based on role
       if (authState.role === 'MAIN_USER') {
-        // Primary user should go to /family
+        // Primary user should go to /home
         if (currentPath === '/' || currentPath === '/dashboard' || currentPath === '/waiting-approval') {
-          navigate('/family', { replace: true });
+          navigate('/home', { replace: true });
         }
       } else if (authState.role === 'FAMILY') {
         // Family member should go to /dashboard
