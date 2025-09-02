@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Users, Settings } from 'lucide-react';
+import { Plus, Users, Settings, Home } from 'lucide-react';
 import { useFamilyProvider } from '@/providers/FamilyProvider';
 import { FamilyMembersList } from '@/components/FamilyMembersList';
 import { AddFamilyMemberModal } from '@/components/AddFamilyMemberModal';
 import { PendingApprovals } from '@/components/PendingApprovals';
+import { useGoHome } from '@/hooks/useGoHome';
 
 const FamilyManagementPage = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const { familyMembers, pendingQueue } = useFamilyProvider();
+  const goHome = useGoHome();
 
   const approvedMembers = familyMembers.filter(member => member.status === 'APPROVED');
   const pendingMembers = familyMembers.filter(member => member.status === 'PENDING');
@@ -19,11 +21,21 @@ const FamilyManagementPage = () => {
       <div className="container mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Users className="w-8 h-8 text-primary" />
-            <h1 className="text-3xl font-bold text-foreground">
-              ניהול המשפחה
-            </h1>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Users className="w-8 h-8 text-primary" />
+              <h1 className="text-3xl font-bold text-foreground">
+                ניהול המשפחה
+              </h1>
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={goHome}
+              className="flex items-center gap-2"
+            >
+              <Home className="w-4 h-4" />
+              חזור לדף הבית
+            </Button>
           </div>
           <p className="text-lg text-muted-foreground">
             נהלו את בני המשפחה שלכם והרשאותיהם
