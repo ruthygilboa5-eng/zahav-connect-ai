@@ -16,6 +16,7 @@ import { useFamilyProvider } from '@/providers/FamilyProvider';
 import { useMockSupabase } from '@/hooks/useMockSupabase';
 import { FamilyMember, FamilyScope, scopeLabels, FAMILY_SCOPES } from '@/types/family';
 import PermissionRequestsSection from '@/components/PermissionRequestsSection';
+import { OTPSecurityBanner } from '@/components/OTPSecurityBanner';
 
 interface NewSettingsModalProps {
   isOpen: boolean;
@@ -158,6 +159,8 @@ export default function NewSettingsModal({ isOpen, onClose }: NewSettingsModalPr
 
         <ScrollArea className="max-h-[60vh] px-2">
           <div className="space-y-6">
+            <OTPSecurityBanner />
+            
             {/* Profile Section */}
             <Card>
               <CardHeader>

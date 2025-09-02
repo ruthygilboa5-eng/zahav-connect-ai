@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink, Database, Folder, Shield, Settings } from 'lucide-react';
+import { OTPSecurityBanner } from '@/components/OTPSecurityBanner';
 
 interface TableStatus {
   name: string;
@@ -51,6 +52,8 @@ export const AdminDashboard = () => {
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <OTPSecurityBanner />
+      
       <div className="text-center">
         <h1 className="text-3xl font-bold text-foreground">לוח בקרה למנהל</h1>
         <p className="text-muted-foreground mt-2">

@@ -6,9 +6,12 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, Mail, Lock, User, Phone } from 'lucide-react';
+import { Loader2, Mail, Lock, User, Phone, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { OTPCountdown } from '@/components/OTPCountdown';
+import { OTP_EXPIRY_MINUTES, isOTPExpired } from '@/config/otp';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -25,6 +28,12 @@ export const AuthModal = ({ isOpen, onClose, defaultRole = 'MAIN_USER' }: AuthMo
   // Sign In Form
   const [signInEmail, setSignInEmail] = useState('');
   const [signInPassword, setSignInPassword] = useState('');
+
+  // OTP Form
+  const [otpEmail, setOtpEmail] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [otpSentAt, setOtpSentAt] = useState<number | null>(null);
+  const [showOtpInput, setShowOtpInput] = useState(false);
 
   // Sign Up Form  
   const [signUpEmail, setSignUpEmail] = useState('');
@@ -59,6 +68,77 @@ export const AuthModal = ({ isOpen, onClose, defaultRole = 'MAIN_USER' }: AuthMo
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSendOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { error } = await supabase.auth.signInWithOtp({
+        email: otpEmail,
+        options: {
+          emailRedirectTo: redirectUrl
+        }
+      });
+
+      if (error) {
+        setError(error.message);
+      } else {
+        setOtpSentAt(Date.now());
+        setShowOtpInput(true);
+        toast({
+          title: 'קוד נשלח בהצלחה',
+          description: `הקוד תקף ל־${OTP_EXPIRY_MINUTES} דקות`,
+        });
+      }
+    } catch (err: any) {
+      setError('שגיאה בשליחת הקוד. אנא נסה שוב.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    if (!otpSentAt || isOTPExpired(otpSentAt)) {
+      setError('הקוד פג תוקף, יש לבקש קוד חדש');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email: otpEmail,
+        token: otpCode,
+        type: 'email'
+      });
+
+      if (error) {
+        setError(error.message);
+      } else {
+        toast({
+          title: 'התחברות הצליחה',
+          description: 'ברוך הבא למערכת!',
+        });
+        onClose();
+      }
+    } catch (err: any) {
+      setError('שגיאה באימות הקוד. אנא נסה שוב.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOTP = () => {
+    setShowOtpInput(false);
+    setOtpCode('');
+    setError('');
+    handleSendOTP({ preventDefault: () => {} } as React.FormEvent);
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -113,6 +193,10 @@ export const AuthModal = ({ isOpen, onClose, defaultRole = 'MAIN_USER' }: AuthMo
   const resetForm = () => {
     setSignInEmail('');
     setSignInPassword('');
+    setOtpEmail('');
+    setOtpCode('');
+    setOtpSentAt(null);
+    setShowOtpInput(false);
     setSignUpEmail('');
     setSignUpPassword('');
     setConfirmPassword('');
@@ -138,8 +222,9 @@ export const AuthModal = ({ isOpen, onClose, defaultRole = 'MAIN_USER' }: AuthMo
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="signin">התחברות</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="signin">סיסמה</TabsTrigger>
+            <TabsTrigger value="otp">קוד OTP</TabsTrigger>
             <TabsTrigger value="signup">הרשמה</TabsTrigger>
           </TabsList>
 
@@ -154,7 +239,7 @@ export const AuthModal = ({ isOpen, onClose, defaultRole = 'MAIN_USER' }: AuthMo
           <TabsContent value="signin">
             <Card>
               <CardHeader>
-                <CardTitle className="text-right">התחברות</CardTitle>
+                <CardTitle className="text-right">התחברות עם סיסמה</CardTitle>
                 <CardDescription className="text-right">
                   הכנס את פרטי ההתחברות שלך
                 </CardDescription>
@@ -208,6 +293,116 @@ export const AuthModal = ({ isOpen, onClose, defaultRole = 'MAIN_USER' }: AuthMo
                     )}
                   </Button>
                 </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="otp">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-right">התחברות עם קוד OTP</CardTitle>
+                <CardDescription className="text-right">
+                  {!showOtpInput 
+                    ? 'הכנס את כתובת האימייל שלך לקבלת קוד'
+                    : 'הכנס את הקוד שנשלח לאימייל שלך'
+                  }
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {!showOtpInput ? (
+                  <form onSubmit={handleSendOTP} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="otp-email" className="text-right block">אימייל</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="otp-email"
+                          type="email"
+                          value={otpEmail}
+                          onChange={(e) => setOtpEmail(e.target.value)}
+                          placeholder="דוא״ל שלך"
+                          className="pl-10 text-right"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <Button 
+                      type="submit" 
+                      className="w-full" 
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          שולח קוד...
+                        </>
+                      ) : (
+                        <>
+                          <Shield className="mr-2 h-4 w-4" />
+                          שלח קוד אימות
+                        </>
+                      )}
+                    </Button>
+                  </form>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-right block">הכנס את הקוד בן 6 הספרות</Label>
+                      <div className="flex justify-center">
+                        <InputOTP
+                          maxLength={6}
+                          value={otpCode}
+                          onChange={(value) => setOtpCode(value)}
+                        >
+                          <InputOTPGroup>
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                            <InputOTPSlot index={2} />
+                            <InputOTPSlot index={3} />
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
+                          </InputOTPGroup>
+                        </InputOTP>
+                      </div>
+                    </div>
+
+                    {otpSentAt && (
+                      <OTPCountdown
+                        sentAt={otpSentAt}
+                        onResend={handleResendOTP}
+                        loading={loading}
+                      />
+                    )}
+
+                    <Button 
+                      onClick={handleVerifyOTP}
+                      className="w-full" 
+                      disabled={loading || otpCode.length !== 6 || (otpSentAt ? isOTPExpired(otpSentAt) : false)}
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          מאמת...
+                        </>
+                      ) : (
+                        'אמת קוד'
+                      )}
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        setShowOtpInput(false);
+                        setOtpCode('');
+                        setError('');
+                      }}
+                      className="w-full"
+                    >
+                      חזור לשליחת קוד
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
