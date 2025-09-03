@@ -11,7 +11,6 @@ import { OwnerProvider } from "@/providers/OwnerProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SimpleIndex from "./pages/SimpleIndex";
 import HomePage from "./pages/HomePage";
-import DashboardPage from "./pages/DashboardPage";
 import RemindersPage from "./pages/RemindersPage";
 import MemoriesPage from "./pages/MemoriesPage";
 import ReviewPage from "./pages/ReviewPage";
@@ -57,11 +56,6 @@ const App = () => {
                   <Route path="/home" element={
                     <ProtectedRoute requiredRole="MAIN_USER">
                       <HomePage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/dashboard" element={
-                    <ProtectedRoute requiredRole="MAIN_USER">
-                      <DashboardPage />
                     </ProtectedRoute>
                   } />
                   <Route path="/family-management" element={
