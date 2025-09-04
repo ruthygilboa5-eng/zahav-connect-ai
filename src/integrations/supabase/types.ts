@@ -94,6 +94,7 @@ export type Database = {
       family_links: {
         Row: {
           created_at: string
+          email: string | null
           full_name: string
           id: string
           member_user_id: string | null
@@ -107,6 +108,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          email?: string | null
           full_name: string
           id?: string
           member_user_id?: string | null
@@ -120,6 +122,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          email?: string | null
           full_name?: string
           id?: string
           member_user_id?: string | null

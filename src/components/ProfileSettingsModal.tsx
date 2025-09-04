@@ -36,7 +36,8 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
   const [profileData, setProfileData] = useState({
     first_name: '',
     last_name: '',
-    phone: ''
+    phone: '',
+    email: ''
   });
   const [isEditing, setIsEditing] = useState(false);
   const [ownerProfile, setOwnerProfile] = useState<any>(null);
@@ -47,7 +48,8 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
       setProfileData({
         first_name: profile.first_name || '',
         last_name: profile.last_name || '',
-        phone: profile.phone || ''
+        phone: profile.phone || '',
+        email: profile.email || ''
       });
       
       // Load owner profile for family members
@@ -74,7 +76,8 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
       const success = await updateProfile({
         first_name: profileData.first_name,
         last_name: profileData.last_name,
-        phone: profileData.phone
+        phone: profileData.phone,
+        email: profileData.email
       });
 
       if (success) {
@@ -247,6 +250,23 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
                   </div>
 
                   <div>
+                    <Label className="text-sm font-medium">אימייל</Label>
+                    {isEditing ? (
+                      <Input
+                        type="email"
+                        value={profileData.email}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                        placeholder="email@example.com"
+                        className="mt-1"
+                      />
+                    ) : (
+                      <div className="mt-1 p-2 bg-muted rounded-md text-sm">
+                        {profileData.email || 'לא צוין'}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
                     <Label className="text-sm font-medium">טלפון נייד</Label>
                     {isEditing ? (
                       <Input
@@ -318,11 +338,16 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
                             <div className="flex items-start justify-between mb-4">
                               <div className="flex items-start gap-3">
                                 <Phone className="h-4 w-4 mt-1 text-muted-foreground" />
-                                <div>
-                                  <div className="font-medium">{member.fullName}</div>
-                                  <div className="text-sm text-muted-foreground">{member.relation}</div>
-                                  <div className="text-sm text-muted-foreground">{member.phone}</div>
-                                </div>
+                                 <div>
+                                   <div className="font-medium">{member.fullName}</div>
+                                   <div className="text-sm text-muted-foreground">{member.relation}</div>
+                                   {member.email && (
+                                     <div className="text-sm text-muted-foreground font-medium">
+                                       אימייל: {member.email}
+                                     </div>
+                                   )}
+                                   <div className="text-sm text-muted-foreground">{member.phone}</div>
+                                 </div>
                               </div>
                               <div className="flex flex-col items-end gap-2">
                                 {getStatusBadge(member.status)}
@@ -436,15 +461,18 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
                       <Phone className="h-5 w-5" />
                       פרטי התחברות למשתמש ראשי
                     </CardTitle>
-                    <CardDescription>
-                      הזיהוי מתבצע לפי מספר הטלפון של המשתמש הראשי
-                    </CardDescription>
+                     <CardDescription>
+                       הזיהוי מתבצע לפי כתובת האימייל של המשתמש הראשי
+                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       <div className="p-4 bg-muted rounded-lg">
                         <div className="text-sm font-medium mb-1">מחובר למשתמש ראשי:</div>
                         <div className="text-lg font-bold">
+                          אימייל: {ownerProfile?.email || 'לא צוין'}
+                        </div>
+                        <div className="text-sm text-muted-foreground mt-1">
                           טלפון: {ownerProfile?.phone || 'לא צוין'}
                         </div>
                         <div className="text-sm text-muted-foreground mt-2">

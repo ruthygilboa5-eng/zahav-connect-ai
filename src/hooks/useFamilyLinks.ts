@@ -11,6 +11,7 @@ export interface FamilyLink {
   full_name: string;
   relation: string;
   phone: string;
+  email?: string;
   status: 'PENDING' | 'APPROVED' | 'DECLINED' | 'REVOKED';
   scopes: FamilyScope[];
   created_at: string;
