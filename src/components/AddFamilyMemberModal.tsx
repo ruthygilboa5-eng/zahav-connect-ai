@@ -31,6 +31,7 @@ export const AddFamilyMemberModal = ({ isOpen, onClose }: AddFamilyMemberModalPr
     fullName: '',
     relation: '',
     phone: '',
+    email: '',
   });
   const [selectedScopes, setSelectedScopes] = useState<FamilyScope[]>(['POST_MEDIA']);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,7 +41,7 @@ export const AddFamilyMemberModal = ({ isOpen, onClose }: AddFamilyMemberModalPr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.fullName.trim() || !formData.relation || !formData.phone.trim()) {
+    if (!formData.fullName.trim() || !formData.relation || !formData.phone.trim() || !formData.email.trim()) {
       toast.error('יש למלא את כל השדות הנדרשים');
       return;
     }
@@ -57,6 +58,13 @@ export const AddFamilyMemberModal = ({ isOpen, onClose }: AddFamilyMemberModalPr
       return;
     }
 
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error('כתובת האימייל אינה תקינה');
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
@@ -65,6 +73,7 @@ export const AddFamilyMemberModal = ({ isOpen, onClose }: AddFamilyMemberModalPr
         fullName: formData.fullName.trim(),
         relation: formData.relation,
         phone: formData.phone.trim(),
+        email: formData.email.trim(),
         status: 'PENDING',
         scopes: selectedScopes,
       });
@@ -76,6 +85,7 @@ export const AddFamilyMemberModal = ({ isOpen, onClose }: AddFamilyMemberModalPr
         fullName: '',
         relation: '',
         phone: '',
+        email: '',
       });
       setSelectedScopes(['POST_MEDIA']);
       onClose();
@@ -137,6 +147,22 @@ export const AddFamilyMemberModal = ({ isOpen, onClose }: AddFamilyMemberModalPr
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="email">כתובת אימייל *</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="example@gmail.com"
+                required
+                disabled={isSubmitting}
+              />
+              <p className="text-xs text-muted-foreground">
+                כתובת האימייל תשמש כמזהה לחיבור למערכת
+              </p>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="phone">מספר טלפון *</Label>
               <Input
                 id="phone"
@@ -147,9 +173,6 @@ export const AddFamilyMemberModal = ({ isOpen, onClose }: AddFamilyMemberModalPr
                 required
                 disabled={isSubmitting}
               />
-              <p className="text-xs text-muted-foreground">
-                מספר הטלפון ישמש כמזהה לחיבור למערכת
-              </p>
             </div>
           </div>
 
