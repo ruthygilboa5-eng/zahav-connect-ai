@@ -9,6 +9,7 @@ import { DEV_MODE_DEMO } from '@/config/dev';
 interface ExtendedProfile extends UserProfile {
   role?: 'MAIN_USER' | 'FAMILY';
   phone?: string;
+  email?: string;
 }
 
 export const useProfile = () => {
@@ -34,6 +35,7 @@ export const useProfile = () => {
         last_name: '',
         display_name: '',
         phone: '',
+        email: '',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         role: 'FAMILY'
@@ -59,7 +61,8 @@ export const useProfile = () => {
           first_name: '',
           last_name: '',
           display_name: '',
-          phone: ''
+          phone: '',
+          email: ''
         };
 
         const { data: created, error: createError } = await supabase
@@ -110,7 +113,7 @@ export const useProfile = () => {
     }
   };
 
-  const updateProfile = async (updates: Partial<Pick<ExtendedProfile, 'first_name' | 'last_name' | 'phone'>>) => {
+  const updateProfile = async (updates: Partial<Pick<ExtendedProfile, 'first_name' | 'last_name' | 'phone' | 'email'>>) => {
     try {
       console.log('updateProfile called with:', updates);
       console.log('Current authState:', authState);
@@ -166,6 +169,7 @@ export const useProfile = () => {
         first_name: updates.first_name || profile?.first_name || '',
         last_name: updates.last_name || profile?.last_name || '',
         phone: updates.phone || profile?.phone || '',
+        email: updates.email || profile?.email || '',
         updated_at: new Date().toISOString()
       };
 
