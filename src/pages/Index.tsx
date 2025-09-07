@@ -4,29 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Users, Heart, Shield, Clock } from 'lucide-react';
 import { useAuth } from '@/providers/SimpleAuthProvider';
 import { useNavigate } from 'react-router-dom';
-import { AuthModal } from '@/components/AuthModal';
-import FamilyMemberSignup from '@/components/FamilyMemberSignup';
+import AuthSignupModal from '@/components/AuthSignupModal';
 
 const Index = () => {
   const { authState } = useAuth();
   const navigate = useNavigate();
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [isFamilySignupOpen, setIsFamilySignupOpen] = useState(false);
+  const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
 
   const handleMainUserAuth = () => {
-    setIsFamilySignupOpen(true);
-  };
-
-  const handleFamilyMemberSignup = () => {
-    setIsFamilySignupOpen(true);
-  };
-
-  const handleFamilySignupComplete = () => {
-    setIsFamilySignupOpen(false);
-  };
-
-  const handleBackToIndex = () => {
-    setIsFamilySignupOpen(false);
+    console.log('Main user auth button clicked');
+    setIsSignupModalOpen(true);
   };
 
   // If already authenticated, go to appropriate page
@@ -36,15 +23,6 @@ const Index = () => {
     return null;
   }
 
-  // If family signup is open, show family signup component
-  if (isFamilySignupOpen) {
-    return (
-      <FamilyMemberSignup 
-        onComplete={handleFamilySignupComplete}
-        onBack={handleBackToIndex}
-      />
-    );
-  }
 
 
   return (
@@ -137,10 +115,7 @@ const Index = () => {
                 </div>
               </div>
               <Button 
-                onClick={() => {
-                  console.log('Family signup button clicked');
-                  setIsFamilySignupOpen(true);
-                }}
+                onClick={() => setIsSignupModalOpen(true)}
                 variant="outline"
                 className="w-full"
                 size="lg"
@@ -174,9 +149,9 @@ const Index = () => {
         </div>
       </div>
       
-      <AuthModal 
-        isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)} 
+      <AuthSignupModal 
+        isOpen={isSignupModalOpen} 
+        onClose={() => setIsSignupModalOpen(false)} 
       />
     </div>
   );
