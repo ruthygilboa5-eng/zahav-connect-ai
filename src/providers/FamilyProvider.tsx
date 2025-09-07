@@ -51,6 +51,7 @@ export const FamilyProvider = ({ children }: FamilyProviderProps) => {
       relation: 'בת',
       phone: '050-1234567',
       email: 'ruth.cohen@example.com',
+      ownerEmail: 'main@example.com',
       status: 'APPROVED',
       scopes: ['POST_MEDIA', 'SUGGEST_REMINDER', 'INVITE_GAME', 'CHAT'],
       invitedAt: '2024-01-15T10:00:00Z',
@@ -62,6 +63,7 @@ export const FamilyProvider = ({ children }: FamilyProviderProps) => {
       relation: 'בן',
       phone: '050-7654321',
       email: 'dan.levy@example.com',
+      ownerEmail: 'main@example.com',
       status: 'PENDING',
       scopes: ['POST_MEDIA', 'EMERGENCY_ONLY'],
       invitedAt: '2024-01-16T14:30:00Z'

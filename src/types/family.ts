@@ -47,6 +47,7 @@ export interface FamilyMember {
   relation: string;
   phone: string;
   email?: string;
+  ownerEmail?: string;
   status: 'PENDING' | 'APPROVED' | 'REVOKED';
   scopes: FamilyScope[];
   invitedAt: string;

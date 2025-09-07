@@ -32,6 +32,7 @@ export const AddFamilyMemberModal = ({ isOpen, onClose }: AddFamilyMemberModalPr
     relation: '',
     phone: '',
     email: '',
+    ownerEmail: '',
   });
   const [selectedScopes, setSelectedScopes] = useState<FamilyScope[]>(['POST_MEDIA']);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,7 +42,7 @@ export const AddFamilyMemberModal = ({ isOpen, onClose }: AddFamilyMemberModalPr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.fullName.trim() || !formData.relation || !formData.phone.trim() || !formData.email.trim()) {
+    if (!formData.fullName.trim() || !formData.relation || !formData.phone.trim() || !formData.email.trim() || !formData.ownerEmail.trim()) {
       toast.error('יש למלא את כל השדות הנדרשים');
       return;
     }
@@ -58,10 +59,16 @@ export const AddFamilyMemberModal = ({ isOpen, onClose }: AddFamilyMemberModalPr
       return;
     }
 
-    // Basic email validation
+    // Basic email validation for family member
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       toast.error('כתובת האימייל אינה תקינה');
+      return;
+    }
+
+    // Basic email validation for owner
+    if (!emailRegex.test(formData.ownerEmail)) {
+      toast.error('כתובת אימייל המשתמש הראשי אינה תקינה');
       return;
     }
 
@@ -74,6 +81,7 @@ export const AddFamilyMemberModal = ({ isOpen, onClose }: AddFamilyMemberModalPr
         relation: formData.relation,
         phone: formData.phone.trim(),
         email: formData.email.trim(),
+        ownerEmail: formData.ownerEmail.trim(),
         status: 'PENDING',
         scopes: selectedScopes,
       });
@@ -86,6 +94,7 @@ export const AddFamilyMemberModal = ({ isOpen, onClose }: AddFamilyMemberModalPr
         relation: '',
         phone: '',
         email: '',
+        ownerEmail: '',
       });
       setSelectedScopes(['POST_MEDIA']);
       onClose();
@@ -163,6 +172,22 @@ export const AddFamilyMemberModal = ({ isOpen, onClose }: AddFamilyMemberModalPr
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="ownerEmail">אימייל משתמש ראשי *</Label>
+              <Input
+                id="ownerEmail"
+                type="email"
+                value={formData.ownerEmail}
+                onChange={(e) => setFormData(prev => ({ ...prev, ownerEmail: e.target.value }))}
+                placeholder="owner@example.com"
+                required
+                disabled={isSubmitting}
+              />
+              <p className="text-xs text-muted-foreground">
+                הזן את כתובת האימייל של המשתמש הראשי אליו תרצה להתחבר
+              </p>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="phone">מספר טלפון *</Label>
               <Input
                 id="phone"
@@ -173,6 +198,18 @@ export const AddFamilyMemberModal = ({ isOpen, onClose }: AddFamilyMemberModalPr
                 required
                 disabled={isSubmitting}
               />
+            </div>
+
+            {/* Status Display */}
+            <div className="space-y-2 p-4 bg-muted rounded-lg">
+              <Label>סטטוס אישור</Label>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <span className="text-sm text-muted-foreground">ממתין לאישור מהמשתמש הראשי</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                לאחר שליחת הבקשה, המשתמש הראשי יקבל הודעה ויוכל לאשר או לדחות את הבקשה
+              </p>
             </div>
           </div>
 
