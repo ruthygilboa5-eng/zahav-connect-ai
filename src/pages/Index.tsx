@@ -134,7 +134,10 @@ const Index = () => {
                 </div>
               </div>
               <Button 
-                onClick={handleFamilyMemberSignup}
+                onClick={() => {
+                  console.log('Family signup button clicked');
+                  setIsFamilySignupOpen(true);
+                }}
                 variant="outline"
                 className="w-full"
                 size="lg"
