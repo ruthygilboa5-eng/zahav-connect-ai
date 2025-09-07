@@ -99,7 +99,10 @@ const Index = () => {
                 </div>
               </div>
               <Button 
-                onClick={handleMainUserAuth}
+                onClick={() => {
+                  console.log('Main user auth button clicked');
+                  handleMainUserAuth();
+                }}
                 className="w-full"
                 size="lg"
               >
