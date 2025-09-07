@@ -23,6 +23,7 @@ import FamilyManagementPage from "./pages/FamilyManagementPage";
 import FamilyDashboard from "./components/FamilyDashboard";
 import NotFound from "./pages/NotFound";
 import FamilyMemberSignup from "./components/FamilyMemberSignup";
+import FamilyAuthChoice from "./components/FamilyAuthChoice";
 
 const queryClient = new QueryClient();
 
@@ -53,27 +54,20 @@ const App = () => {
                 <Routes>
                   <Route path="/" element={<SimpleIndex />} />
                   
-                  {/* Registration Routes */}
+                  {/* Family Auth Routes */}
+                  <Route path="/family-auth" element={
+                    <FamilyAuthChoice onBack={() => window.location.href = '/'} />
+                  } />
                   <Route path="/register-family-member" element={
                     <FamilyMemberSignup 
                       onComplete={() => window.location.href = '/'}
-                      onBack={() => window.location.href = '/'}
+                      onBack={() => window.location.href = '/family-auth'}
                     />
                   } />
                   
-                  {/* Main User Routes */}
-                  <Route path="/home" element={
-                    <ProtectedRoute requiredRole="MAIN_USER">
-                      <HomePage />
-                    </ProtectedRoute>
-                  } />
-                  
-                  {/* Family Member Routes */}
-                  <Route path="/family" element={
-                    <ProtectedRoute requiredRole="FAMILY">
-                      <FamilyDashboard />
-                    </ProtectedRoute>
-                  } />
+                  {/* Protected Routes - Redirect to main page if not authenticated */}
+                  <Route path="/home" element={<Navigate to="/" replace />} />
+                  <Route path="/family" element={<Navigate to="/" replace />} />
                   
                   {/* Shared Routes */}
                   <Route path="/memories" element={<MemoriesPage />} />

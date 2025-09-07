@@ -36,7 +36,7 @@ const SimpleIndex = () => {
   };
 
   const handleFamilyAuth = () => {
-    navigate('/register-family-member');
+    navigate('/family-auth');
   };
 
   return (
