@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { FixedAuthProvider } from "@/providers/FixedAuthProvider";
 import { GlobalStateProvider } from "@/providers/GlobalStateProvider";
 import { DataProvider } from "@/providers/DataProvider";
@@ -22,6 +22,7 @@ import FamilyBoardPage from "./pages/FamilyBoardPage";
 import FamilyManagementPage from "./pages/FamilyManagementPage";
 import FamilyDashboard from "./components/FamilyDashboard";
 import NotFound from "./pages/NotFound";
+import FamilyMemberSignup from "./components/FamilyMemberSignup";
 
 const queryClient = new QueryClient();
 
@@ -52,20 +53,18 @@ const App = () => {
                 <Routes>
                   <Route path="/" element={<SimpleIndex />} />
                   
+                  {/* Registration Routes */}
+                  <Route path="/register-family-member" element={
+                    <FamilyMemberSignup 
+                      onComplete={() => window.location.href = '/'}
+                      onBack={() => window.location.href = '/'}
+                    />
+                  } />
+                  
                   {/* Main User Routes */}
                   <Route path="/home" element={
                     <ProtectedRoute requiredRole="MAIN_USER">
                       <HomePage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/family-management" element={
-                    <ProtectedRoute requiredRole="MAIN_USER">
-                      <FamilyManagementPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/review" element={
-                    <ProtectedRoute requiredRole="MAIN_USER">
-                      <ReviewPage />
                     </ProtectedRoute>
                   } />
                   
@@ -84,6 +83,11 @@ const App = () => {
                   <Route path="/emergency" element={<EmergencyPage />} />
                   <Route path="/games" element={<GamesPage />} />
                   <Route path="/family-board" element={<FamilyBoardPage />} />
+                  
+                  {/* Cleanup: Redirect old duplicate routes to main page */}
+                  <Route path="/family-management" element={<Navigate to="/" replace />} />
+                  <Route path="/review" element={<Navigate to="/" replace />} />
+                  
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </div>

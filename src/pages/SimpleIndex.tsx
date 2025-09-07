@@ -3,11 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Users, Heart, LogIn, Play } from 'lucide-react';
 import { useAuth } from '@/providers/FixedAuthProvider';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { AuthModal } from '@/components/AuthModal';
 
 const SimpleIndex = () => {
   const { authState, loginAsMainUser, loginAsFamily } = useAuth();
+  const navigate = useNavigate();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalRole, setAuthModalRole] = useState<'MAIN_USER' | 'FAMILY'>('MAIN_USER');
 
@@ -35,8 +36,7 @@ const SimpleIndex = () => {
   };
 
   const handleFamilyAuth = () => {
-    setAuthModalRole('FAMILY');
-    setShowAuthModal(true);
+    navigate('/register-family-member');
   };
 
   return (
