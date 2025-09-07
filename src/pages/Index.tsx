@@ -14,7 +14,7 @@ const Index = () => {
   const [isFamilySignupOpen, setIsFamilySignupOpen] = useState(false);
 
   const handleMainUserAuth = () => {
-    setIsAuthModalOpen(true);
+    setIsFamilySignupOpen(true);
   };
 
   const handleFamilyMemberSignup = () => {
