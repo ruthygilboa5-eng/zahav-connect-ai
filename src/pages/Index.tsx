@@ -5,20 +5,28 @@ import { Users, Heart, Shield, Clock } from 'lucide-react';
 import { useAuth } from '@/providers/SimpleAuthProvider';
 import { useNavigate } from 'react-router-dom';
 import { AuthModal } from '@/components/AuthModal';
-import { FamilyMemberAuth } from '@/components/FamilyMemberAuth';
+import FamilyMemberSignup from '@/components/FamilyMemberSignup';
 
 const Index = () => {
   const { authState } = useAuth();
   const navigate = useNavigate();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [isFamilyAuthOpen, setIsFamilyAuthOpen] = useState(false);
+  const [isFamilySignupOpen, setIsFamilySignupOpen] = useState(false);
 
   const handleMainUserAuth = () => {
     setIsAuthModalOpen(true);
   };
 
-  const handleFamilyMemberAuth = () => {
-    setIsFamilyAuthOpen(true);
+  const handleFamilyMemberSignup = () => {
+    setIsFamilySignupOpen(true);
+  };
+
+  const handleFamilySignupComplete = () => {
+    setIsFamilySignupOpen(false);
+  };
+
+  const handleBackToIndex = () => {
+    setIsFamilySignupOpen(false);
   };
 
   // If already authenticated, go to appropriate page
@@ -26,6 +34,16 @@ const Index = () => {
     const targetPath = authState.role === 'MAIN_USER' ? '/home' : '/family';
     navigate(targetPath, { replace: true });
     return null;
+  }
+
+  // If family signup is open, show family signup component
+  if (isFamilySignupOpen) {
+    return (
+      <FamilyMemberSignup 
+        onComplete={handleFamilySignupComplete}
+        onBack={handleBackToIndex}
+      />
+    );
   }
 
 
@@ -116,12 +134,12 @@ const Index = () => {
                 </div>
               </div>
               <Button 
-                onClick={handleFamilyMemberAuth}
+                onClick={handleFamilyMemberSignup}
                 variant="outline"
                 className="w-full"
                 size="lg"
               >
-                התחברות / הצטרפות כבן משפחה
+                הצטרפות כבן משפחה
               </Button>
             </CardContent>
           </Card>
@@ -153,11 +171,6 @@ const Index = () => {
       <AuthModal 
         isOpen={isAuthModalOpen} 
         onClose={() => setIsAuthModalOpen(false)} 
-      />
-      
-      <FamilyMemberAuth 
-        isOpen={isFamilyAuthOpen} 
-        onClose={() => setIsFamilyAuthOpen(false)} 
       />
     </div>
   );
