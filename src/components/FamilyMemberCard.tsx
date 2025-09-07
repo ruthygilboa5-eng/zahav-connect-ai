@@ -91,6 +91,12 @@ export const FamilyMemberCard = ({ member, showActions = false }: FamilyMemberCa
                     <span className="text-sm">{member.email}</span>
                   </div>
                 )}
+                {member.ownerEmail && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm font-medium">משתמש ראשי:</span>
+                    <span className="text-sm">{member.ownerEmail}</span>
+                  </div>
+                )}
                 <div className="flex items-center gap-1">
                   <Phone className="w-3 h-3" />
                   <span className="text-sm">{member.phone}</span>
