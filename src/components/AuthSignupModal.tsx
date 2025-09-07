@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Heart, ArrowRight } from 'lucide-react';
+import { Users, Heart, ArrowRight, Clock } from 'lucide-react';
 import { toast } from "sonner";
 import { relationOptions, FamilyScope } from "@/types/family";
 import { ScopeSelector } from '@/components/ScopeSelector';
@@ -14,10 +14,11 @@ import { ScopeSelector } from '@/components/ScopeSelector';
 interface AuthSignupModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialUserType?: 'main' | 'family';
 }
 
-export default function AuthSignupModal({ isOpen, onClose }: AuthSignupModalProps) {
-  const [userType, setUserType] = useState<'main' | 'family'>('main');
+export default function AuthSignupModal({ isOpen, onClose, initialUserType = 'main' }: AuthSignupModalProps) {
+  const [userType, setUserType] = useState<'main' | 'family'>(initialUserType);
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -46,6 +47,7 @@ export default function AuthSignupModal({ isOpen, onClose }: AuthSignupModalProp
       ownerEmail: '',
     });
     setSelectedScopes(['POST_MEDIA']);
+    setUserType(initialUserType);
     setCurrentStep(1);
     setIsLoading(false);
   };
@@ -175,38 +177,53 @@ export default function AuthSignupModal({ isOpen, onClose }: AuthSignupModalProp
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* בחירת סוג משתמש */}
-          <div className="grid md:grid-cols-2 gap-4">
-            <Card 
-              className={`cursor-pointer transition-all ${userType === 'main' ? 'ring-2 ring-primary bg-primary/5' : 'hover:shadow-md'}`}
-              onClick={() => setUserType('main')}
-            >
-              <CardHeader className="text-center pb-3">
-                <CardTitle className="flex items-center justify-center gap-2 text-lg">
-                  <Users className="w-5 h-5 text-primary" />
-                  משתמש ראשי
-                </CardTitle>
-                <CardDescription className="text-sm">
-                  ממשק מלא עם שליטה על המערכת
-                </CardDescription>
-              </CardHeader>
-            </Card>
+          {/* בחירת סוג משתמש - רק אם לא מוגדר מראש */}
+          {initialUserType === 'main' && (
+            <div className="grid md:grid-cols-2 gap-4">
+              <Card 
+                className={`cursor-pointer transition-all ${userType === 'main' ? 'ring-2 ring-primary bg-primary/5' : 'hover:shadow-md'}`}
+                onClick={() => setUserType('main')}
+              >
+                <CardHeader className="text-center pb-3">
+                  <CardTitle className="flex items-center justify-center gap-2 text-lg">
+                    <Users className="w-5 h-5 text-primary" />
+                    משתמש ראשי
+                  </CardTitle>
+                  <CardDescription className="text-sm">
+                    ממשק מלא עם שליטה על המערכת
+                  </CardDescription>
+                </CardHeader>
+              </Card>
 
-            <Card 
-              className={`cursor-pointer transition-all ${userType === 'family' ? 'ring-2 ring-primary bg-primary/5' : 'hover:shadow-md'}`}
-              onClick={() => setUserType('family')}
-            >
-              <CardHeader className="text-center pb-3">
-                <CardTitle className="flex items-center justify-center gap-2 text-lg">
-                  <Heart className="w-5 h-5 text-pink-600" />
-                  בן משפחה
-                </CardTitle>
-                <CardDescription className="text-sm">
-                  דשבורד משפחתי להשתתפות פעילה
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
+              <Card 
+                className={`cursor-pointer transition-all ${userType === 'family' ? 'ring-2 ring-primary bg-primary/5' : 'hover:shadow-md'}`}
+                onClick={() => setUserType('family')}
+              >
+                <CardHeader className="text-center pb-3">
+                  <CardTitle className="flex items-center justify-center gap-2 text-lg">
+                    <Heart className="w-5 h-5 text-pink-600" />
+                    בן משפחה
+                  </CardTitle>
+                  <CardDescription className="text-sm">
+                    דשבורד משפחתי להשתתפות פעילה
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </div>
+          )}
+
+          {/* הודעה מיוחדת לבן משפחה */}
+          {userType === 'family' && (
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Clock className="w-5 h-5 text-amber-600" />
+                <h4 className="font-medium text-amber-800">הרשמה כבן משפחה</h4>
+              </div>
+              <p className="text-sm text-amber-700">
+                ההרשמה שלך תישלח לאישור על ידי המשתמש הראשי. תקבל הודעה כאשר הבקשה תאושר ותוכל להתחיל להשתמש במערכת.
+              </p>
+            </div>
+          )}
 
           {/* Progress Indicator */}
           <div className="flex justify-center">
@@ -306,7 +323,7 @@ export default function AuthSignupModal({ isOpen, onClose }: AuthSignupModalProp
             <form onSubmit={handleStep2Submit} className="space-y-6">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="phone">טלפון {userType === 'main' ? '(אופציונלי)' : '*'}</Label>
+                  <Label htmlFor="phone">טלפון {userType === 'family' ? '*' : '(אופציונלי)'}</Label>
                   <Input
                     id="phone"
                     type="tel"

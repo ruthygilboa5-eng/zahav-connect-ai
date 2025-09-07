@@ -10,9 +10,17 @@ const Index = () => {
   const { authState } = useAuth();
   const navigate = useNavigate();
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
+  const [signupUserType, setSignupUserType] = useState<'main' | 'family'>('main');
 
   const handleMainUserAuth = () => {
     console.log('Main user auth button clicked');
+    setSignupUserType('main');
+    setIsSignupModalOpen(true);
+  };
+
+  const handleFamilyAuth = () => {
+    console.log('Family member auth button clicked');
+    setSignupUserType('family');
     setIsSignupModalOpen(true);
   };
 
@@ -115,7 +123,7 @@ const Index = () => {
                 </div>
               </div>
               <Button 
-                onClick={() => setIsSignupModalOpen(true)}
+                onClick={handleFamilyAuth}
                 variant="outline"
                 className="w-full"
                 size="lg"
@@ -151,7 +159,8 @@ const Index = () => {
       
       <AuthSignupModal 
         isOpen={isSignupModalOpen} 
-        onClose={() => setIsSignupModalOpen(false)} 
+        onClose={() => setIsSignupModalOpen(false)}
+        initialUserType={signupUserType}
       />
     </div>
   );
