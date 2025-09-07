@@ -5,14 +5,28 @@ import { Users, Heart, Shield, Clock } from 'lucide-react';
 import { useAuth } from '@/providers/SimpleAuthProvider';
 import { useNavigate } from 'react-router-dom';
 import { AuthModal } from '@/components/AuthModal';
+import FamilyMemberSignup from '@/components/FamilyMemberSignup';
 
 const Index = () => {
   const { authState } = useAuth();
   const navigate = useNavigate();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isFamilySignupOpen, setIsFamilySignupOpen] = useState(false);
 
-  const handleAuthClick = () => {
+  const handleMainUserAuth = () => {
     setIsAuthModalOpen(true);
+  };
+
+  const handleFamilyMemberSignup = () => {
+    setIsFamilySignupOpen(true);
+  };
+
+  const handleFamilySignupComplete = () => {
+    setIsFamilySignupOpen(false);
+  };
+
+  const handleBackToIndex = () => {
+    setIsFamilySignupOpen(false);
   };
 
   // If already authenticated, go to appropriate page
@@ -20,6 +34,16 @@ const Index = () => {
     const targetPath = authState.role === 'MAIN_USER' ? '/home' : '/family';
     navigate(targetPath, { replace: true });
     return null;
+  }
+
+  // If family signup is open, show family signup component
+  if (isFamilySignupOpen) {
+    return (
+      <FamilyMemberSignup 
+        onComplete={handleFamilySignupComplete}
+        onBack={handleBackToIndex}
+      />
+    );
   }
 
   return (
@@ -74,7 +98,7 @@ const Index = () => {
                 </div>
               </div>
               <Button 
-                onClick={handleAuthClick}
+                onClick={handleMainUserAuth}
                 className="w-full"
                 size="lg"
               >
@@ -109,12 +133,12 @@ const Index = () => {
                 </div>
               </div>
               <Button 
-                onClick={handleAuthClick}
+                onClick={handleFamilyMemberSignup}
                 variant="outline"
                 className="w-full"
                 size="lg"
               >
-                התחברות / הרשמה
+                הצטרפות כבן משפחה
               </Button>
             </CardContent>
           </Card>
