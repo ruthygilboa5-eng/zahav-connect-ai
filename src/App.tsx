@@ -24,6 +24,7 @@ import FamilyDashboard from "./components/FamilyDashboard";
 import NotFound from "./pages/NotFound";
 import FamilyMemberSignup from "./components/FamilyMemberSignup";
 import FamilyAuthChoice from "./components/FamilyAuthChoice";
+import FamilyRequestsPage from "./pages/FamilyRequestsPage";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,13 @@ const App = () => {
                       onComplete={() => window.location.href = '/'}
                       onBack={() => window.location.href = '/family-auth'}
                     />
+                  } />
+                  
+                  {/* Family Requests Management - Main User Only */}
+                  <Route path="/family-requests" element={
+                    <ProtectedRoute requiredRole="MAIN_USER">
+                      <FamilyRequestsPage />
+                    </ProtectedRoute>
                   } />
                   
                   {/* Protected Routes - Redirect to main page if not authenticated */}

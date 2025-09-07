@@ -88,27 +88,40 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
     setIsLoading(true);
     
     try {
-      // Here we would normally create the family member account and send request
-      // For now, just simulate the process
-      
-      // Step 1: Create user account
-      console.log('Creating family member account:', {
-        email: formData.email,
-        password: formData.password
-      });
-      
-      // Step 2: Submit family connection request
-      console.log('Submitting family connection request:', {
-        fullName: formData.fullName,
-        relation: formData.relation,
-        phone: formData.phone,
-        email: formData.email,
-        ownerEmail: formData.ownerEmail,
-        requestedScopes: selectedScopes
-      });
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              full_name: formData.fullName,
+              relation: formData.relation,
+              phone: formData.phone
+            }
+          }
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        // Create family link request
+        const { error: linkError } = await supabase
+          .from('family_links')
+          .insert({
+            full_name: formData.fullName,
+            email: formData.email,
+            relation: formData.relation,
+            phone: formData.phone,
+            scopes: selectedScopes,
+            status: 'PENDING'
+          });
+
+        if (linkError) {
+          console.error('Error creating family link:', linkError);
+          throw new Error('שגיאה ביצירת קשר משפחתי');
+        }
       
       toast.success(`בקשת הצטרפות נשלחה בהצלחה ל${formData.ownerEmail}`);
       toast.info('תקבל הודעה כאשר המשתמש הראשי יאשר את הבקשה');

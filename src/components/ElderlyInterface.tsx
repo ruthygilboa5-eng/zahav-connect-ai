@@ -227,22 +227,22 @@ const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
         </Card>
       )}
 
-      {/* Settings Buttons */}
+      {/* Management Buttons */}
       <div className="mt-8 flex flex-col gap-3">
         <Button
           variant="outline"
           size="lg"
-          onClick={() => navigate('/family-management')}
+          onClick={() => navigate('/family-requests')}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
         >
           <Users className="w-5 h-5" />
-          ניהול משפחה והגדרות
+          בקשות הצטרפות משפחה
         </Button>
         
         <Button
           variant="outline"
           size="lg"
-          onClick={() => navigate('/review')}
+          onClick={() => navigate('/family-requests')}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground relative"
         >
           <Clock className="w-5 h-5" />
