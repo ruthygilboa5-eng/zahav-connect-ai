@@ -20,7 +20,7 @@ import EmergencyPage from "./pages/EmergencyPage";
 import GamesPage from "./pages/GamesPage";
 import FamilyBoardPage from "./pages/FamilyBoardPage";
 import FamilyManagementPage from "./pages/FamilyManagementPage";
-import FamilyDashboard from "./components/FamilyDashboard";
+import FamilyPage from "./pages/FamilyPage";
 import NotFound from "./pages/NotFound";
 import FamilyMemberSignup from "./components/FamilyMemberSignup";
 import FamilyAuthChoice from "./components/FamilyAuthChoice";
@@ -73,9 +73,17 @@ const App = () => {
                     </ProtectedRoute>
                   } />
                   
-                  {/* Protected Routes - Redirect to main page if not authenticated */}
-                  <Route path="/home" element={<Navigate to="/" replace />} />
-                  <Route path="/family" element={<Navigate to="/" replace />} />
+                  {/* Protected Routes - Role-based content */}
+                  <Route path="/home" element={
+                    <ProtectedRoute requiredRole="MAIN_USER">
+                      <HomePage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/family" element={
+                    <ProtectedRoute requiredRole="FAMILY">
+                      <FamilyPage />
+                    </ProtectedRoute>
+                  } />
                   
                   {/* Shared Routes */}
                   <Route path="/memories" element={<MemoriesPage />} />
@@ -86,7 +94,7 @@ const App = () => {
                   <Route path="/games" element={<GamesPage />} />
                   <Route path="/family-board" element={<FamilyBoardPage />} />
                   
-                  {/* Cleanup: Redirect old duplicate routes to main page */}
+                  {/* Clean redirects for removed routes */}
                   <Route path="/family-management" element={<Navigate to="/" replace />} />
                   <Route path="/review" element={<Navigate to="/" replace />} />
                   

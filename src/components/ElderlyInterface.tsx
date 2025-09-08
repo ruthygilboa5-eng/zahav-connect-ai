@@ -149,7 +149,7 @@ const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
   const petalButtons = buttons.filter(b => b.position === 'petal');
 
   return (
-    <div className="min-h-screen bg-background p-4 flex flex-col items-center justify-center rtl-text">
+    <div className="p-4 flex flex-col items-center justify-center rtl-text">
       {/* Profile & Logout Buttons */}
       <div className="absolute top-4 right-4 flex gap-2">
         <Button 

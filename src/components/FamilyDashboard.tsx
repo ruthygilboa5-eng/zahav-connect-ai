@@ -242,7 +242,7 @@ const FamilyDashboard = () => {
   }
 
   return (
-    <div className="family-dashboard p-6 rtl-text">
+    <div className="p-6 rtl-text">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
