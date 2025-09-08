@@ -363,7 +363,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="relationshipToPrimary">מיהו בן המשפחה הזה עבורך? *</Label>
+                  <Label htmlFor="relationshipToPrimary">מיהו בן המשפחה הזה עבורך? (קשר משפחתי) *</Label>
                   <Select 
                     value={formData.relationshipToPrimary} 
                     onValueChange={(value) => setFormData(prev => ({ ...prev, relationshipToPrimary: value }))}
@@ -373,11 +373,13 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
                       <SelectValue placeholder="בחר קשר משפחתי" />
                     </SelectTrigger>
                     <SelectContent>
-                      {relationshipOptions.map((relationship) => (
-                        <SelectItem key={relationship} value={relationship}>
-                          {relationship}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="אבא">אבא</SelectItem>
+                      <SelectItem value="אמא">אמא</SelectItem>
+                      <SelectItem value="סבא">סבא</SelectItem>
+                      <SelectItem value="סבתא">סבתא</SelectItem>
+                      <SelectItem value="דוד / דודה">דוד / דודה</SelectItem>
+                      <SelectItem value="מטופל / מטופלת">מטופל / מטופלת</SelectItem>
+                      <SelectItem value="אחר">אחר</SelectItem>
                     </SelectContent>
                   </Select>
                   
