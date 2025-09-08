@@ -25,6 +25,7 @@ import NotFound from "./pages/NotFound";
 import FamilyMemberSignup from "./components/FamilyMemberSignup";
 import FamilyAuthChoice from "./components/FamilyAuthChoice";
 import FamilyRequestsPage from "./pages/FamilyRequestsPage";
+import AdminPage from "./pages/AdminPage";
 
 const queryClient = new QueryClient();
 
@@ -98,6 +99,13 @@ const App = () => {
                            <Route path="/family-management" element={
                              <ProtectedRoute requiredRole="MAIN_USER">
                                <FamilyManagementPage />
+                             </ProtectedRoute>
+                           } />
+                           
+                           {/* Admin Dashboard - Admin Only */}
+                           <Route path="/admin-dashboard" element={
+                             <ProtectedRoute requiredRole="MAIN_USER">
+                               <AdminPage />
                              </ProtectedRoute>
                            } />
                            
