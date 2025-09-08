@@ -5,6 +5,8 @@ export interface UserProfile {
   last_name: string;
   display_name?: string;
   email?: string;
+  birth_date?: string;
+  gender?: 'male' | 'female' | 'prefer_not_to_say';
   created_at: string;
   updated_at: string;
 }
@@ -37,4 +39,21 @@ export const relationLabels = {
   NEIGHBOR: 'שכן/ה',
   CAREGIVER: 'מטפל/ת',
   OTHER: 'אחר'
+} as const;
+
+// קשרי משפחה ספציפיים
+export const relationshipOptions = [
+  'אבא',
+  'אמא',
+  'סבא',
+  'סבתא',
+  'דוד / דודה',
+  'מטופל / מטופלת',
+  'אחר'
+] as const;
+
+export const genderLabels = {
+  male: 'זכר',
+  female: 'נקבה',
+  prefer_not_to_say: 'מעדיף לא לומר'
 } as const;

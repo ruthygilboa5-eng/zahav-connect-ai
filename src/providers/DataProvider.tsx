@@ -25,6 +25,8 @@ export interface UserProfile {
   firstName: string;
   lastName: string;
   displayName: string;
+  birthDate?: Date;
+  gender?: 'male' | 'female' | 'prefer_not_to_say';
 }
 
 // Data Provider Interface

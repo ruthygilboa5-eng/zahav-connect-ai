@@ -103,6 +103,7 @@ export type Database = {
           owner_user_id: string | null
           phone: string | null
           relation: string
+          relationship_to_primary_user: string | null
           scopes: string[] | null
           status: string | null
           updated_at: string
@@ -118,6 +119,7 @@ export type Database = {
           owner_user_id?: string | null
           phone?: string | null
           relation: string
+          relationship_to_primary_user?: string | null
           scopes?: string[] | null
           status?: string | null
           updated_at?: string
@@ -133,6 +135,7 @@ export type Database = {
           owner_user_id?: string | null
           phone?: string | null
           relation?: string
+          relationship_to_primary_user?: string | null
           scopes?: string[] | null
           status?: string | null
           updated_at?: string
@@ -312,10 +315,12 @@ export type Database = {
       }
       user_profiles: {
         Row: {
+          birth_date: string | null
           created_at: string
           display_name: string | null
           email: string | null
           first_name: string
+          gender: string | null
           id: string
           last_name: string
           phone: string | null
@@ -323,10 +328,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          birth_date?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
           first_name: string
+          gender?: string | null
           id?: string
           last_name: string
           phone?: string | null
@@ -334,10 +341,12 @@ export type Database = {
           user_id: string
         }
         Update: {
+          birth_date?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
           first_name?: string
+          gender?: string | null
           id?: string
           last_name?: string
           phone?: string | null

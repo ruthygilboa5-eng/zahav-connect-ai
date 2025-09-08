@@ -6,9 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Heart, ArrowRight, Clock } from 'lucide-react';
+import { Users, Heart, ArrowRight, Clock, CalendarIcon } from 'lucide-react';
 import { toast } from "sonner";
 import { relationOptions, FamilyScope } from "@/types/family";
+import { relationshipOptions, genderLabels } from "@/types/database";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { ScopeSelector } from '@/components/ScopeSelector';
 
 interface AuthSignupModalProps {
@@ -31,6 +36,9 @@ export default function AuthSignupModal({ isOpen, onClose, initialUserType = 'ma
     phone: '',
     relation: '',
     ownerEmail: '',
+    birthDate: undefined as Date | undefined,
+    gender: undefined as 'male' | 'female' | 'prefer_not_to_say' | undefined,
+    relationshipToPrimary: ''
   });
   
   const [selectedScopes, setSelectedScopes] = useState<FamilyScope[]>(['POST_MEDIA']);
@@ -45,6 +53,9 @@ export default function AuthSignupModal({ isOpen, onClose, initialUserType = 'ma
       phone: '',
       relation: '',
       ownerEmail: '',
+      birthDate: undefined,
+      gender: undefined,
+      relationshipToPrimary: ''
     });
     setSelectedScopes(['POST_MEDIA']);
     setUserType(initialUserType);
@@ -334,27 +345,106 @@ export default function AuthSignupModal({ isOpen, onClose, initialUserType = 'ma
                   />
                 </div>
 
-                {userType === 'family' && (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="relation">קרבה משפחתית *</Label>
-                      <Select 
-                        value={formData.relation} 
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, relation: value }))}
-                        disabled={isLoading}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="בחר קרבה משפחתית" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {relationOptions.map((relation) => (
-                            <SelectItem key={relation} value={relation}>
-                              {relation}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>תאריך לידה (אופציונלי)</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !formData.birthDate && "text-muted-foreground"
+                          )}
+                        >
+                          {formData.birthDate ? (
+                            format(formData.birthDate, "dd/MM/yyyy")
+                          ) : (
+                            <span>בחר תאריך לידה</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={formData.birthDate}
+                          onSelect={(date) => setFormData(prev => ({ ...prev, birthDate: date }))}
+                          disabled={(date) =>
+                            date > new Date() || date < new Date("1900-01-01")
+                          }
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="gender">מין (אופציונלי)</Label>
+                    <Select 
+                      value={formData.gender || ''} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value as 'male' | 'female' | 'prefer_not_to_say' }))}
+                      disabled={isLoading}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="בחר מין" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(genderLabels).map(([key, label]) => (
+                          <SelectItem key={key} value={key}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                  {userType === 'family' && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="relation">קרבה משפחתית *</Label>
+                        <Select 
+                          value={formData.relation} 
+                          onValueChange={(value) => setFormData(prev => ({ ...prev, relation: value }))}
+                          disabled={isLoading}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="בחר קרבה משפחתית" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {relationOptions.map((relation) => (
+                              <SelectItem key={relation} value={relation}>
+                                {relation}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="relationshipToPrimary">מיהו בן המשפחה הזה עבורך? *</Label>
+                        <Select 
+                          value={formData.relationshipToPrimary} 
+                          onValueChange={(value) => setFormData(prev => ({ ...prev, relationshipToPrimary: value }))}
+                          disabled={isLoading}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="בחר קשר משפחתי" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {relationshipOptions.map((relationship) => (
+                              <SelectItem key={relationship} value={relationship}>
+                                {relationship}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          זה יעזור לנו להתאים הודעות מותאמות אישית
+                        </p>
+                      </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="ownerEmail">אימייל של משתמש ראשי שאליו תרצה להתחבר *</Label>

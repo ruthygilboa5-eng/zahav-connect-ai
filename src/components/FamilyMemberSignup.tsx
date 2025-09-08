@@ -5,9 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, CheckCircle, Clock } from "lucide-react";
+import { ArrowRight, CheckCircle, Clock, CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { relationOptions, FamilyScope, scopeLabels } from "@/types/family";
+import { relationshipOptions, genderLabels } from "@/types/database";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { ScopeSelector } from '@/components/ScopeSelector';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -25,6 +30,9 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
     confirmPassword: '',
     phone: '',
     ownerEmail: '',
+    birthDate: undefined as Date | undefined,
+    gender: undefined as 'male' | 'female' | 'prefer_not_to_say' | undefined,
+    relationshipToPrimary: ''
   });
   const [selectedScopes, setSelectedScopes] = useState<FamilyScope[]>(['POST_MEDIA']);
   const [isLoading, setIsLoading] = useState(false);
@@ -61,7 +69,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
   const handleStep2Submit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.fullName.trim() || !formData.relation || !formData.phone.trim() || !formData.ownerEmail.trim()) {
+    if (!formData.fullName.trim() || !formData.relation || !formData.phone.trim() || !formData.ownerEmail.trim() || !formData.relationshipToPrimary) {
       toast.error('יש למלא את כל השדות הנדרשים');
       return;
     }
@@ -115,7 +123,8 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
           phone: formData.phone,
           owner_email: formData.ownerEmail,
           scopes: selectedScopes,
-          status: 'PENDING'
+          status: 'PENDING',
+          relationship_to_primary_user: formData.relationshipToPrimary
         });
 
       if (linkError) {
@@ -284,6 +293,85 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
                   />
                   <p className="text-xs text-muted-foreground">
                     הזן את כתובת האימייל של המשתמש הראשי אליו תרצה להתחבר
+                  </p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>תאריך לידה (אופציונלי)</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !formData.birthDate && "text-muted-foreground"
+                          )}
+                        >
+                          {formData.birthDate ? (
+                            format(formData.birthDate, "dd/MM/yyyy")
+                          ) : (
+                            <span>בחר תאריך לידה</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={formData.birthDate}
+                          onSelect={(date) => setFormData(prev => ({ ...prev, birthDate: date }))}
+                          disabled={(date) =>
+                            date > new Date() || date < new Date("1900-01-01")
+                          }
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="gender">מין (אופציונלי)</Label>
+                    <Select 
+                      value={formData.gender || ''} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value as 'male' | 'female' | 'prefer_not_to_say' }))}
+                      disabled={isLoading}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="בחר מין" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(genderLabels).map(([key, label]) => (
+                          <SelectItem key={key} value={key}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="relationshipToPrimary">מיהו בן המשפחה הזה עבורך? *</Label>
+                  <Select 
+                    value={formData.relationshipToPrimary} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, relationshipToPrimary: value }))}
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="בחר קשר משפחתי" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {relationshipOptions.map((relationship) => (
+                        <SelectItem key={relationship} value={relationship}>
+                          {relationship}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    זה יעזור לנו להתאים הודעות מותאמות כמו "קיבלת הודעה מסבא"
                   </p>
                 </div>
               </div>

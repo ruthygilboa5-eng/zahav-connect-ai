@@ -10,6 +10,8 @@ interface ExtendedProfile extends UserProfile {
   role?: 'MAIN_USER' | 'FAMILY';
   phone?: string;
   email?: string;
+  birth_date?: string;
+  gender?: 'male' | 'female' | 'prefer_not_to_say' | null;
 }
 
 export const useProfile = () => {
@@ -76,7 +78,11 @@ export const useProfile = () => {
           return null;
         }
 
-        return { ...created, role: 'FAMILY' }; // Default to FAMILY
+        return {
+          ...created, 
+          role: 'FAMILY',
+          gender: created.gender as 'male' | 'female' | 'prefer_not_to_say' | null
+        };
       }
 
       // Check if user has MAIN_USER role
@@ -89,7 +95,8 @@ export const useProfile = () => {
 
       return { 
         ...data, 
-        role: roleData ? 'MAIN_USER' : 'FAMILY' 
+        role: roleData ? 'MAIN_USER' : 'FAMILY',
+        gender: data.gender as 'male' | 'female' | 'prefer_not_to_say' | null
       };
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -113,7 +120,7 @@ export const useProfile = () => {
     }
   };
 
-  const updateProfile = async (updates: Partial<Pick<ExtendedProfile, 'first_name' | 'last_name' | 'phone' | 'email'>>) => {
+  const updateProfile = async (updates: Partial<Pick<ExtendedProfile, 'first_name' | 'last_name' | 'phone' | 'email' | 'birth_date' | 'gender'>>) => {
     try {
       console.log('updateProfile called with:', updates);
       console.log('Current authState:', authState);
@@ -170,6 +177,8 @@ export const useProfile = () => {
         last_name: updates.last_name || profile?.last_name || '',
         phone: updates.phone || profile?.phone || '',
         email: updates.email || profile?.email || '',
+        birth_date: updates.birth_date || profile?.birth_date || null,
+        gender: updates.gender || profile?.gender || null,
         updated_at: new Date().toISOString()
       };
 
@@ -188,7 +197,15 @@ export const useProfile = () => {
       }
       
       console.log('Profile updated successfully:', data);
-      setProfile(prev => prev ? { ...prev, ...updates } : { ...data, role: prev?.role || 'FAMILY' });
+      setProfile(prev => prev ? { 
+        ...prev, 
+        ...updates,
+        gender: updates.gender !== undefined ? updates.gender : prev.gender
+      } : { 
+        ...data, 
+        role: prev?.role || 'FAMILY',
+        gender: data.gender as 'male' | 'female' | 'prefer_not_to_say' | null
+      });
       
       // סינכרון עם auth state לעדכון ברכה מיידי
       if (updates.first_name) {

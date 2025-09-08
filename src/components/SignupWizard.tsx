@@ -7,12 +7,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Progress } from "@/components/ui/progress";
-import { Plus, Trash2, ArrowRight, ArrowLeft } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Plus, Trash2, ArrowRight, ArrowLeft, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { relationLabels } from "@/types/database";
+import { relationLabels, genderLabels } from "@/types/database";
+import { cn } from "@/lib/utils";
 import { useDataProvider } from "@/providers/DataProvider";
 import { DEV_MODE_DEMO } from "@/config/dev";
 
@@ -30,7 +34,9 @@ const step2Schema = z.object({
   firstName: z.string().min(1, "שם פרטי הוא שדה חובה"),
   lastName: z.string().min(1, "שם משפחה הוא שדה חובה"),
   phone: z.string().regex(/^0[2-9]\d{8}$|^\+972[2-9]\d{8}$/, "מספר טלפון לא תקין (פורמט: 050-1234567)"),
-  displayName: z.string().optional()
+  displayName: z.string().optional(),
+  birthDate: z.date().optional(),
+  gender: z.enum(['male', 'female', 'prefer_not_to_say']).optional()
 });
 
 const contactSchema = z.object({
@@ -76,7 +82,9 @@ export default function SignupWizard({ onComplete }: SignupWizardProps) {
       firstName: "",
       lastName: "",
       phone: "",
-      displayName: ""
+      displayName: "",
+      birthDate: undefined,
+      gender: undefined
     }
   });
 
@@ -143,7 +151,9 @@ export default function SignupWizard({ onComplete }: SignupWizardProps) {
       const profile = {
         firstName: step2Data.firstName,
         lastName: step2Data.lastName,
-        displayName: step2Data.displayName || step2Data.firstName
+        displayName: step2Data.displayName || step2Data.firstName,
+        birthDate: step2Data.birthDate,
+        gender: step2Data.gender
       };
 
       const contacts = data.contacts.map(contact => ({
@@ -292,6 +302,74 @@ export default function SignupWizard({ onComplete }: SignupWizardProps) {
                       <FormControl>
                         <Input placeholder="ברירת מחדל: שם פרטי" {...field} />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={step2Form.control}
+                  name="birthDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>תאריך לידה (אופציונלי)</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "dd/MM/yyyy")
+                              ) : (
+                                <span>בחר תאריך לידה</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) =>
+                              date > new Date() || date < new Date("1900-01-01")
+                            }
+                            initialFocus
+                            className={cn("p-3 pointer-events-auto")}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={step2Form.control}
+                  name="gender"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>מין (אופציונלי)</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="בחר מין" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {Object.entries(genderLabels).map(([key, label]) => (
+                            <SelectItem key={key} value={key}>
+                              {label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
