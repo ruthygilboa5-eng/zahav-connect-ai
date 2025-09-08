@@ -514,9 +514,9 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {familyMembers && familyMembers.filter(m => m.id !== authState.memberId).length > 0 ? (
+                    {familyMembers && familyMembers.filter(m => m.id !== authState.memberId && m.status === 'APPROVED').length > 0 ? (
                       <div className="space-y-3">
-                        {familyMembers.filter(m => m.id !== authState.memberId).map((member) => (
+                        {familyMembers.filter(m => m.id !== authState.memberId && m.status === 'APPROVED').map((member) => (
                           <div key={member.id} className="flex items-center gap-3 p-3 border rounded-lg bg-muted/20">
                             <User className="w-4 h-4 text-muted-foreground" />
                             <div className="flex-1">
