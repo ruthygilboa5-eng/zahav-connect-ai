@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Phone, Home, Shield, Ambulance, Heart } from 'lucide-react';
+import { Phone, Home, Shield, Ambulance, Heart, Flame } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useGoHome } from '@/hooks/useGoHome';
 
@@ -24,11 +24,11 @@ const EmergencyContactsPage = () => {
       description: 'עזרה רפואית מיידית'
     },
     {
-      name: 'מגן דוד אדום',
-      number: '101',
-      icon: Heart,
-      color: 'bg-red-500 hover:bg-red-600',
-      description: 'שירותי חירום רפואיים'
+      name: 'מכבי אש',
+      number: '102',
+      icon: Flame,
+      color: 'bg-orange-600 hover:bg-orange-700',
+      description: 'כיבוי אש והצלה'
     }
   ];
 

@@ -242,7 +242,7 @@ const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
         <Button
           variant="outline"
           size="lg"
-          onClick={() => navigate('/family-requests')}
+          onClick={() => navigate('/review')}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground relative"
         >
           <Clock className="w-5 h-5" />
