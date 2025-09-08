@@ -24,7 +24,6 @@ interface FamilyMemberSignupProps {
 export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberSignupProps) {
   const [formData, setFormData] = useState({
     fullName: '',
-    relation: '',
     email: '', 
     password: '',
     confirmPassword: '',
@@ -70,7 +69,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
   const handleStep2Submit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.fullName.trim() || !formData.relation || !formData.phone.trim() || !formData.ownerEmail.trim() || !formData.relationshipToPrimary) {
+    if (!formData.fullName.trim() || !formData.phone.trim() || !formData.ownerEmail.trim() || !formData.relationshipToPrimary) {
       toast.error('יש למלא את כל השדות הנדרשים');
       return;
     }
@@ -109,7 +108,6 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
           emailRedirectTo: `${window.location.origin}/`,
           data: {
             full_name: formData.fullName,
-            relation: formData.relation,
             phone: formData.phone
           }
         }
@@ -129,7 +127,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         .insert({
           full_name: formData.fullName,
           email: formData.email,
-          relation: formData.relation,
+          relation: finalRelationship,
           phone: formData.phone,
           owner_email: formData.ownerEmail,
           scopes: selectedScopes,
@@ -255,26 +253,6 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
                     required
                     disabled={isLoading}
                   />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="relation">קרבה משפחתית *</Label>
-                  <Select 
-                    value={formData.relation} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, relation: value }))}
-                    disabled={isLoading}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="בחר קרבה משפחתית" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {relationOptions.map((relation) => (
-                        <SelectItem key={relation} value={relation}>
-                          {relation}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
 
                 <div className="space-y-2">
