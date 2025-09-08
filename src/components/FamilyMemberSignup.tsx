@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, CheckCircle, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { relationOptions, FamilyScope, scopeLabels } from "@/types/family";
 import { ScopeSelector } from '@/components/ScopeSelector';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FamilyMemberSignupProps {
   onComplete: () => void;
@@ -88,40 +88,40 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
     setIsLoading(true);
     
     try {
-      try {
-        const { data, error } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              full_name: formData.fullName,
-              relation: formData.relation,
-              phone: formData.phone
-            }
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            full_name: formData.fullName,
+            relation: formData.relation,
+            phone: formData.phone
           }
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Create family link request
+      const { error: linkError } = await supabase
+        .from('family_links')
+        .insert({
+          full_name: formData.fullName,
+          email: formData.email,
+          relation: formData.relation,
+          phone: formData.phone,
+          owner_email: formData.ownerEmail,
+          scopes: selectedScopes,
+          status: 'PENDING'
         });
 
-        if (error) {
-          throw error;
-        }
-
-        // Create family link request
-        const { error: linkError } = await supabase
-          .from('family_links')
-          .insert({
-            full_name: formData.fullName,
-            email: formData.email,
-            relation: formData.relation,
-            phone: formData.phone,
-            scopes: selectedScopes,
-            status: 'PENDING'
-          });
-
-        if (linkError) {
-          console.error('Error creating family link:', linkError);
-          throw new Error('שגיאה ביצירת קשר משפחתי');
-        }
+      if (linkError) {
+        console.error('Error creating family link:', linkError);
+        throw new Error('שגיאה ביצירת קשר משפחתי');
+      }
       
       toast.success(`בקשת הצטרפות נשלחה בהצלחה ל${formData.ownerEmail}`);
       toast.info('תקבל הודעה כאשר המשתמש הראשי יאשר את הבקשה');

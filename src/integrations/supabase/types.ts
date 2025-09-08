@@ -98,6 +98,7 @@ export type Database = {
           full_name: string
           id: string
           member_user_id: string | null
+          owner_email: string | null
           owner_phone: string | null
           owner_user_id: string | null
           phone: string | null
@@ -112,6 +113,7 @@ export type Database = {
           full_name: string
           id?: string
           member_user_id?: string | null
+          owner_email?: string | null
           owner_phone?: string | null
           owner_user_id?: string | null
           phone?: string | null
@@ -126,6 +128,7 @@ export type Database = {
           full_name?: string
           id?: string
           member_user_id?: string | null
+          owner_email?: string | null
           owner_phone?: string | null
           owner_user_id?: string | null
           phone?: string | null
