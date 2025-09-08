@@ -94,9 +94,15 @@ const App = () => {
                           <Route path="/games" element={<GamesPage />} />
                           <Route path="/family-board" element={<FamilyBoardPage />} />
                           
-                          {/* Clean redirects for removed routes */}
-                          <Route path="/family-management" element={<Navigate to="/" replace />} />
-                          <Route path="/review" element={<Navigate to="/" replace />} />
+                           {/* Family Management - Main User Only */}
+                           <Route path="/family-management" element={
+                             <ProtectedRoute requiredRole="MAIN_USER">
+                               <FamilyManagementPage />
+                             </ProtectedRoute>
+                           } />
+                           
+                           {/* Clean redirects for removed routes */}
+                           <Route path="/review" element={<Navigate to="/" replace />} />
                           
                           <Route path="*" element={<NotFound />} />
                         </Routes>

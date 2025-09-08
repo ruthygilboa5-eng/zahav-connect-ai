@@ -253,7 +253,10 @@ const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
 
       {/* Family Permissions Section */}
       <div className="mt-8 w-full max-w-4xl">
-        <Card>
+        <Card 
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => navigate('/family-management')}
+        >
           <CardHeader className="text-center">
             <CardTitle className="flex items-center justify-center gap-2 text-xl">
               <Shield className="w-6 h-6 text-primary" />
