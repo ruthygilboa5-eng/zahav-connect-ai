@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useMe
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 
-type Role = 'MAIN_USER' | 'FAMILY' | null;
+type Role = 'MAIN_USER' | 'FAMILY' | 'ADMIN' | null;
 
 export interface AuthState {
   isAuthenticated: boolean;
@@ -73,7 +73,8 @@ export const FixedAuthProvider = ({ children }: FixedAuthProviderProps) => {
               .eq('user_id', session.user.id)
               .maybeSingle();
 
-            const userRole = roleData?.role === 'primary_user' ? 'MAIN_USER' : 'FAMILY';
+            const userRole = roleData?.role === 'primary_user' ? 'MAIN_USER' : 
+                           (roleData?.role as string) === 'admin' ? 'ADMIN' : 'FAMILY';
             const firstName = profile?.first_name || '';
 
             console.log('Setting auth state for user:', session.user.id, 'role:', userRole);

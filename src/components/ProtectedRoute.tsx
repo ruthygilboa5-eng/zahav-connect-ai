@@ -3,7 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/providers/AuthProvider';
 import { useToast } from '@/hooks/use-toast';
 
-type Role = 'MAIN_USER' | 'FAMILY';
+type Role = 'MAIN_USER' | 'FAMILY' | 'ADMIN';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -15,8 +15,8 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const location = useLocation();
   const { toast } = useToast();
 
-  // Allow landing page for everyone
-  if (location.pathname === '/') {
+  // Allow landing page and admin login for everyone
+  if (location.pathname === '/' || location.pathname === '/admin-login') {
     return <>{children}</>;
   }
 
@@ -32,10 +32,18 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
         description: 'כניסה מותרת רק למשתמש ראשי',
         variant: 'destructive',
       });
+    } else if (requiredRole === 'ADMIN') {
+      toast({
+        title: 'אין הרשאה',
+        description: 'כניסה מותרת רק למנהלי המערכת',
+        variant: 'destructive',
+      });
     }
     
     // Redirect to appropriate route based on role
-    const redirectPath = authState.role === 'MAIN_USER' ? '/home' : '/family';
+    const redirectPath = authState.role === 'ADMIN' ? '/admin-dashboard' :
+                        authState.role === 'MAIN_USER' ? '/home' : 
+                        '/family';
     return <Navigate to={redirectPath} replace />;
   }
 

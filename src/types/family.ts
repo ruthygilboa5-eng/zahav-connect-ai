@@ -1,6 +1,6 @@
 // Family system types and constants
 
-export type AppRole = 'MAIN_USER' | 'FAMILY';
+export type AppRole = 'MAIN_USER' | 'FAMILY' | 'ADMIN';
 
 export type FamilyScope = 
   | 'POST_MEDIA'           // העלאת תמונות/וידאו לתור ממתין

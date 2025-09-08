@@ -33,6 +33,11 @@ export const AuthNavigationHandler = () => {
         if (currentPath === '/') {
           navigate('/family', { replace: true });
         }
+      } else if (authState.role === 'ADMIN') {
+        // Admin should go to /admin-dashboard
+        if (currentPath === '/') {
+          navigate('/admin-dashboard', { replace: true });
+        }
       }
     }
   }, [authState.isAuthenticated, authState.role, loading, navigate, location.pathname]);
