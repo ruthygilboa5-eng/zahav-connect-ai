@@ -32,7 +32,8 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
     ownerEmail: '',
     birthDate: undefined as Date | undefined,
     gender: undefined as 'male' | 'female' | 'prefer_not_to_say' | undefined,
-    relationshipToPrimary: ''
+    relationshipToPrimary: '',
+    customRelationship: ''
   });
   const [selectedScopes, setSelectedScopes] = useState<FamilyScope[]>(['POST_MEDIA']);
   const [isLoading, setIsLoading] = useState(false);
@@ -71,6 +72,11 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
     
     if (!formData.fullName.trim() || !formData.relation || !formData.phone.trim() || !formData.ownerEmail.trim() || !formData.relationshipToPrimary) {
       toast.error('יש למלא את כל השדות הנדרשים');
+      return;
+    }
+
+    if (formData.relationshipToPrimary === 'אחר' && !formData.customRelationship.trim()) {
+      toast.error('יש לפרט את הקשר המשפחתי');
       return;
     }
 
@@ -114,6 +120,10 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
       }
 
       // Create family link request
+      const finalRelationship = formData.relationshipToPrimary === 'אחר' 
+        ? formData.customRelationship 
+        : formData.relationshipToPrimary;
+
       const { error: linkError } = await supabase
         .from('family_links')
         .insert({
@@ -124,7 +134,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
           owner_email: formData.ownerEmail,
           scopes: selectedScopes,
           status: 'PENDING',
-          relationship_to_primary_user: formData.relationshipToPrimary
+          relationship_to_primary_user: finalRelationship
         });
 
       if (linkError) {
@@ -370,6 +380,21 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
                       ))}
                     </SelectContent>
                   </Select>
+                  
+                  {formData.relationshipToPrimary === 'אחר' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="customRelationship">פרט את הקשר המשפחתי *</Label>
+                      <Input
+                        id="customRelationship"
+                        value={formData.customRelationship || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, customRelationship: e.target.value }))}
+                        placeholder="הזן קשר משפחתי מותאם"
+                        required
+                        disabled={isLoading}
+                      />
+                    </div>
+                  )}
+                  
                   <p className="text-xs text-muted-foreground">
                     זה יעזור לנו להתאים הודעות מותאמות כמו "קיבלת הודעה מסבא"
                   </p>
