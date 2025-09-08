@@ -3,15 +3,21 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, Mail, Lock, User, Phone, Shield } from 'lucide-react';
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Loader2, Mail, Lock, User, Phone, Shield, CalendarIcon } from 'lucide-react';
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { OTPCountdown } from '@/components/OTPCountdown';
 import { OTP_EXPIRY_MINUTES, isOTPExpired } from '@/config/otp';
+import { genderLabels } from "@/types/database";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -42,6 +48,8 @@ export const AuthModal = ({ isOpen, onClose, defaultRole = 'MAIN_USER' }: AuthMo
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
+  const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
+  const [gender, setGender] = useState<'male' | 'female' | 'prefer_not_to_say' | ''>('');
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,6 +178,8 @@ export const AuthModal = ({ isOpen, onClose, defaultRole = 'MAIN_USER' }: AuthMo
             first_name: firstName,
             last_name: lastName,
             phone: phone,
+            birth_date: birthDate ? format(birthDate, 'yyyy-MM-dd') : undefined,
+            gender: gender || undefined,
           }
         }
       });
@@ -203,6 +213,8 @@ export const AuthModal = ({ isOpen, onClose, defaultRole = 'MAIN_USER' }: AuthMo
     setFirstName('');
     setLastName('');
     setPhone('');
+    setBirthDate(undefined);
+    setGender('');
     setError('');
     setActiveTab('signin');
   };
@@ -460,6 +472,61 @@ export const AuthModal = ({ isOpen, onClose, defaultRole = 'MAIN_USER' }: AuthMo
                         placeholder="מספר טלפון"
                         className="pl-10 text-right"
                       />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-right block">תאריך לידה (אופציונלי)</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !birthDate && "text-muted-foreground"
+                            )}
+                          >
+                            {birthDate ? (
+                              format(birthDate, "dd/MM/yyyy")
+                            ) : (
+                              <span>בחר תאריך לידה</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={birthDate}
+                            onSelect={setBirthDate}
+                            disabled={(date) =>
+                              date > new Date() || date < new Date("1900-01-01")
+                            }
+                            initialFocus
+                            className={cn("p-3 pointer-events-auto")}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="gender" className="text-right block">מין (אופציונלי)</Label>
+                      <Select 
+                        value={gender} 
+                        onValueChange={(value) => setGender(value as 'male' | 'female' | 'prefer_not_to_say' | '')}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="בחר מין" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(genderLabels).map(([key, label]) => (
+                            <SelectItem key={key} value={key}>
+                              {label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 
