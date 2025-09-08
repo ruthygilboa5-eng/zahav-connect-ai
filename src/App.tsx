@@ -33,84 +33,84 @@ const App = () => {
   
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <BrowserRouter>
-          <FixedAuthProvider>
-            <GlobalStateProvider>
-              <DataProvider>
-                <OwnerProvider>
-                  <FamilyProvider>
-            <div className="min-h-screen w-full bg-white relative">
-              {/* Amber Glow Background */}
-              <div
-                className="absolute inset-0 z-0"
-                style={{
-                  backgroundImage: `
-                    radial-gradient(125% 125% at 50% 90%, #ffffff 40%, #f59e0b 100%)
-                  `,
-                  backgroundSize: "100% 100%",
-                }}
-              />
-              <div className="relative z-10">
-                <Routes>
-                  <Route path="/" element={<SimpleIndex />} />
-                  
-                  {/* Family Auth Routes */}
-                  <Route path="/family-auth" element={
-                    <FamilyAuthChoice onBack={() => window.location.href = '/'} />
-                  } />
-                  <Route path="/register-family-member" element={
-                    <FamilyMemberSignup 
-                      onComplete={() => window.location.href = '/'}
-                      onBack={() => window.location.href = '/family-auth'}
-                    />
-                  } />
-                  
-                  {/* Family Requests Management - Main User Only */}
-                  <Route path="/family-requests" element={
-                    <ProtectedRoute requiredRole="MAIN_USER">
-                      <FamilyRequestsPage />
-                    </ProtectedRoute>
-                  } />
-                  
-                  {/* Protected Routes - Role-based content */}
-                  <Route path="/home" element={
-                    <ProtectedRoute requiredRole="MAIN_USER">
-                      <HomePage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/family" element={
-                    <ProtectedRoute requiredRole="FAMILY">
-                      <FamilyPage />
-                    </ProtectedRoute>
-                  } />
-                  
-                  {/* Shared Routes */}
-                  <Route path="/memories" element={<MemoriesPage />} />
-                  <Route path="/reminders" element={<RemindersPage />} />
-                  <Route path="/emergency-contacts" element={<EmergencyContactsPage />} />
-                  <Route path="/wakeup" element={<WakeUpPage />} />
-                  <Route path="/emergency" element={<EmergencyPage />} />
-                  <Route path="/games" element={<GamesPage />} />
-                  <Route path="/family-board" element={<FamilyBoardPage />} />
-                  
-                  {/* Clean redirects for removed routes */}
-                  <Route path="/family-management" element={<Navigate to="/" replace />} />
-                  <Route path="/review" element={<Navigate to="/" replace />} />
-                  
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </div>
-            </div>
+      <BrowserRouter>
+        <FixedAuthProvider>
+          <GlobalStateProvider>
+            <DataProvider>
+              <OwnerProvider>
+                <FamilyProvider>
+                  <TooltipProvider>
+                    <div className="min-h-screen w-full bg-white relative">
+                      {/* Amber Glow Background */}
+                      <div
+                        className="absolute inset-0 z-0"
+                        style={{
+                          backgroundImage: `
+                            radial-gradient(125% 125% at 50% 90%, #ffffff 40%, #f59e0b 100%)
+                          `,
+                          backgroundSize: "100% 100%",
+                        }}
+                      />
+                      <div className="relative z-10">
+                        <Routes>
+                          <Route path="/" element={<SimpleIndex />} />
+                          
+                          {/* Family Auth Routes */}
+                          <Route path="/family-auth" element={
+                            <FamilyAuthChoice onBack={() => window.location.href = '/'} />
+                          } />
+                          <Route path="/register-family-member" element={
+                            <FamilyMemberSignup 
+                              onComplete={() => window.location.href = '/'}
+                              onBack={() => window.location.href = '/family-auth'}
+                            />
+                          } />
+                          
+                          {/* Family Requests Management - Main User Only */}
+                          <Route path="/family-requests" element={
+                            <ProtectedRoute requiredRole="MAIN_USER">
+                              <FamilyRequestsPage />
+                            </ProtectedRoute>
+                          } />
+                          
+                          {/* Protected Routes - Role-based content */}
+                          <Route path="/home" element={
+                            <ProtectedRoute requiredRole="MAIN_USER">
+                              <HomePage />
+                            </ProtectedRoute>
+                          } />
+                          <Route path="/family" element={
+                            <ProtectedRoute requiredRole="FAMILY">
+                              <FamilyPage />
+                            </ProtectedRoute>
+                          } />
+                          
+                          {/* Shared Routes */}
+                          <Route path="/memories" element={<MemoriesPage />} />
+                          <Route path="/reminders" element={<RemindersPage />} />
+                          <Route path="/emergency-contacts" element={<EmergencyContactsPage />} />
+                          <Route path="/wakeup" element={<WakeUpPage />} />
+                          <Route path="/emergency" element={<EmergencyPage />} />
+                          <Route path="/games" element={<GamesPage />} />
+                          <Route path="/family-board" element={<FamilyBoardPage />} />
+                          
+                          {/* Clean redirects for removed routes */}
+                          <Route path="/family-management" element={<Navigate to="/" replace />} />
+                          <Route path="/review" element={<Navigate to="/" replace />} />
+                          
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </div>
+                    </div>
                     <Toaster />
                     <Sonner />
-                  </FamilyProvider>
-                </OwnerProvider>
-              </DataProvider>
-            </GlobalStateProvider>
-          </FixedAuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
+                  </TooltipProvider>
+                </FamilyProvider>
+              </OwnerProvider>
+            </DataProvider>
+          </GlobalStateProvider>
+        </FixedAuthProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 };
