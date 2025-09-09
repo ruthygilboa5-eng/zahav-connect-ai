@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle, XCircle, Users, UserPlus, AlertCircle, Eye } from 'lucide-react';
+import { CheckCircle, XCircle, Users, UserPlus, AlertCircle, Eye, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
@@ -58,6 +59,7 @@ interface DashboardStats {
 export const AdminDashboard = () => {
   const { authState } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
@@ -65,8 +67,8 @@ export const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [selectedUserFamily, setSelectedUserFamily] = useState<string | null>(null);
 
-  // Check if user is admin - temporarily allow MAIN_USER as admin
-  const isAdmin = authState.role === 'MAIN_USER';
+  // Check if user is admin
+  const isAdmin = authState.role === 'ADMIN';
 
   useEffect(() => {
     if (isAdmin) {
@@ -218,6 +220,24 @@ export const AdminDashboard = () => {
     return familyMembers.filter(member => member.owner_user_id === userId);
   };
 
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      navigate('/admin-login');
+      toast({
+        title: 'התנתקת בהצלחה',
+        description: 'הפגישה הופסקה בבטחה',
+      });
+    } catch (error) {
+      console.error('Error during logout:', error);
+      toast({
+        title: 'שגיאה',
+        description: 'שגיאה בהתנתקות',
+        variant: 'destructive'
+      });
+    }
+  };
+
   if (!isAdmin) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -250,6 +270,14 @@ export const AdminDashboard = () => {
           <h1 className="text-3xl font-bold">מסך ניהול מערכת</h1>
           <p className="text-muted-foreground">ניהול משתמשים ובני משפחה</p>
         </div>
+        <Button 
+          variant="outline" 
+          onClick={handleLogout}
+          className="flex items-center gap-2"
+        >
+          <LogOut className="h-4 w-4" />
+          התנתק
+        </Button>
       </div>
 
       {/* Stats Cards */}
