@@ -22,6 +22,12 @@ export default function AdminSetupPage() {
     checkIfAdminExists();
   }, []);
 
+  useEffect(() => {
+    if (!isCheckingAdminExists && adminExists) {
+      navigate('/admin-login');
+    }
+  }, [adminExists, isCheckingAdminExists, navigate]);
+
   const checkIfAdminExists = async () => {
     try {
       const { data, error } = await supabase
