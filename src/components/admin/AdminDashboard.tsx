@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { RoleManagement } from './RoleManagement';
+import { WelcomeModal } from './WelcomeModal';
 
 interface AdminUser {
   user_id: string;
@@ -67,6 +68,7 @@ export const AdminDashboard = () => {
   const [stats, setStats] = useState<DashboardStats>({ activeUsers: 0, totalFamilies: 0, pendingApprovals: 0 });
   const [loading, setLoading] = useState(true);
   const [selectedUserFamily, setSelectedUserFamily] = useState<string | null>(null);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   // Check if user is admin
   const isAdmin = authState.role === 'ADMIN';
@@ -74,8 +76,19 @@ export const AdminDashboard = () => {
   useEffect(() => {
     if (isAdmin) {
       loadDashboardData();
+      
+      // Check if this is the first time the admin is logging in
+      const hasSeenWelcome = localStorage.getItem('admin-welcome-seen');
+      if (!hasSeenWelcome) {
+        setShowWelcome(true);
+      }
     }
   }, [isAdmin]);
+
+  const handleCloseWelcome = () => {
+    setShowWelcome(false);
+    localStorage.setItem('admin-welcome-seen', 'true');
+  };
 
   const loadDashboardData = async () => {
     try {
@@ -265,7 +278,13 @@ export const AdminDashboard = () => {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6" dir="rtl">
+    <>
+      <WelcomeModal 
+        isOpen={showWelcome} 
+        onClose={handleCloseWelcome} 
+      />
+      
+      <div className="container mx-auto py-6 space-y-6" dir="rtl">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">מסך ניהול מערכת</h1>
@@ -546,6 +565,7 @@ export const AdminDashboard = () => {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </>
   );
 };
