@@ -82,6 +82,7 @@ export default function AdminSetupPage() {
           data: {
             first_name: 'מנהל מערכת',
             last_name: '',
+            is_admin: 'true', // Mark as admin for proper role assignment
           }
         }
       });
