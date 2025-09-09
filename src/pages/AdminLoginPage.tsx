@@ -129,6 +129,16 @@ export default function AdminLoginPage() {
               {isLoading ? 'מתחבר...' : 'התחבר'}
             </Button>
           </form>
+
+          <div className="mt-4 text-center">
+            <Button 
+              variant="link" 
+              onClick={() => navigate('/admin-setup')}
+              className="text-sm text-muted-foreground"
+            >
+              הגדרת מנהל ראשון
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

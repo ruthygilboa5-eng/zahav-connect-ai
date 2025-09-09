@@ -11,6 +11,7 @@ import { CheckCircle, XCircle, Users, UserPlus, AlertCircle, Eye, LogOut } from 
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
+import { RoleManagement } from './RoleManagement';
 
 interface AdminUser {
   user_id: string;
@@ -315,10 +316,11 @@ export const AdminDashboard = () => {
 
       {/* Main Content */}
       <Tabs defaultValue="users" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="users">משתמשים ראשיים</TabsTrigger>
           <TabsTrigger value="family">בני משפחה</TabsTrigger>
           <TabsTrigger value="pending">בקשות פתוחות</TabsTrigger>
+          <TabsTrigger value="permissions">ניהול הרשאות</TabsTrigger>
         </TabsList>
 
         {/* Users Tab */}
@@ -525,6 +527,21 @@ export const AdminDashboard = () => {
                   אין בקשות הצטרפות פתוחות כרגע
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Permissions Management Tab */}
+        <TabsContent value="permissions">
+          <Card>
+            <CardHeader>
+              <CardTitle>ניהול הרשאות</CardTitle>
+              <CardDescription>
+                ניהול תפקידים והרשאות משתמשים במערכת
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <RoleManagement />
             </CardContent>
           </Card>
         </TabsContent>

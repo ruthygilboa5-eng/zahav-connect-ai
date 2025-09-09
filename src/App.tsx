@@ -27,6 +27,7 @@ import FamilyAuthChoice from "./components/FamilyAuthChoice";
 import FamilyRequestsPage from "./pages/FamilyRequestsPage";
 import AdminPage from "./pages/AdminPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
+import AdminSetupPage from "./pages/AdminSetupPage";
 import { AuthNavigationHandler } from "./components/AuthNavigationHandler";
 
 const queryClient = new QueryClient();
@@ -59,8 +60,9 @@ const App = () => {
                         <Routes>
                           <Route path="/" element={<SimpleIndex />} />
                           
-                          {/* Admin Login */}
+                          {/* Admin Routes */}
                           <Route path="/admin-login" element={<AdminLoginPage />} />
+                          <Route path="/admin-setup" element={<AdminSetupPage />} />
                           
                           {/* Family Auth Routes */}
                           <Route path="/family-auth" element={
