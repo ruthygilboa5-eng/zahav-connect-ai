@@ -15,8 +15,8 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const location = useLocation();
   const { toast } = useToast();
 
-  // Allow landing page and admin login for everyone
-  if (location.pathname === '/' || location.pathname === '/admin-login') {
+  // Allow landing page and admin paths for everyone
+  if (location.pathname === '/' || location.pathname === '/admin-login' || location.pathname === '/admin-setup') {
     return <>{children}</>;
   }
 

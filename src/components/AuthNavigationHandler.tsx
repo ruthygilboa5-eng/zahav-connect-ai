@@ -17,8 +17,8 @@ export const AuthNavigationHandler = () => {
     const currentPath = location.pathname;
 
     if (!authState.isAuthenticated) {
-      // Not authenticated - redirect to home unless already there or on admin-login
-      if (currentPath !== '/' && currentPath !== '/admin-login') {
+      // Not authenticated - redirect to home unless already there or on admin paths
+      if (currentPath !== '/' && currentPath !== '/admin-login' && currentPath !== '/admin-setup') {
         navigate('/', { replace: true });
       }
     } else {
