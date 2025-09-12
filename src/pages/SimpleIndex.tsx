@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Heart, LogIn, Play } from 'lucide-react';
+import { Users, Heart, LogIn, Play, UserPlus, Lock } from 'lucide-react';
 import { useAuth } from '@/providers/FixedAuthProvider';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { AuthModal } from '@/components/AuthModal';
@@ -108,17 +108,28 @@ const SimpleIndex = () => {
               <Button 
                 className="w-full bg-green-600 hover:bg-green-700" 
                 onClick={handleFamilyDemo}
+                aria-label="דמו לצורכי הדגמה בלבד"
               >
                 <Play className="w-4 h-4 ml-2" />
-                דמו כבן משפחה
+                דמו (להדגמה בלבד)
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full border-blue-200 text-blue-600 hover:bg-blue-50" 
+                onClick={handleFamilyAuth}
+                aria-label="כניסה לבן משפחה קיים"
+              >
+                <Lock className="w-4 h-4 ml-2" />
+                יש לי חשבון – התחברות
               </Button>
               <Button 
                 variant="outline" 
                 className="w-full border-green-200 text-green-600 hover:bg-green-50" 
-                onClick={handleFamilyAuth}
+                onClick={() => navigate('/register-family-member')}
+                aria-label="רישום בן משפחה חדש"
               >
-                <LogIn className="w-4 h-4 ml-2" />
-                התחבר / הירשם
+                <UserPlus className="w-4 h-4 ml-2" />
+                אין לי חשבון – הרשמה
               </Button>
             </CardContent>
           </Card>
