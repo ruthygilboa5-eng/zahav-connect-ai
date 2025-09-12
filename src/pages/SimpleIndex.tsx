@@ -36,6 +36,7 @@ const SimpleIndex = () => {
   };
 
   const handleFamilyAuth = () => {
+    console.log('Navigating to /family-auth');
     navigate('/family-auth');
   };
 
@@ -115,7 +116,10 @@ const SimpleIndex = () => {
               </Button>
               <Button 
                 className="w-full bg-green-600 hover:bg-green-700" 
-                onClick={() => navigate('/register-family-member')}
+                onClick={() => {
+                  console.log('Navigating to /register-family-member');
+                  navigate('/register-family-member');
+                }}
                 aria-label="רישום בן משפחה חדש"
               >
                 <UserPlus className="w-4 h-4 ml-2" />
