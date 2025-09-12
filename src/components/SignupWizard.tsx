@@ -36,7 +36,9 @@ const step2Schema = z.object({
   phone: z.string().regex(/^0[2-9]\d{8}$|^\+972[2-9]\d{8}$/, "מספר טלפון לא תקין (פורמט: 050-1234567)"),
   displayName: z.string().optional(),
   birthDate: z.date().optional(),
-  gender: z.enum(['male', 'female', 'prefer_not_to_say']).optional()
+  gender: z.enum(['male', 'female'], {
+    required_error: "יש לבחור מגדר"
+  })
 });
 
 const contactSchema = z.object({
@@ -187,8 +189,11 @@ export default function SignupWizard({ onComplete }: SignupWizardProps) {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-2xl">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">הרשמה למערכת</CardTitle>
+          <CardTitle className="text-2xl font-bold">הרשמה למערכת זהב</CardTitle>
           <CardDescription>
+            אנא מלא/י את הפרטים שלך לצורך יצירת חשבון ראשי במערכת זהב
+          </CardDescription>
+          <CardDescription className="mt-2">
             שלב {currentStep} מתוך 3
           </CardDescription>
           <Progress value={getProgressValue()} className="mt-4" />
@@ -355,19 +360,16 @@ export default function SignupWizard({ onComplete }: SignupWizardProps) {
                   name="gender"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>מין (אופציונלי)</FormLabel>
+                      <FormLabel>בחר מגדר *</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="בחר מין" />
+                            <SelectValue placeholder="בחר מגדר" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {Object.entries(genderLabels).map(([key, label]) => (
-                            <SelectItem key={key} value={key}>
-                              {label}
-                            </SelectItem>
-                          ))}
+                          <SelectItem value="male">זכר</SelectItem>
+                          <SelectItem value="female">נקבה</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

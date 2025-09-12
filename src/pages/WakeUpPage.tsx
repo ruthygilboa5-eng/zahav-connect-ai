@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Heart, ArrowRight, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useGoHome } from '@/hooks/useGoHome';
+import { useProfile } from '@/hooks/useProfile';
+import { useAuth } from '@/providers/AuthProvider';
 
 interface WakeUpPageProps {
   userName?: string;
@@ -13,11 +15,27 @@ const WakeUpPage = ({ userName }: WakeUpPageProps) => {
   const [isWakeUpSent, setIsWakeUpSent] = useState(false);
   const navigate = useNavigate();
   const goHome = useGoHome();
+  const { profile } = useProfile();
+  const { authState } = useAuth();
 
   const handleWakeUp = () => {
     setIsWakeUpSent(true);
     // Here we would send notification to family
     console.log('Wake up notification sent to family');
+  };
+
+  // Get gender-specific message for notification sent
+  const getNotificationMessage = () => {
+    const gender = profile?.gender;
+    const name = userName || profile?.first_name || 'המשתמש';
+    
+    if (gender === 'male') {
+      return `${name} עדכן שהוא התעורר והכול בסדר 💚`;
+    } else if (gender === 'female') {
+      return `${name} עדכנה שהיא התעוררה והכול בסדר 💚`;
+    } else {
+      return `${name} עדכן שהתעורר והכול בסדר 💚`;
+    }
   };
 
   return (
@@ -52,7 +70,7 @@ const WakeUpPage = ({ userName }: WakeUpPageProps) => {
                 ההודעה נשלחה למשפחה שלך
               </p>
               <p className="text-green-600 text-sm mt-2">
-                כולם יודעים שאתה בסדר 💚
+                {getNotificationMessage()}
               </p>
             </div>
           </Card>

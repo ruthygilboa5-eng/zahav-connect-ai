@@ -69,7 +69,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
   const handleStep2Submit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.fullName.trim() || !formData.phone.trim() || !formData.ownerEmail.trim() || !formData.relationshipToPrimary) {
+    if (!formData.fullName.trim() || !formData.phone.trim() || !formData.ownerEmail.trim() || !formData.relationshipToPrimary || !formData.gender) {
       toast.error('יש למלא את כל השדות הנדרשים');
       return;
     }
@@ -132,7 +132,8 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
           owner_email: formData.ownerEmail,
           scopes: selectedScopes,
           status: 'PENDING',
-          relationship_to_primary_user: finalRelationship
+          relationship_to_primary_user: finalRelationship,
+          gender: formData.gender
         });
 
       if (linkError) {
@@ -320,21 +321,19 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="gender">מין (אופציונלי)</Label>
+                    <Label htmlFor="gender">בחר מגדר *</Label>
                     <Select 
                       value={formData.gender || ''} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value as 'male' | 'female' | 'prefer_not_to_say' }))}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value as 'male' | 'female' }))}
                       disabled={isLoading}
+                      required
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="בחר מין" />
+                        <SelectValue placeholder="בחר מגדר" />
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.entries(genderLabels).map(([key, label]) => (
-                          <SelectItem key={key} value={key}>
-                            {label}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="male">זכר</SelectItem>
+                        <SelectItem value="female">נקבה</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
