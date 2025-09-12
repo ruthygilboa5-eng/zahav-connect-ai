@@ -3,10 +3,41 @@ import { Card } from '@/components/ui/card';
 import { Camera, FileText, Video, Image, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useGoHome } from '@/hooks/useGoHome';
+import { useFamilyLinks } from '@/hooks/useFamilyLinks';
+import { useProfile } from '@/hooks/useProfile';
+import { createMemoryMessage } from '@/utils/genderMessages';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const MemoriesPage = () => {
   const navigate = useNavigate();
   const goHome = useGoHome();
+  const { familyLinks } = useFamilyLinks();
+  const { profile } = useProfile();
+  const { sendMemoryNotification } = useNotifications();
+
+  // Function to handle memory category click and send notifications
+  const handleCategoryClick = async (categoryId: string, categoryName: string) => {
+    console.log(`Viewing category: ${categoryId} - ${categoryName}`);
+    
+    // Create personalized memory message
+    const userInfo = {
+      gender: profile?.gender,
+      relationship_label: profile?.first_name || 'המשתמש',
+      full_name: profile?.first_name
+    };
+    
+    const message = createMemoryMessage(userInfo);
+    
+    // Get family members emails for notifications
+    const familyEmails = familyLinks
+      .filter(link => link.status === 'APPROVED' && link.email)
+      .map(link => link.email!);
+    
+    // Send memory notification to family
+    await sendMemoryNotification(message, familyEmails, { categoryId, categoryName });
+    
+    console.log('Memory notification sent:', message);
+  };
 
   const memoryCategories = [
     {
@@ -68,7 +99,11 @@ const MemoriesPage = () => {
         <div className="space-y-4 mb-8">
           <h2 className="text-2xl font-bold text-foreground mb-4">קטגוריות</h2>
           {memoryCategories.map((category) => (
-            <Card key={category.id} className="p-4 hover:shadow-md transition-shadow cursor-pointer">
+            <Card 
+              key={category.id} 
+              className="p-4 hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => handleCategoryClick(category.id, category.name)}
+            >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className={`p-3 ${category.color} rounded-full`}>

@@ -5,6 +5,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { MessageSquare, Send, Home, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useGoHome } from '@/hooks/useGoHome';
+import { useFamilyLinks } from '@/hooks/useFamilyLinks';
+import { createFamilyBoardPrefix } from '@/utils/genderMessages';
 
 interface Message {
   id: number;
@@ -17,30 +19,55 @@ interface Message {
 const FamilyBoardPage = () => {
   const navigate = useNavigate();
   const goHome = useGoHome();
+  const { familyLinks } = useFamilyLinks();
   const [newMessage, setNewMessage] = useState('');
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      sender: 'רותי',
-      content: 'שלום! איך אתה מרגיש היום?',
-      timestamp: '10:30',
-      type: 'family'
-    },
-    {
-      id: 2,
-      sender: 'דני',
-      content: 'סבא, תודה על הסיפור הנפלא אתמול!',
-      timestamp: '11:15',
-      type: 'family'
-    },
-    {
-      id: 3,
+  
+  // Create sample messages based on actual family members
+  const createSampleMessages = () => {
+    const approvedFamily = familyLinks.filter(link => link.status === 'APPROVED');
+    const sampleMessages: Message[] = [];
+    
+    if (approvedFamily.length > 0) {
+      approvedFamily.slice(0, 2).forEach((member, index) => {
+        const userInfo = {
+          gender: member.gender,
+          relationship_label: member.relationship_to_primary_user || 'בן/בת משפחה',
+          full_name: member.full_name
+        };
+        
+        sampleMessages.push({
+          id: index + 1,
+          sender: member.full_name,
+          content: index === 0 ? 'שלום! איך אתה מרגיש היום?' : 'תודה על הסיפור הנפלא אתמול!',
+          timestamp: index === 0 ? '10:30' : '11:15',
+          type: 'family'
+        });
+      });
+    } else {
+      // Default messages if no family members
+      sampleMessages.push(
+        {
+          id: 1,
+          sender: 'בן משפחה',
+          content: 'שלום! איך אתה מרגיש היום?',
+          timestamp: '10:30',
+          type: 'family'
+        }
+      );
+    }
+    
+    sampleMessages.push({
+      id: sampleMessages.length + 1,
       sender: 'משתמש',
       content: 'הכל בסדר, תודה! מחכה לראות אתכם',
       timestamp: '11:45',
       type: 'user'
-    }
-  ]);
+    });
+    
+    return sampleMessages;
+  };
+  
+  const [messages, setMessages] = useState<Message[]>(createSampleMessages());
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {

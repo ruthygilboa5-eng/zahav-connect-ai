@@ -14,6 +14,10 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useGoHome } from '@/hooks/useGoHome';
+import { useFamilyLinks } from '@/hooks/useFamilyLinks';
+import { useProfile } from '@/hooks/useProfile';
+import { createReminderMessage } from '@/utils/genderMessages';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface ReminderStatus {
   id: number;
@@ -35,6 +39,9 @@ interface NewReminder {
 const RemindersPage = () => {
   const navigate = useNavigate();
   const goHome = useGoHome();
+  const { familyLinks } = useFamilyLinks();
+  const { profile } = useProfile();
+  const { sendReminderNotification } = useNotifications();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [reminders] = useState([
     {
@@ -87,12 +94,34 @@ const RemindersPage = () => {
     reminders.map(reminder => ({ id: reminder.id, completed: false, note: '' }))
   );
 
-  const updateReminderStatus = (id: number, completed: boolean) => {
+  const updateReminderStatus = async (id: number, completed: boolean) => {
     setReminderStatuses(prev => 
       prev.map(status => 
         status.id === id ? { ...status, completed, note: completed ? '' : status.note } : status
       )
     );
+    
+    // If reminder is marked as incomplete (unchecked), send notification to family
+    if (!completed) {
+      const userInfo = {
+        gender: profile?.gender,
+        relationship_label: profile?.first_name || 'המשתמש',
+        full_name: profile?.first_name
+      };
+      
+      const message = createReminderMessage(userInfo);
+      
+      // Get family members emails for notifications
+      const familyEmails = familyLinks
+        .filter(link => link.status === 'APPROVED' && link.email)
+        .map(link => link.email!);
+      
+      // Send reminder notification to family
+      const reminder = reminders.find(r => r.id === id);
+      await sendReminderNotification(message, familyEmails, reminder);
+      
+      console.log('Reminder notification sent:', message);
+    }
   };
 
   const updateReminderNote = (id: number, note: string) => {

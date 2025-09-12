@@ -3,31 +3,53 @@ import { Card } from '@/components/ui/card';
 import { Gamepad2, Users, User, Home, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useGoHome } from '@/hooks/useGoHome';
+import { useFamilyLinks } from '@/hooks/useFamilyLinks';
+import { createGameMessage } from '@/utils/genderMessages';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const GamesPage = () => {
   const navigate = useNavigate();
   const goHome = useGoHome();
+  const { familyLinks } = useFamilyLinks();
+  const { sendGameNotification } = useNotifications();
 
-  const familyGames = [
-    {
-      id: 'backgammon',
-      name: 'שש-בש עם הנכד',
-      description: 'משחק שש-בש אונליין',
-      icon: '🎲',
-      players: 'עם דני',
-      status: 'מחובר',
-      action: 'שחק עכשיו'
-    },
-    {
-      id: 'checkers',
-      name: 'דמקה עם רותי',
-      description: 'משחק דמקה משפחתי',
-      icon: '⚫',
-      players: 'עם רותי',
-      status: 'מחכה',
-      action: 'הזמן למשחק'
+  // Create family games based on actual family members
+  const getFamilyGames = () => {
+    const approvedFamily = familyLinks.filter(link => link.status === 'APPROVED');
+    
+    if (approvedFamily.length === 0) {
+      return [
+        {
+          id: 'no-family',
+          name: 'אין משחקים זמינים',
+          description: 'הוסף בני משפחה כדי לשחק משחקים משותפים',
+          icon: '🎲',
+          players: 'אין שחקנים',
+          status: 'לא זמין',
+          action: 'הוסף משפחה'
+        }
+      ];
     }
-  ];
+    
+    const games = [
+      { name: 'שש-בש', icon: '🎲', description: 'משחק שש-בש אונליין' },
+      { name: 'דמקה', icon: '⚫', description: 'משחק דמקה משפחתי' },
+      { name: 'קלפים', icon: '🃏', description: 'משחקי קלפים מגוונים' }
+    ];
+    
+    return approvedFamily.slice(0, 3).map((member, index) => ({
+      id: `game-${member.id}`,
+      name: `${games[index]?.name || 'משחק'} עם ${member.full_name}`,
+      description: games[index]?.description || 'משחק משפחתי',
+      icon: games[index]?.icon || '🎮',
+      players: `עם ${member.full_name}`,
+      status: Math.random() > 0.5 ? 'מחובר' : 'מחכה',
+      action: Math.random() > 0.5 ? 'שחק עכשיו' : 'הזמן למשחק',
+      familyMember: member
+    }));
+  };
+
+  const familyGames = getFamilyGames();
 
   const soloGames = [
     {
@@ -56,8 +78,23 @@ const GamesPage = () => {
     }
   ];
 
-  const handleGameClick = (gameId: string, gameName: string) => {
+  const handleGameClick = async (gameId: string, gameName: string, familyMember?: any) => {
     console.log(`Starting game: ${gameId} - ${gameName}`);
+    
+    // If it's a family game invitation, send notification
+    if (familyMember && gameId !== 'no-family') {
+      const userInfo = {
+        gender: familyMember.gender,
+        relationship_label: familyMember.relationship_to_primary_user || 'בן/בת משפחה',
+        full_name: familyMember.full_name
+      };
+      
+      const message = createGameMessage(userInfo);
+      await sendGameNotification(message, [familyMember.email].filter(Boolean), { gameId, gameName });
+      
+      console.log('Game invitation sent:', message);
+    }
+    
     // Here we would integrate with actual game platforms
   };
 
@@ -108,8 +145,9 @@ const GamesPage = () => {
                     </div>
                   </div>
                   <Button
-                    onClick={() => handleGameClick(game.id, game.name)}
+                    onClick={() => handleGameClick(game.id, game.name, (game as any).familyMember)}
                     className="bg-primary text-primary-foreground"
+                    disabled={game.id === 'no-family'}
                   >
                     <ExternalLink className="w-4 h-4 ml-2" />
                     {game.action}

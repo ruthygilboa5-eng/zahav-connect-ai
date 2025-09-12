@@ -10,6 +10,8 @@ export interface FamilyLink {
   member_user_id?: string;
   full_name: string;
   relation: string;
+  relationship_to_primary_user?: string;
+  gender?: 'male' | 'female' | 'prefer_not_to_say';
   phone: string;
   email?: string;
   status: 'PENDING' | 'APPROVED' | 'DECLINED' | 'REVOKED';

@@ -4,6 +4,10 @@ import { Card } from '@/components/ui/card';
 import { AlertTriangle, MapPin, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useGoHome } from '@/hooks/useGoHome';
+import { useProfile } from '@/hooks/useProfile';
+import { useFamilyLinks } from '@/hooks/useFamilyLinks';
+import { createEmergencyMessage } from '@/utils/genderMessages';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface EmergencyPageProps {
   userName?: string;
@@ -13,11 +17,34 @@ const EmergencyPage = ({ userName }: EmergencyPageProps) => {
   const [isEmergencySent, setIsEmergencySent] = useState(false);
   const navigate = useNavigate();
   const goHome = useGoHome();
+  const { profile } = useProfile();
+  const { familyLinks } = useFamilyLinks();
+  const { sendEmergencyNotification } = useNotifications();
 
-  const handleEmergency = () => {
+  const handleEmergency = async () => {
     setIsEmergencySent(true);
-    // Here we would send emergency notification with GPS
-    console.log('Emergency notification sent with GPS location');
+    
+    // Get user location (simulated)
+    const location = 'רחוב הרצל 123, תל אביב';
+    
+    // Create personalized emergency message
+    const userInfo = {
+      gender: profile?.gender,
+      relationship_label: userName || profile?.first_name || 'המשתמש',
+      full_name: profile?.first_name
+    };
+    
+    const message = createEmergencyMessage(userInfo, location);
+    
+    // Get family members emails for notifications
+    const familyEmails = familyLinks
+      .filter(link => link.status === 'APPROVED' && link.email)
+      .map(link => link.email!);
+    
+    // Send emergency notifications
+    await sendEmergencyNotification(message, familyEmails, location);
+    
+    console.log('Emergency notification sent:', message);
   };
 
   return (
@@ -58,12 +85,20 @@ const EmergencyPage = ({ userName }: EmergencyPageProps) => {
                 הודעת חירום נשלחה לבני המשפחה שהוגדרו:
               </p>
               <div className="space-y-2 mb-4">
-                <div className="bg-blue-100 rounded-lg p-2">
-                  <p className="text-blue-800 font-medium">📱 רותי (בת)</p>
-                </div>
-                <div className="bg-blue-100 rounded-lg p-2">
-                  <p className="text-blue-800 font-medium">📱 דני (בן)</p>
-                </div>
+                {familyLinks
+                  .filter(link => link.status === 'APPROVED')
+                  .map((link, index) => (
+                    <div key={index} className="bg-blue-100 rounded-lg p-2">
+                      <p className="text-blue-800 font-medium">
+                        📱 {link.full_name} ({link.relationship_to_primary_user || 'בן/בת משפחה'})
+                      </p>
+                    </div>
+                  ))}
+                {familyLinks.filter(link => link.status === 'APPROVED').length === 0 && (
+                  <div className="bg-blue-100 rounded-lg p-2">
+                    <p className="text-blue-800 font-medium">📱 אין אנשי קשר מוגדרים</p>
+                  </div>
+                )}
               </div>
               <p className="text-blue-600 text-sm">
                 כולל המיקום שלך כדי שיוכלו לעזור לך מהר 📍

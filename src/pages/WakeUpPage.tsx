@@ -6,6 +6,9 @@ import { useNavigate } from 'react-router-dom';
 import { useGoHome } from '@/hooks/useGoHome';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/providers/AuthProvider';
+import { createWakeUpMessage } from '@/utils/genderMessages';
+import { useFamilyLinks } from '@/hooks/useFamilyLinks';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface WakeUpPageProps {
   userName?: string;
@@ -17,25 +20,41 @@ const WakeUpPage = ({ userName }: WakeUpPageProps) => {
   const goHome = useGoHome();
   const { profile } = useProfile();
   const { authState } = useAuth();
+  const { familyLinks } = useFamilyLinks();
+  const { sendWakeUpNotification } = useNotifications();
 
-  const handleWakeUp = () => {
+  const handleWakeUp = async () => {
     setIsWakeUpSent(true);
-    // Here we would send notification to family
-    console.log('Wake up notification sent to family');
+    
+    // Create personalized message
+    const userInfo = {
+      gender: profile?.gender,
+      relationship_label: userName || profile?.first_name || 'המשתמש',
+      full_name: profile?.first_name
+    };
+    
+    const message = createWakeUpMessage(userInfo);
+    
+    // Get family members emails for notifications
+    const familyEmails = familyLinks
+      .filter(link => link.status === 'APPROVED' && link.email)
+      .map(link => link.email!);
+    
+    // Send notifications
+    await sendWakeUpNotification(message, familyEmails);
+    
+    console.log('Wake up notification sent:', message);
   };
 
   // Get gender-specific message for notification sent
   const getNotificationMessage = () => {
-    const gender = profile?.gender;
-    const name = userName || profile?.first_name || 'המשתמש';
+    const userInfo = {
+      gender: profile?.gender,
+      relationship_label: userName || profile?.first_name || 'המשתמש',
+      full_name: profile?.first_name
+    };
     
-    if (gender === 'male') {
-      return `${name} עדכן שהוא התעורר והכול בסדר 💚`;
-    } else if (gender === 'female') {
-      return `${name} עדכנה שהיא התעוררה והכול בסדר 💚`;
-    } else {
-      return `${name} עדכן שהתעורר והכול בסדר 💚`;
-    }
+    return createWakeUpMessage(userInfo);
   };
 
   return (
