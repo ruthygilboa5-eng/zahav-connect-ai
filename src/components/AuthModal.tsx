@@ -478,36 +478,89 @@ export const AuthModal = ({ isOpen, onClose, defaultRole = 'MAIN_USER' }: AuthMo
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-right block">תאריך לידה (אופציונלי)</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !birthDate && "text-muted-foreground"
-                            )}
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">יום</Label>
+                          <Select 
+                            value={birthDate ? birthDate.getDate().toString() : ''} 
+                            onValueChange={(value) => {
+                              if (value && birthDate) {
+                                const newDate = new Date(birthDate);
+                                newDate.setDate(parseInt(value));
+                                setBirthDate(newDate);
+                              } else if (value) {
+                                setBirthDate(new Date(new Date().getFullYear(), new Date().getMonth(), parseInt(value)));
+                              }
+                            }}
                           >
-                            {birthDate ? (
-                              format(birthDate, "dd/MM/yyyy")
-                            ) : (
-                              <span>בחר תאריך לידה</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={birthDate}
-                            onSelect={setBirthDate}
-                            disabled={(date) =>
-                              date > new Date() || date < new Date("1900-01-01")
-                            }
-                            initialFocus
-                            className={cn("p-3 pointer-events-auto")}
-                          />
-                        </PopoverContent>
-                      </Popover>
+                            <SelectTrigger>
+                              <SelectValue placeholder="בחר/י יום" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                                <SelectItem key={day} value={day.toString()}>
+                                  {day}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">חודש</Label>
+                          <Select 
+                            value={birthDate ? (birthDate.getMonth() + 1).toString() : ''} 
+                            onValueChange={(value) => {
+                              if (value && birthDate) {
+                                const newDate = new Date(birthDate);
+                                newDate.setMonth(parseInt(value) - 1);
+                                setBirthDate(newDate);
+                              } else if (value) {
+                                setBirthDate(new Date(new Date().getFullYear(), parseInt(value) - 1, 1));
+                              }
+                            }}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="בחר/י חודש" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
+                                'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'].map((month, index) => (
+                                <SelectItem key={index + 1} value={(index + 1).toString()}>
+                                  {month}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">שנה</Label>
+                          <Select 
+                            value={birthDate ? birthDate.getFullYear().toString() : ''} 
+                            onValueChange={(value) => {
+                              if (value && birthDate) {
+                                const newDate = new Date(birthDate);
+                                newDate.setFullYear(parseInt(value));
+                                setBirthDate(newDate);
+                              } else if (value) {
+                                setBirthDate(new Date(parseInt(value), 0, 1));
+                              }
+                            }}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="בחר/י שנה" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({ length: 106 }, (_, i) => 2025 - i).map((year) => (
+                                <SelectItem key={year} value={year.toString()}>
+                                  {year}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
                     </div>
 
                     <div className="space-y-2">
