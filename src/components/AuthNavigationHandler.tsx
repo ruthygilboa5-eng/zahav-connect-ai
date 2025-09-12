@@ -17,8 +17,9 @@ export const AuthNavigationHandler = () => {
     const currentPath = location.pathname;
 
     if (!authState.isAuthenticated) {
-      // Not authenticated - redirect to home unless already there or on admin paths
-      if (currentPath !== '/' && currentPath !== '/admin-login' && currentPath !== '/admin-setup') {
+      // Not authenticated - allow public paths (including family auth/signup)
+      const publicPaths = ['/', '/admin-login', '/admin-setup', '/family-auth', '/register-family-member'] as const;
+      if (!publicPaths.includes(currentPath as typeof publicPaths[number])) {
         navigate('/', { replace: true });
       }
     } else {
