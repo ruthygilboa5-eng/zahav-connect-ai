@@ -116,22 +116,11 @@ const SimpleIndex = () => {
               </Button>
               <Button 
                 className="w-full bg-green-600 hover:bg-green-700" 
-                onClick={() => {
-                  console.log('Navigating to /register-family-member');
-                  navigate('/register-family-member');
-                }}
-                aria-label="רישום בן משפחה חדש"
-              >
-                <UserPlus className="w-4 h-4 ml-2" />
-                אין לי חשבון – הרשמה
-              </Button>
-              <Button 
-                className="w-full bg-green-600 hover:bg-green-700" 
                 onClick={handleFamilyAuth}
-                aria-label="כניסה לבן משפחה קיים"
+                aria-label="כניסה או הרשמה כבן משפחה"
               >
-                <Lock className="w-4 h-4 ml-2" />
-                יש לי חשבון – התחברות
+                <Users className="w-4 h-4 ml-2" />
+                התחבר / הירשם כבן משפחה
               </Button>
             </CardContent>
           </Card>
