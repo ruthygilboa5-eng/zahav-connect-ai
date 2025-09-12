@@ -37,9 +37,9 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Get appropriate email template based on notification type
-    const emailSubject = getEmailSubject(type);
-    const emailHtml = getEmailTemplate(type, message, metadata);
+      // Get appropriate email template based on notification type
+      const emailSubject = metadata.subject || getEmailSubject(type);
+      const emailHtml = getEmailTemplate(type, message, metadata);
 
     // Send emails to all recipients
     const emailPromises = recipients.map(async (recipient) => {
@@ -116,13 +116,17 @@ function getEmailSubject(type: string): string {
 }
 
 function getEmailTemplate(type: string, message: string, metadata: Record<string, any>): string {
+  // Use the message from the template directly, or construct from metadata if available
+  const subject = metadata.subject || getEmailSubject(type);
+  const finalMessage = message || 'הודעה מהמערכת';
+  
   const baseTemplate = `
     <!DOCTYPE html>
     <html dir="rtl" lang="he">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>הודעה מזהב</title>
+      <title>${subject}</title>
       <style>
         body {
           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -200,7 +204,7 @@ function getEmailTemplate(type: string, message: string, metadata: Record<string
         </div>
         
         <div class="message ${getMessageClass(type)}">
-          ${message}
+          ${finalMessage}
           ${getMetadataHtml(type, metadata)}
         </div>
         

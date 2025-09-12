@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Heart, ArrowRight, Home } from 'lucide-react';
+import { Heart, ArrowRight, Home, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useGoHome } from '@/hooks/useGoHome';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/providers/AuthProvider';
 import { useWakeUpNotification } from '@/hooks/useWakeUpNotification';
+import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 
 interface WakeUpPageProps {
   userName?: string;
@@ -19,6 +20,7 @@ const WakeUpPage = ({ userName }: WakeUpPageProps) => {
   const { profile } = useProfile();
   const { authState } = useAuth();
   const { sendWakeUpNotification, loading } = useWakeUpNotification();
+  const { familyMembers, missingTables } = useFamilyMembers();
 
   const handleWakeUp = async () => {
     const success = await sendWakeUpNotification();
@@ -33,6 +35,42 @@ const WakeUpPage = ({ userName }: WakeUpPageProps) => {
     return `הודעת התעוררת נשלחה בהצלחה ✔️`;
   };
 
+  // Show family management message if no family members
+  if (!missingTables && familyMembers.length === 0) {
+    return (
+      <div className="p-4 flex flex-col items-center justify-center min-h-screen rtl-text">
+        <div className="text-center mb-8 max-w-md">
+          <Users className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+          <h1 className="text-4xl font-bold text-foreground mb-4">
+            אין בני משפחה
+          </h1>
+          <p className="text-xl text-muted-foreground mb-8">
+            כדי להשתמש בפיצ'ר "התעוררתי", עליך להוסיף בני משפחה תחילה
+          </p>
+          
+          <div className="space-y-4">
+            <Button
+              onClick={() => navigate('/family-management')}
+              className="w-full bg-primary text-primary-foreground"
+            >
+              <Users className="w-5 h-5 ml-2" />
+              נהל בני משפחה
+            </Button>
+            
+            <Button
+              onClick={goHome}
+              variant="outline"
+              className="w-full"
+            >
+              <Home className="w-5 h-5 ml-2" />
+              חזרה לעמוד הראשי
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 flex flex-col items-center justify-center min-h-screen rtl-text">
       <div className="text-center mb-8 max-w-md">
@@ -45,6 +83,9 @@ const WakeUpPage = ({ userName }: WakeUpPageProps) => {
           <>
             <p className="text-xl text-muted-foreground mb-8">
               לחץ כדי לדווח שהתעוררת והכל בסדר
+            </p>
+            <p className="text-sm text-muted-foreground mb-6">
+              ההודעה תישלח ל-{familyMembers.length} בני משפחה
             </p>
             <Button
               onClick={handleWakeUp}
