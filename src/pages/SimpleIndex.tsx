@@ -115,7 +115,8 @@ const SimpleIndex = () => {
                 דמו (להדגמה בלבד)
               </Button>
               <Button 
-                className="w-full bg-green-600 hover:bg-green-700" 
+                variant="outline"
+                className="w-full border-green-600 text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-700" 
                 onClick={handleFamilyAuth}
                 aria-label="כניסה או הרשמה כבן משפחה"
               >
