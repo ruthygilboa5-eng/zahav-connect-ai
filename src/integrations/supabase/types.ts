@@ -145,6 +145,45 @@ export type Database = {
         }
         Relationships: []
       }
+      family_members: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          gender: string
+          id: string
+          owner_user_id: string
+          phone: string | null
+          relationship_label: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          gender: string
+          id?: string
+          owner_user_id: string
+          phone?: string | null
+          relationship_label: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          gender?: string
+          id?: string
+          owner_user_id?: string
+          phone?: string | null
+          relationship_label?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       family_permission_requests: {
         Row: {
           created_at: string
@@ -208,6 +247,36 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      message_templates: {
+        Row: {
+          body: string
+          created_at: string
+          feature: string
+          gender: string
+          id: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          feature: string
+          gender: string
+          id?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          feature?: string
+          gender?: string
+          id?: string
+          subject?: string
+          updated_at?: string
         }
         Relationships: []
       }
