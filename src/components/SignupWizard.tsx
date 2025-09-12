@@ -7,16 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Progress } from "@/components/ui/progress";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Plus, Trash2, ArrowRight, ArrowLeft, CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { Plus, Trash2, ArrowRight, ArrowLeft } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { relationLabels, genderLabels } from "@/types/database";
-import { cn } from "@/lib/utils";
 import { useDataProvider } from "@/providers/DataProvider";
 import { DEV_MODE_DEMO } from "@/config/dev";
 
@@ -35,10 +31,22 @@ const step2Schema = z.object({
   lastName: z.string().min(1, "שם משפחה הוא שדה חובה"),
   phone: z.string().regex(/^0[2-9]\d{8}$|^\+972[2-9]\d{8}$/, "מספר טלפון לא תקין (פורמט: 050-1234567)"),
   displayName: z.string().optional(),
-  birthDate: z.date().optional(),
+  birthDay: z.string().optional(),
+  birthMonth: z.string().optional(),
+  birthYear: z.string().optional(),
   gender: z.enum(['male', 'female'], {
     required_error: "יש לבחור מגדר"
   })
+}).refine((data) => {
+  // אם אחד מהשדות של תאריך לידה מלא, כולם חייבים להיות מלאים
+  const hasAnyBirthField = data.birthDay || data.birthMonth || data.birthYear;
+  if (hasAnyBirthField) {
+    return data.birthDay && data.birthMonth && data.birthYear;
+  }
+  return true;
+}, {
+  message: "אנא בחר/י תאריך לידה מלא או השאר את כל השדות ריקים",
+  path: ["birthYear"],
 });
 
 const contactSchema = z.object({
@@ -85,10 +93,29 @@ export default function SignupWizard({ onComplete }: SignupWizardProps) {
       lastName: "",
       phone: "",
       displayName: "",
-      birthDate: undefined,
+      birthDay: "",
+      birthMonth: "",
+      birthYear: "",
       gender: undefined
     }
   });
+
+  // Helper function to create full birth date
+  const getBirthDate = (data: Step2Data) => {
+    if (data.birthDay && data.birthMonth && data.birthYear) {
+      return new Date(parseInt(data.birthYear), parseInt(data.birthMonth) - 1, parseInt(data.birthDay));
+    }
+    return undefined;
+  };
+
+  // Generate arrays for dropdowns
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
+  const months = [
+    'ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
+    'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'
+  ];
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: currentYear - 1919 }, (_, i) => currentYear - i);
 
   const step3Form = useForm<Step3Data>({
     resolver: zodResolver(step3Schema),
@@ -154,7 +181,7 @@ export default function SignupWizard({ onComplete }: SignupWizardProps) {
         firstName: step2Data.firstName,
         lastName: step2Data.lastName,
         displayName: step2Data.displayName || step2Data.firstName,
-        birthDate: step2Data.birthDate,
+        birthDate: getBirthDate(step2Data),
         gender: step2Data.gender
       };
 
@@ -312,48 +339,81 @@ export default function SignupWizard({ onComplete }: SignupWizardProps) {
                   )}
                 />
                 
-                <FormField
-                  control={step2Form.control}
-                  name="birthDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>תאריך לידה (אופציונלי)</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "dd/MM/yyyy")
-                              ) : (
-                                <span>בחר תאריך לידה</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) =>
-                              date > new Date() || date < new Date("1900-01-01")
-                            }
-                            initialFocus
-                            className={cn("p-3 pointer-events-auto")}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                
+                <div className="space-y-2">
+                  <FormLabel>תאריך לידה (אופציונלי)</FormLabel>
+                  <div className="grid grid-cols-3 gap-2">
+                    <FormField
+                      control={step2Form.control}
+                      name="birthDay"
+                      render={({ field }) => (
+                        <FormItem>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="בחר/י יום" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {days.map((day) => (
+                                <SelectItem key={day} value={day.toString()}>
+                                  {day}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={step2Form.control}
+                      name="birthMonth"
+                      render={({ field }) => (
+                        <FormItem>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="בחר/י חודש" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {months.map((month, index) => (
+                                <SelectItem key={index + 1} value={(index + 1).toString()}>
+                                  {month}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={step2Form.control}
+                      name="birthYear"
+                      render={({ field }) => (
+                        <FormItem>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="בחר/י שנה" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {years.map((year) => (
+                                <SelectItem key={year} value={year.toString()}>
+                                  {year}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
                 
                 <FormField
                   control={step2Form.control}

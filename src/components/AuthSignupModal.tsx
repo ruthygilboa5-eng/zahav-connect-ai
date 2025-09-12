@@ -6,14 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Heart, ArrowRight, Clock, CalendarIcon } from 'lucide-react';
+import { Users, Heart, ArrowRight, Clock } from 'lucide-react';
 import { toast } from "sonner";
 import { relationOptions, FamilyScope } from "@/types/family";
 import { relationshipOptions, genderLabels } from "@/types/database";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 import { ScopeSelector } from '@/components/ScopeSelector';
 
 interface AuthSignupModalProps {
@@ -36,12 +32,31 @@ export default function AuthSignupModal({ isOpen, onClose, initialUserType = 'ma
     phone: '',
     relation: '',
     ownerEmail: '',
-    birthDate: undefined as Date | undefined,
-    gender: undefined as 'male' | 'female' | 'prefer_not_to_say' | undefined,
+    birthDay: '',
+    birthMonth: '',
+    birthYear: '',
+    gender: undefined as 'male' | 'female' | undefined,
     relationshipToPrimary: ''
   });
   
   const [selectedScopes, setSelectedScopes] = useState<FamilyScope[]>(['POST_MEDIA']);
+
+  // Helper function to create full birth date
+  const getBirthDate = () => {
+    if (formData.birthDay && formData.birthMonth && formData.birthYear) {
+      return new Date(parseInt(formData.birthYear), parseInt(formData.birthMonth) - 1, parseInt(formData.birthDay));
+    }
+    return null;
+  };
+
+  // Generate arrays for dropdowns
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
+  const months = [
+    'ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
+    'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'
+  ];
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: currentYear - 1919 }, (_, i) => currentYear - i);
 
   const resetForm = () => {
     setFormData({
@@ -53,7 +68,9 @@ export default function AuthSignupModal({ isOpen, onClose, initialUserType = 'ma
       phone: '',
       relation: '',
       ownerEmail: '',
-      birthDate: undefined,
+      birthDay: '',
+      birthMonth: '',
+      birthYear: '',
       gender: undefined,
       relationshipToPrimary: ''
     });
@@ -351,55 +368,57 @@ export default function AuthSignupModal({ isOpen, onClose, initialUserType = 'ma
                   />
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>תאריך לידה (אופציונלי)</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !formData.birthDate && "text-muted-foreground"
-                          )}
-                        >
-                          {formData.birthDate ? (
-                            format(formData.birthDate, "dd/MM/yyyy")
-                          ) : (
-                            <span>בחר תאריך לידה</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={formData.birthDate}
-                          onSelect={(date) => setFormData(prev => ({ ...prev, birthDate: date }))}
-                          disabled={(date) =>
-                            date > new Date() || date < new Date("1900-01-01")
-                          }
-                          initialFocus
-                          className={cn("p-3 pointer-events-auto")}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="gender">בחר מגדר *</Label>
+                <div className="space-y-2">
+                  <Label>תאריך לידה (אופציונלי)</Label>
+                  <div className="grid grid-cols-3 gap-2">
                     <Select 
-                      value={formData.gender || ''} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value as 'male' | 'female' }))}
+                      value={formData.birthDay} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, birthDay: value }))}
                       disabled={isLoading}
-                      required
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="בחר מגדר" />
+                        <SelectValue placeholder="בחר/י יום" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="male">זכר</SelectItem>
-                        <SelectItem value="female">נקבה</SelectItem>
+                        {days.map((day) => (
+                          <SelectItem key={day} value={day.toString()}>
+                            {day}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    <Select 
+                      value={formData.birthMonth} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, birthMonth: value }))}
+                      disabled={isLoading}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="בחר/י חודש" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {months.map((month, index) => (
+                          <SelectItem key={index + 1} value={(index + 1).toString()}>
+                            {month}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    <Select 
+                      value={formData.birthYear} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, birthYear: value }))}
+                      disabled={isLoading}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="בחר/י שנה" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {years.map((year) => (
+                          <SelectItem key={year} value={year.toString()}>
+                            {year}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
