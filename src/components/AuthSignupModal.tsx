@@ -95,6 +95,12 @@ export default function AuthSignupModal({ isOpen, onClose, initialUserType = 'ma
   };
 
   const validateStep2 = () => {
+    // בדיקת מגדר חובה לכל המשתמשים
+    if (!formData.gender) {
+      toast.error('יש לבחור מגדר');
+      return false;
+    }
+
     if (userType === 'family') {
       if (!formData.relation || !formData.ownerEmail.trim()) {
         toast.error('יש למלא את כל השדות הנדרשים');
@@ -381,21 +387,19 @@ export default function AuthSignupModal({ isOpen, onClose, initialUserType = 'ma
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="gender">מין (אופציונלי)</Label>
+                    <Label htmlFor="gender">בחר מגדר *</Label>
                     <Select 
                       value={formData.gender || ''} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value as 'male' | 'female' | 'prefer_not_to_say' }))}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value as 'male' | 'female' }))}
                       disabled={isLoading}
+                      required
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="בחר מין" />
+                        <SelectValue placeholder="בחר מגדר" />
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.entries(genderLabels).map(([key, label]) => (
-                          <SelectItem key={key} value={key}>
-                            {label}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="male">זכר</SelectItem>
+                        <SelectItem value="female">נקבה</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
