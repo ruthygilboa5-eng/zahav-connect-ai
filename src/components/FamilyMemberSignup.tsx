@@ -305,52 +305,60 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
                 <div className="space-y-2">
                   <Label>תאריך לידה (אופציונלי)</Label>
                   <div className="grid grid-cols-3 gap-2">
-                    <Select 
-                      value={formData.birthDay} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, birthDay: value }))}
-                      disabled={isLoading}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="בחר/י יום" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {days.map((day) => (
-                          <SelectItem key={day} value={day.toString()}>
-                            {day}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">יום</Label>
+                      <Select 
+                        value={formData.birthDay} 
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, birthDay: value }))}
+                        disabled={isLoading}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="בחר/י יום" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {days.map((day) => (
+                            <SelectItem key={day} value={day.toString()}>
+                              {day}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     
-                    <Select 
-                      value={formData.birthMonth} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, birthMonth: value }))}
-                      disabled={isLoading}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="בחר/י חודש" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {months.map((month, index) => (
-                          <SelectItem key={index + 1} value={(index + 1).toString()}>
-                            {month}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">חודש</Label>
+                      <Select 
+                        value={formData.birthMonth} 
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, birthMonth: value }))}
+                        disabled={isLoading}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="בחר/י חודש" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {months.map((month, index) => (
+                            <SelectItem key={index + 1} value={(index + 1).toString()}>
+                              {month}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     
-                    <Select 
-                      value={formData.birthYear} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, birthYear: value }))}
-                      disabled={isLoading}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="בחר/י שנה" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {years.map((year) => (
-                          <SelectItem key={year} value={year.toString()}>
-                            {year}
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">שנה</Label>
+                      <Select 
+                        value={formData.birthYear} 
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, birthYear: value }))}
+                        disabled={isLoading}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="בחר/י שנה" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {years.map((year) => (
+                            <SelectItem key={year} value={year.toString()}>
+                              {year}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -358,8 +366,8 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
                   </div>
                 </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="gender">בחר מגדר *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="gender">בחר מגדר *</Label>
                     <Select 
                       value={formData.gender || ''} 
                       onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value as 'male' | 'female' }))}
@@ -443,6 +451,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
                     <div className="w-3 h-3 rounded-full bg-green-500"></div>
                     <span className="text-sm">לאחר אישור תוכל להתחיל להשתמש במערכת</span>
                   </div>
+                </div>
                 </div>
               </div>
 
