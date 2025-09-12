@@ -28,7 +28,8 @@ interface AddFamilyMemberModalProps {
 
 export const AddFamilyMemberModal = ({ isOpen, onClose }: AddFamilyMemberModalProps) => {
   const [formData, setFormData] = useState({
-    fullName: '',
+    firstName: '',
+    lastName: '',
     relation: '',
     phone: '',
     email: '',
@@ -42,7 +43,7 @@ export const AddFamilyMemberModal = ({ isOpen, onClose }: AddFamilyMemberModalPr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.fullName.trim() || !formData.relation || !formData.phone.trim() || !formData.email.trim() || !formData.ownerEmail.trim()) {
+    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.relation || !formData.phone.trim() || !formData.email.trim() || !formData.ownerEmail.trim()) {
       toast.error('יש למלא את כל השדות הנדרשים');
       return;
     }
@@ -76,8 +77,9 @@ export const AddFamilyMemberModal = ({ isOpen, onClose }: AddFamilyMemberModalPr
     
     try {
       // Add family member with PENDING status
+      const fullName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
       addFamilyMember({
-        fullName: formData.fullName.trim(),
+        fullName: fullName,
         relation: formData.relation,
         phone: formData.phone.trim(),
         email: formData.email.trim(),
@@ -86,11 +88,12 @@ export const AddFamilyMemberModal = ({ isOpen, onClose }: AddFamilyMemberModalPr
         scopes: selectedScopes,
       });
 
-      toast.success(`הזמנה נשלחה בהצלחה ל${formData.fullName}`);
+      toast.success(`הזמנה נשלחה בהצלחה ל${fullName}`);
       
       // Reset form
       setFormData({
-        fullName: '',
+        firstName: '',
+        lastName: '',
         relation: '',
         phone: '',
         email: '',
@@ -123,16 +126,30 @@ export const AddFamilyMemberModal = ({ isOpen, onClose }: AddFamilyMemberModalPr
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
           <div className="grid gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="fullName">שם מלא *</Label>
-              <Input
-                id="fullName"
-                value={formData.fullName}
-                onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                placeholder="הזן שם מלא"
-                required
-                disabled={isSubmitting}
-              />
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">שם פרטי *</Label>
+                <Input
+                  id="firstName"
+                  value={formData.firstName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                  placeholder="הזן שם פרטי"
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="lastName">שם משפחה *</Label>
+                <Input
+                  id="lastName"
+                  value={formData.lastName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                  placeholder="הזן שם משפחה"
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
             </div>
 
             <div className="space-y-2">

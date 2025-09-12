@@ -19,7 +19,8 @@ interface FamilyMemberSignupProps {
 
 export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberSignupProps) {
   const [formData, setFormData] = useState({
-    fullName: '',
+    firstName: '',
+    lastName: '',
     email: '', 
     password: '',
     confirmPassword: '',
@@ -84,7 +85,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
   const handleStep2Submit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.fullName.trim() || !formData.phone.trim() || !formData.ownerEmail.trim() || !formData.relationshipToPrimary || !formData.gender) {
+    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.phone.trim() || !formData.ownerEmail.trim() || !formData.relationshipToPrimary || !formData.gender) {
       toast.error('יש למלא את כל השדות הנדרשים');
       return;
     }
@@ -122,7 +123,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
-            full_name: formData.fullName,
+            full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
             phone: formData.phone,
             birth_date: getBirthDate()?.toISOString().split('T')[0] // YYYY-MM-DD format
           }
@@ -141,7 +142,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
       const { error: linkError } = await supabase
         .from('family_links')
         .insert({
-          full_name: formData.fullName,
+          full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
           email: formData.email,
           relation: finalRelationship,
           phone: formData.phone,
@@ -260,16 +261,30 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
             <form onSubmit={handleStep2Submit} className="space-y-6">
               {/* Personal Information */}
               <div className="grid gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">שם מלא *</Label>
-                  <Input
-                    id="fullName"
-                    value={formData.fullName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                    placeholder="הזן שם מלא"
-                    required
-                    disabled={isLoading}
-                  />
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">שם פרטי *</Label>
+                    <Input
+                      id="firstName"
+                      value={formData.firstName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                      placeholder="הזן שם פרטי"
+                      required
+                      disabled={isLoading}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">שם משפחה *</Label>
+                    <Input
+                      id="lastName"
+                      value={formData.lastName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                      placeholder="הזן שם משפחה"
+                      required
+                      disabled={isLoading}
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
