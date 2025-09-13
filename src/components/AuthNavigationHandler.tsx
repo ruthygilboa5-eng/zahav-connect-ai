@@ -17,26 +17,19 @@ export const AuthNavigationHandler = () => {
     const currentPath = location.pathname;
 
     if (!authState.isAuthenticated) {
-      // Not authenticated - allow public paths (including family auth/signup)
+      // Not authenticated - don't redirect from root path, allow users to see home options
       const publicPaths = ['/', '/admin-login', '/admin-setup', '/family-auth', '/register-family-member'] as const;
       if (!publicPaths.includes(currentPath as typeof publicPaths[number])) {
         navigate('/', { replace: true });
       }
     } else {
-      // Authenticated - navigate based on role
-      if (authState.role === 'MAIN_USER') {
-        // Primary user should go to /home
-        if (currentPath === '/') {
+      // Authenticated - navigate based on role, but only from root path  
+      if (currentPath === '/') {
+        if (authState.role === 'MAIN_USER') {
           navigate('/home', { replace: true });
-        }
-      } else if (authState.role === 'FAMILY') {
-        // Family member should go to /family
-        if (currentPath === '/') {
+        } else if (authState.role === 'FAMILY') {
           navigate('/family', { replace: true });
-        }
-      } else if (authState.role === 'ADMIN') {
-        // Admin should go to /admin-dashboard
-        if (currentPath === '/' || currentPath === '/admin-login') {
+        } else if (authState.role === 'ADMIN') {
           navigate('/admin-dashboard', { replace: true });
         }
       }

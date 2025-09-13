@@ -41,10 +41,19 @@ const FamilyLinkRequests = () => {
         return;
       }
 
+      // Fetch family links that belong to this user by owner_user_id or by matching email
+      const { data: userProfile } = await supabase
+        .from('user_profiles')
+        .select('email')
+        .eq('user_id', authState.user.id)
+        .maybeSingle();
+
+      const userEmail = userProfile?.email || authState.user.email;
+
       const { data, error } = await supabase
         .from('family_links')
         .select('*')
-        .or(`owner_user_id.eq.${authState.user.id},and(owner_user_id.is.null,owner_phone.not.is.null)`)
+        .or(`owner_user_id.eq.${authState.user.id},owner_email.eq.${userEmail}`)
         .eq('status', 'PENDING')
         .order('created_at', { ascending: false });
 

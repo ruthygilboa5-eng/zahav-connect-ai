@@ -168,6 +168,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         throw new Error(`שגיאה ביצירת קשר משפחתי: ${linkError.message}`);
       }
       
+      toast.success(`הרשמה הושלמה בהצלחה!`);
       toast.success(`בקשת הצטרפות נשלחה בהצלחה ל${formData.ownerEmail}`);
       toast.info('תקבל הודעה כאשר המשתמש הראשי יאשר את הבקשה');
       
