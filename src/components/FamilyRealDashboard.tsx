@@ -282,7 +282,7 @@ const FamilyRealDashboard = () => {
             </h1>
             {mainUserProfile && (
               <p className="text-muted-foreground">
-                מחובר לחשבון של {mainUserProfile.display_name || `${mainUserProfile.first_name} ${mainUserProfile.last_name}`}
+                מחובר/ת לחשבון של {mainUserProfile.display_name || `${mainUserProfile.first_name} ${mainUserProfile.last_name}`}
               </p>
             )}
           </div>

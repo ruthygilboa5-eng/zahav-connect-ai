@@ -3,12 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/providers/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Save, User } from 'lucide-react';
+import { useFamilyPermissions } from '@/hooks/useFamilyPermissions';
+import { ArrowRight, Save, User, Shield, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 
 interface FamilyMemberData {
   id: string;
@@ -20,10 +22,23 @@ interface FamilyMemberData {
   owner_user_id: string;
 }
 
+interface Permission {
+  id: string;
+  feature: string;
+  status: 'pending' | 'approved' | 'rejected';
+  created_at: string;
+}
+
 const FamilyProfileRealDashboard = () => {
   const { authState } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { 
+    requestPermission, 
+    getPermissionStatus, 
+    loading: permissionsLoading,
+    permissions 
+  } = useFamilyPermissions();
   const [memberData, setMemberData] = useState<FamilyMemberData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -127,6 +142,31 @@ const FamilyProfileRealDashboard = () => {
       ...prev,
       [field]: value
     }));
+  };
+
+  const getFeatureDisplayName = (feature: string) => {
+    const names: Record<string, string> = {
+      'memories': 'זיכרונות',
+      'games': 'משחקים',
+      'reminders': 'תזכורות',
+      'emergency': 'חירום',
+      'contacts': 'אנשי קשר',
+      'wakeup': 'התעוררות'
+    };
+    return names[feature] || feature;
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="secondary" className="text-yellow-600">ממתין לאישור</Badge>;
+      case 'approved':
+        return <Badge variant="default" className="text-green-600 bg-green-100">אושר ✔️</Badge>;
+      case 'rejected':
+        return <Badge variant="destructive" className="text-red-600">נדחה ❌</Badge>;
+      default:
+        return <Badge variant="outline">לא התבקש</Badge>;
+    }
   };
 
   if (loading) {
@@ -286,6 +326,62 @@ const FamilyProfileRealDashboard = () => {
                 <Save className="h-4 w-4" />
                 {saving ? 'שומר...' : 'שמור שינויים'}
               </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Permissions Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              הרשאות המערכת
+            </CardTitle>
+            <CardDescription>
+              כאן תוכל לראות את סטטוס ההרשאות שלך ולבקש הרשאות חדשות
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {['memories', 'games', 'reminders', 'emergency', 'contacts', 'wakeup'].map((feature) => {
+                const status = getPermissionStatus(feature);
+                return (
+                  <div key={feature} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <p className="font-medium">{getFeatureDisplayName(feature)}</p>
+                        <p className="text-sm text-muted-foreground">
+                          גישה לפיצ'ר {getFeatureDisplayName(feature)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {getStatusBadge(status)}
+                      {status === 'rejected' && (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => requestPermission(feature)}
+                          disabled={permissionsLoading}
+                          className="flex items-center gap-1"
+                        >
+                          <RefreshCw className="h-3 w-3" />
+                          בקש שוב
+                        </Button>
+                      )}
+                      {status === 'none' && (
+                        <Button 
+                          size="sm" 
+                          onClick={() => requestPermission(feature)}
+                          disabled={permissionsLoading}
+                        >
+                          בקש הרשאה
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
