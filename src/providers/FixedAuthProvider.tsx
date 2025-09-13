@@ -54,35 +54,47 @@ export const FixedAuthProvider = ({ children }: FixedAuthProviderProps) => {
   useEffect(() => {
     console.log('FixedAuthProvider useEffect mounting');
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state change:', event, 'session exists:', !!session);
-        
-        if (session?.user) {
-          // User is authenticated, determine role from database
-          try {
-            const { data: roleData } = await supabase
-              .from('user_roles')
-              .select('role')
-              .eq('user_id', session.user.id)
-              .maybeSingle();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state change:', event, 'session exists:', !!session);
+      
+      if (session?.user) {
+        // Set basic auth state immediately (no async work here)
+        setAuthState(prev => ({
+          ...prev,
+          isAuthenticated: true,
+          user: session.user!,
+          session,
+        }));
 
-            const { data: profile } = await supabase
-              .from('user_profiles')
-              .select('first_name')
-              .eq('user_id', session.user.id)
-              .maybeSingle();
+        // Defer Supabase calls to avoid deadlocks in the auth callback
+        setTimeout(async () => {
+          try {
+            const [roleRes, profileRes] = await Promise.all([
+              supabase
+                .from('user_roles')
+                .select('role')
+                .eq('user_id', session.user!.id)
+                .maybeSingle(),
+              supabase
+                .from('user_profiles')
+                .select('first_name')
+                .eq('user_id', session.user!.id)
+                .maybeSingle(),
+            ]);
+
+            const roleData = roleRes.data;
+            const profile = profileRes.data;
 
             const userRole = roleData?.role === 'primary_user' ? 'MAIN_USER' : 
-                           (roleData?.role as string) === 'admin' ? 'ADMIN' : 'FAMILY';
+                             (roleData?.role as string) === 'admin' ? 'ADMIN' : 'FAMILY';
             const firstName = profile?.first_name || '';
 
-            console.log('Setting auth state for user:', session.user.id, 'role:', userRole);
+            console.log('Setting auth state for user:', session.user!.id, 'role:', userRole);
             setAuthState({
               isAuthenticated: true,
               role: userRole,
               firstName,
-              user: session.user,
+              user: session.user!,
               session,
               memberId: userRole === 'FAMILY' ? 'family-1' : undefined,
               scopes: userRole === 'FAMILY' ? ['POST_MEDIA', 'SUGGEST_REMINDER', 'INVITE_GAME', 'CHAT'] : undefined
@@ -94,27 +106,29 @@ export const FixedAuthProvider = ({ children }: FixedAuthProviderProps) => {
               isAuthenticated: true,
               role: 'FAMILY',
               firstName: '',
-              user: session.user,
+              user: session.user!,
               session,
               memberId: 'family-1',
               scopes: ['POST_MEDIA', 'SUGGEST_REMINDER', 'INVITE_GAME', 'CHAT']
             });
+          } finally {
+            setLoading(false);
           }
-        } else {
-          console.log('No session, clearing auth state');
-          setAuthState({
-            isAuthenticated: false,
-            role: null,
-            firstName: '',
-            user: null,
-            session: null,
-            memberId: undefined,
-            scopes: undefined
-          });
-        }
+        }, 0);
+      } else {
+        console.log('No session, clearing auth state');
+        setAuthState({
+          isAuthenticated: false,
+          role: null,
+          firstName: '',
+          user: null,
+          session: null,
+          memberId: undefined,
+          scopes: undefined
+        });
         setLoading(false);
       }
-    );
+    });
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {

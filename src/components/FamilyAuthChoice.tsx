@@ -44,7 +44,7 @@ const FamilyAuthChoice: React.FC<FamilyAuthChoiceProps> = ({ onBack }) => {
           .select('status')
           .eq('member_user_id', data.user.id)
           .eq('status', 'APPROVED')
-          .single();
+          .maybeSingle();
 
         if (familyLink) {
           navigate('/family');

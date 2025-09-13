@@ -18,6 +18,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import { OTPCountdown } from '@/components/OTPCountdown';
 import { OTP_EXPIRY_MINUTES, isOTPExpired } from '@/config/otp';
 import { genderLabels } from "@/types/database";
+import { useNavigate } from 'react-router-dom';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -51,6 +52,8 @@ export const AuthModal = ({ isOpen, onClose, defaultRole = 'MAIN_USER' }: AuthMo
   const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
   const [gender, setGender] = useState<'male' | 'female' | 'prefer_not_to_say' | ''>('');
 
+const navigate = useNavigate();
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -70,6 +73,7 @@ export const AuthModal = ({ isOpen, onClose, defaultRole = 'MAIN_USER' }: AuthMo
           description: 'ברוך הבא למערכת!',
         });
         onClose();
+        navigate('/home', { replace: true });
       }
     } catch (err: any) {
       setError('שגיאה בהתחברות. אנא נסה שוב.');
@@ -134,6 +138,7 @@ export const AuthModal = ({ isOpen, onClose, defaultRole = 'MAIN_USER' }: AuthMo
           description: 'ברוך הבא למערכת!',
         });
         onClose();
+        navigate('/home', { replace: true });
       }
     } catch (err: any) {
       setError('שגיאה באימות הקוד. אנא נסה שוב.');
