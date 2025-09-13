@@ -125,7 +125,8 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
           data: {
             full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
             phone: formData.phone,
-            birth_date: getBirthDate()?.toISOString().split('T')[0] // YYYY-MM-DD format
+            birth_date: getBirthDate()?.toISOString().split('T')[0], // YYYY-MM-DD format
+            is_family: true // Ensure role assignment via trigger
           }
         }
       });

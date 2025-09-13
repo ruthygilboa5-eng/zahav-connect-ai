@@ -99,17 +99,29 @@ const FamilyLinkRequests = () => {
 
   const handleApproveLink = async (requestId: string) => {
     try {
-      const defaultScopes = ['POST_MEDIA', 'SHARE_STORY', 'SUGGEST_REMINDER', 'INVITE_GAME', 'CHAT'];
+      const defaultScopes = ['POST_MEDIA', 'POST_STORY', 'SUGGEST_REMINDER', 'INVITE_GAME', 'CHAT'];
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('family_links')
         .update({ 
           status: 'APPROVED',
           scopes: defaultScopes
         })
-        .eq('id', requestId);
+        .eq('id', requestId)
+        .select('member_user_id')
+        .maybeSingle();
 
       if (error) throw error;
+
+      // Ensure the approved member has the correct family role
+      if (data?.member_user_id) {
+        await supabase
+          .from('user_roles')
+          .upsert(
+            [{ user_id: data.member_user_id, role: 'family_member', granted_by_user_id: authState.user?.id || null }],
+            { onConflict: 'user_id,role', ignoreDuplicates: true }
+          );
+      }
 
       toast({
         title: 'הצלחה',
@@ -126,7 +138,6 @@ const FamilyLinkRequests = () => {
       });
     }
   };
-
   const handleRejectLink = async (requestId: string) => {
     try {
       const { error } = await supabase

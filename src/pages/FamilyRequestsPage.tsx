@@ -19,6 +19,7 @@ interface FamilyRequest {
   status: 'PENDING' | 'APPROVED' | 'DECLINED';
   created_at: string;
   scopes: string[];
+  member_user_id?: string;
 }
 
 const FamilyRequestsPage = () => {
@@ -73,18 +74,34 @@ const FamilyRequestsPage = () => {
   const handleApprove = async (requestId: string) => {
     setActionLoading(requestId);
     try {
-      const { error } = await supabase
+      // Approve the link and claim ownership
+      const { data: updated, error } = await supabase
         .from('family_links')
         .update({ 
           status: 'APPROVED',
           owner_user_id: authState.user?.id 
         })
-        .eq('id', requestId);
+        .eq('id', requestId)
+        .select('member_user_id')
+        .maybeSingle();
 
       if (error) {
         console.error('Error approving request:', error);
         toast.error('שגיאה באישור הבקשה');
         return;
+      }
+
+      // Ensure the approved member has the correct "family_member" role
+      if (updated?.member_user_id) {
+        const { error: roleErr } = await supabase
+          .from('user_roles')
+          .upsert(
+            [{ user_id: updated.member_user_id, role: 'family_member', granted_by_user_id: authState.user?.id || null }],
+            { onConflict: 'user_id,role', ignoreDuplicates: true }
+          );
+        if (roleErr) {
+          console.warn('Failed to upsert family_member role (non-blocking):', roleErr);
+        }
       }
 
       toast.success('הבקשה אושרה בהצלחה');
@@ -96,7 +113,6 @@ const FamilyRequestsPage = () => {
       setActionLoading(null);
     }
   };
-
   const handleDecline = async (requestId: string) => {
     setActionLoading(requestId);
     try {

@@ -109,8 +109,12 @@ const App = () => {
                              </ProtectedRoute>
                            } />
                            
-                           {/* Clean redirects for removed routes */}
-                           <Route path="/review" element={<Navigate to="/" replace />} />
+                           {/* Family Content Review - Main User Only */}
+                           <Route path="/review" element={
+                             <ProtectedRoute requiredRole="MAIN_USER">
+                               <ReviewPage />
+                             </ProtectedRoute>
+                           } />
                           
                           <Route path="*" element={<NotFound />} />
                         </Routes>

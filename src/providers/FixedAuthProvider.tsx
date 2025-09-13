@@ -69,12 +69,11 @@ export const FixedAuthProvider = ({ children }: FixedAuthProviderProps) => {
         // Defer Supabase calls to avoid deadlocks in the auth callback
         setTimeout(async () => {
           try {
-            const [roleRes, profileRes] = await Promise.all([
+            const [rolesRes, profileRes] = await Promise.all([
               supabase
                 .from('user_roles')
                 .select('role')
-                .eq('user_id', session.user!.id)
-                .maybeSingle(),
+                .eq('user_id', session.user!.id),
               supabase
                 .from('user_profiles')
                 .select('first_name')
@@ -82,11 +81,16 @@ export const FixedAuthProvider = ({ children }: FixedAuthProviderProps) => {
                 .maybeSingle(),
             ]);
 
-            const roleData = roleRes.data;
+            const roles = (rolesRes.data || []).map(r => r.role as string);
             const profile = profileRes.data;
 
-            const userRole = roleData?.role === 'primary_user' ? 'MAIN_USER' : 
-                             (roleData?.role as string) === 'admin' ? 'ADMIN' : 'FAMILY';
+            // Role precedence: admin > family_member > primary_user
+            let userRole: Role = null;
+            if (roles.includes('admin')) userRole = 'ADMIN';
+            else if (roles.includes('family_member')) userRole = 'FAMILY';
+            else if (roles.includes('primary_user')) userRole = 'MAIN_USER';
+            else userRole = 'FAMILY';
+
             const firstName = profile?.first_name || '';
 
             console.log('Setting auth state for user:', session.user!.id, 'role:', userRole);
