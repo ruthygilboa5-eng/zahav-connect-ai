@@ -65,15 +65,15 @@ const App = () => {
                           <Route path="/admin-setup" element={<AdminSetupPage />} />
                           
                           {/* Family Auth Routes */}
-                          <Route path="/family-auth" element={
-                            <FamilyAuthChoice onBack={() => window.location.href = '/'} />
-                          } />
-                          <Route path="/register-family-member" element={
-                            <FamilyMemberSignup 
-                              onComplete={() => window.location.href = '/'}
-                              onBack={() => window.location.href = '/family-auth'}
-                            />
-                          } />
+                           <Route path="/family-auth" element={
+                             <FamilyAuthChoice onBack={() => window.history.back()} />
+                           } />
+                           <Route path="/register-family-member" element={
+                             <FamilyMemberSignup 
+                               onComplete={() => window.location.href = '/'}
+                               onBack={() => window.location.href = '/family-auth'}
+                             />
+                           } />
                           
                           {/* Family Requests Management - Main User Only */}
                           <Route path="/family-requests" element={

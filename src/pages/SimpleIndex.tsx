@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Users, Heart, LogIn, Play, UserPlus, Lock } from 'lucide-react';
 import { useAuth } from '@/providers/FixedAuthProvider';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { AuthModal } from '@/components/AuthModal';
 
 const SimpleIndex = () => {
@@ -13,12 +13,6 @@ const SimpleIndex = () => {
   const [authModalRole, setAuthModalRole] = useState<'MAIN_USER' | 'FAMILY'>('MAIN_USER');
 
   console.log('SimpleIndex rendering, authState:', authState);
-
-  // If already authenticated, redirect
-  if (authState.isAuthenticated) {
-    const targetPath = authState.role === 'MAIN_USER' ? '/home' : '/family';
-    return <Navigate to={targetPath} replace />;
-  }
 
   const handleMainUserDemo = () => {
     console.log('Demo login as main user');
