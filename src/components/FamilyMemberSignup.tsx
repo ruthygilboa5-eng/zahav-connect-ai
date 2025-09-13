@@ -147,6 +147,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
           relation: finalRelationship,
           phone: formData.phone,
           owner_email: formData.ownerEmail,
+          member_user_id: data.user?.id,
           scopes: selectedScopes,
           status: 'PENDING',
           relationship_to_primary_user: finalRelationship,
@@ -155,7 +156,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
 
       if (linkError) {
         console.error('Error creating family link:', linkError);
-        throw new Error('שגיאה ביצירת קשר משפחתי');
+        throw new Error(`שגיאה ביצירת קשר משפחתי: ${linkError.message}`);
       }
       
       toast.success(`בקשת הצטרפות נשלחה בהצלחה ל${formData.ownerEmail}`);

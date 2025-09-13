@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -189,8 +189,10 @@ const FamilyAuthChoice: React.FC<FamilyAuthChoiceProps> = ({ onBack }) => {
   }
 
   if (mode === 'register') {
-    // Redirect to registration page
-    navigate('/register-family-member');
+    // Use useEffect to handle navigation properly
+    useEffect(() => {
+      navigate('/register-family-member');
+    }, [navigate]);
     return null;
   }
 
