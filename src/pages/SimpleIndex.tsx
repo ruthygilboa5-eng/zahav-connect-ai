@@ -17,11 +17,13 @@ const SimpleIndex = () => {
   const handleMainUserDemo = () => {
     console.log('Demo login as main user');
     loginAsMainUser('משתמש ראשי');
+    navigate('/home');
   };
 
   const handleFamilyDemo = () => {
     console.log('Demo login as family member');
     loginAsFamily('בן משפחה');
+    navigate('/family');
   };
 
   const handleMainUserAuth = () => {
