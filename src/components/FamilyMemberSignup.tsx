@@ -148,21 +148,43 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         console.error('Error finding owner user:', ownerError);
       }
 
-      const { error: linkError } = await supabase
-        .from('family_links')
-        .insert({
-          full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
-          email: formData.email,
-          relation: finalRelationship,
-          phone: formData.phone,
-          owner_email: formData.ownerEmail,
-          owner_user_id: ownerData || null, // Use the found owner user ID
-          member_user_id: data.user?.id,
-          scopes: selectedScopes,
-          status: 'PENDING',
-          relationship_to_primary_user: finalRelationship,
-          gender: formData.gender
-        });
+        const { error: linkError } = await supabase
+          .from('family_links')
+          .insert({
+            full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+            email: formData.email,
+            relation: finalRelationship,
+            phone: formData.phone,
+            owner_email: formData.ownerEmail,
+            owner_user_id: ownerData || null, // Use the found owner user ID
+            member_user_id: data.user?.id,
+            scopes: selectedScopes,
+            status: 'PENDING',
+            relationship_to_primary_user: finalRelationship,
+            gender: formData.gender
+          });
+
+        // Create permission requests for the selected scopes
+        if (!linkError && selectedScopes.length > 0) {
+          const { data: linkData } = await supabase
+            .from('family_links')
+            .select('id')
+            .eq('member_user_id', data.user?.id)
+            .single();
+
+          if (linkData) {
+            const permissionRequests = selectedScopes.map(scope => ({
+              owner_user_id: ownerData || null,
+              family_link_id: linkData.id,
+              scope: scope,
+              status: 'PENDING' as const
+            }));
+
+            await supabase
+              .from('family_permission_requests')
+              .insert(permissionRequests);
+          }
+        }
 
       if (linkError) {
         console.error('Error creating family link:', linkError);

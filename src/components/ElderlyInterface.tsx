@@ -74,6 +74,9 @@ const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
       case 'family-board':
         navigate('/family-board');
         break;
+      case 'permission-requests':
+        navigate('/permission-requests');
+        break;
       default:
         console.log(`No navigation defined for action: ${action}`);
     }
@@ -248,6 +251,16 @@ const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
           <Clock className="w-5 h-5" />
           אישור תוכן משפחתי
           <NotificationBadge />
+        </Button>
+
+        <Button
+          variant="outline"
+          size="lg"
+          onClick={() => navigate('/permission-requests')}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+        >
+          <Shield className="w-5 h-5" />
+          בקשות הרשאות משפחה
         </Button>
       </div>
 

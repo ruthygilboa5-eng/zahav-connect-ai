@@ -89,7 +89,7 @@ export const FixedAuthProvider = ({ children }: FixedAuthProviderProps) => {
             if (roles.includes('admin')) userRole = 'ADMIN';
             else if (roles.includes('family_member')) userRole = 'FAMILY';
             else if (roles.includes('primary_user')) userRole = 'MAIN_USER';
-            else userRole = 'FAMILY';
+            else userRole = 'MAIN_USER'; // Default to MAIN_USER for users without explicit roles
 
             const firstName = profile?.first_name || '';
 

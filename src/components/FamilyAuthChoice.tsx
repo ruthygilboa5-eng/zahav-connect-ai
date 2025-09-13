@@ -54,16 +54,19 @@ const FamilyAuthChoice: React.FC<FamilyAuthChoiceProps> = ({ onBack }) => {
           .eq('user_id', data.user.id);
 
         const roles = (rolesData || []).map(r => r.role as string);
-        if (roles.includes('family_member')) {
-          navigate('/family', { replace: true });
-          return;
-        }
+        
+        // Navigate based on role priority
         if (roles.includes('admin') || roles.includes('primary_user')) {
           navigate('/home', { replace: true });
           return;
         }
+        
+        if (roles.includes('family_member')) {
+          navigate('/family', { replace: true });
+          return;
+        }
 
-        // Fallback: check approved family link
+        // Fallback: check approved family link for users without explicit roles
         const { data: familyLink } = await supabase
           .from('family_links')
           .select('status')
@@ -72,6 +75,7 @@ const FamilyAuthChoice: React.FC<FamilyAuthChoiceProps> = ({ onBack }) => {
           .maybeSingle();
 
         if (familyLink) {
+          // User has approved family link but no explicit role - navigate to family
           navigate('/family', { replace: true });
         } else {
           setError('החשבון שלך עדיין ממתין לאישור מהמשתמש הראשי');

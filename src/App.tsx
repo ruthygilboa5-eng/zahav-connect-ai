@@ -24,6 +24,7 @@ import FamilyPage from "./pages/FamilyPage";
 import NotFound from "./pages/NotFound";
 import { FamilyAuthChoiceWrapper, FamilyMemberSignupWrapper } from "./components/FamilyRouteWrappers";
 import FamilyRequestsPage from "./pages/FamilyRequestsPage";
+import PermissionRequestsPage from "./pages/PermissionRequestsPage";
 import AdminPage from "./pages/AdminPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import AdminSetupPage from "./pages/AdminSetupPage";
@@ -113,6 +114,13 @@ const App = () => {
                            <Route path="/review" element={
                              <ProtectedRoute requiredRole="MAIN_USER">
                                <ReviewPage />
+                             </ProtectedRoute>
+                           } />
+                           
+                           {/* Permission Requests - Main User Only */}
+                           <Route path="/permission-requests" element={
+                             <ProtectedRoute requiredRole="MAIN_USER">
+                               <PermissionRequestsPage />
                              </ProtectedRoute>
                            } />
                           

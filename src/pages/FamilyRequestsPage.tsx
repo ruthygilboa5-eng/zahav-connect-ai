@@ -41,28 +41,29 @@ const FamilyRequestsPage = () => {
     try {
       if (!authState.user) return;
 
-        // Get user profile to find their email
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('email')
-          .eq('user_id', authState.user.id)
-          .single();
+      // Get user profile to find their email
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('email')
+        .eq('user_id', authState.user.id)
+        .single();
 
-        const userEmail = profile?.email || authState.user.email;
-        
-        const { data: familyLinks, error } = await supabase
-          .from('family_links')
-          .select('*')
-          .eq('owner_email', userEmail)
-          .order('created_at', { ascending: false });
+      const userEmail = profile?.email || authState.user.email;
+      
+      // Fetch family links that belong to this user as owner
+      const { data: familyLinks, error } = await supabase
+        .from('family_links')
+        .select('*')
+        .or(`owner_user_id.eq.${authState.user.id},owner_email.eq.${userEmail}`)
+        .order('created_at', { ascending: false });
 
-        if (error) {
-          console.error('Error fetching family requests:', error);
-          toast.error('שגיאה בטעינת בקשות המשפחה');
-          return;
-        }
+      if (error) {
+        console.error('Error fetching family requests:', error);
+        toast.error('שגיאה בטעינת בקשות המשפחה');
+        return;
+      }
 
-        setRequests((familyLinks || []) as FamilyRequest[]);
+      setRequests((familyLinks || []) as FamilyRequest[]);
     } catch (error) {
       console.error('Error in fetchRequests:', error);
       toast.error('שגיאה בטעינת בקשות המשפחה');
