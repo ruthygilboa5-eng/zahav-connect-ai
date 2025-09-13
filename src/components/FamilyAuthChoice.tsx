@@ -24,6 +24,12 @@ const FamilyAuthChoice: React.FC<FamilyAuthChoiceProps> = ({ onBack }) => {
 
   // Remove automatic redirection - let users access family-auth page even if authenticated
 
+  useEffect(() => {
+    if (mode === 'register') {
+      navigate('/register-family-member');
+    }
+  }, [mode, navigate]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -192,13 +198,6 @@ const FamilyAuthChoice: React.FC<FamilyAuthChoiceProps> = ({ onBack }) => {
     );
   }
 
-  if (mode === 'register') {
-    // Navigate immediately without useEffect to avoid state update during render
-    React.useLayoutEffect(() => {
-      navigate('/register-family-member');
-    }, [navigate]);
-    return null;
-  }
 
   return null;
 };
