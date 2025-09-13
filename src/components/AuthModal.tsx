@@ -68,13 +68,13 @@ const navigate = useNavigate();
 
     const roles = (rolesData || []).map(r => r.role as string);
 
-    // Priority: admin/primary_user -> /home, family_member -> /family
-    if (roles.includes('admin') || roles.includes('primary_user')) {
-      navigate('/home', { replace: true });
-      return;
-    }
+    // Priority: family_member -> /family, then admin/primary_user -> /home
     if (roles.includes('family_member')) {
       navigate('/family', { replace: true });
+      return;
+    }
+    if (roles.includes('admin') || roles.includes('primary_user')) {
+      navigate('/home', { replace: true });
       return;
     }
 

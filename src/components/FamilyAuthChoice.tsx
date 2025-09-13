@@ -55,14 +55,13 @@ const FamilyAuthChoice: React.FC<FamilyAuthChoiceProps> = ({ onBack }) => {
 
         const roles = (rolesData || []).map(r => r.role as string);
         
-        // Navigate based on role priority
-        if (roles.includes('admin') || roles.includes('primary_user')) {
-          navigate('/home', { replace: true });
-          return;
-        }
-        
+        // Navigate based on role priority (prefer family dashboard if the user has both roles)
         if (roles.includes('family_member')) {
           navigate('/family', { replace: true });
+          return;
+        }
+        if (roles.includes('admin') || roles.includes('primary_user')) {
+          navigate('/home', { replace: true });
           return;
         }
 
