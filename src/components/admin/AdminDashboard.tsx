@@ -284,6 +284,15 @@ export const AdminDashboard = () => {
         onClose={handleCloseWelcome} 
       />
       
+      {/* Demo Mode Banner */}
+      <div className="w-full bg-yellow-50 border-b border-yellow-200 py-2">
+        <div className="container mx-auto px-4">
+          <p className="text-center text-sm text-yellow-800 font-medium">
+            🟡 מצב דמו – נתונים לדוגמה בלבד
+          </p>
+        </div>
+      </div>
+      
       <div className="container mx-auto py-6 space-y-6" dir="rtl">
       <div className="flex justify-between items-center">
         <div>

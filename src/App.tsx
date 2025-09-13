@@ -21,11 +21,13 @@ import GamesPage from "./pages/GamesPage";
 import FamilyBoardPage from "./pages/FamilyBoardPage";
 import FamilyManagementPage from "./pages/FamilyManagementPage";
 import FamilyPage from "./pages/FamilyPage";
+import FamilyRealPage from "./pages/FamilyRealPage";
 import NotFound from "./pages/NotFound";
 import { FamilyAuthChoiceWrapper, FamilyMemberSignupWrapper } from "./components/FamilyRouteWrappers";
 import FamilyRequestsPage from "./pages/FamilyRequestsPage";
 import PermissionRequestsPage from "./pages/PermissionRequestsPage";
 import AdminPage from "./pages/AdminPage";
+import AdminRealPage from "./pages/AdminRealPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import AdminSetupPage from "./pages/AdminSetupPage";
 import { AuthNavigationHandler } from "./components/AuthNavigationHandler";
@@ -65,27 +67,36 @@ const App = () => {
                           <Route path="/admin-setup" element={<AdminSetupPage />} />
                           
                            {/* Family Auth Routes */}
-                            <Route path="/family-auth" element={<FamilyAuthChoiceWrapper />} />
-                            <Route path="/register-family-member" element={<FamilyMemberSignupWrapper />} />
-                          
-                          {/* Family Requests Management - Main User Only */}
-                          <Route path="/family-requests" element={
-                            <ProtectedRoute requiredRole="MAIN_USER">
-                              <FamilyRequestsPage />
-                            </ProtectedRoute>
-                          } />
-                          
-                          {/* Protected Routes - Role-based content */}
-                          <Route path="/home" element={
-                            <ProtectedRoute requiredRole="MAIN_USER">
-                              <HomePage />
-                            </ProtectedRoute>
-                          } />
-                          <Route path="/family" element={
-                            <ProtectedRoute requiredRole="FAMILY">
-                              <FamilyPage />
-                            </ProtectedRoute>
-                          } />
+                             <Route path="/family-auth" element={<FamilyAuthChoiceWrapper />} />
+                             <Route path="/register-family-member" element={<FamilyMemberSignupWrapper />} />
+                           
+                           {/* Family Requests Management - Main User Only */}
+                           <Route path="/family-requests" element={
+                             <ProtectedRoute requiredRole="MAIN_USER">
+                               <FamilyRequestsPage />
+                             </ProtectedRoute>
+                           } />
+                           
+                           {/* Protected Routes - Role-based content */}
+                           <Route path="/home" element={
+                             <ProtectedRoute requiredRole="MAIN_USER">
+                               <HomePage />
+                             </ProtectedRoute>
+                           } />
+                           
+                           {/* Demo Family Page */}
+                           <Route path="/family" element={
+                             <ProtectedRoute requiredRole="FAMILY">
+                               <FamilyPage />
+                             </ProtectedRoute>
+                           } />
+                           
+                           {/* Real Family Page */}
+                           <Route path="/family-real" element={
+                             <ProtectedRoute requiredRole="FAMILY">
+                               <FamilyRealPage />
+                             </ProtectedRoute>
+                           } />
                           
                           {/* Shared Routes */}
                           <Route path="/memories" element={<MemoriesPage />} />
@@ -103,12 +114,19 @@ const App = () => {
                              </ProtectedRoute>
                            } />
                            
-                           {/* Admin Dashboard - Admin Only */}
-                           <Route path="/admin-dashboard" element={
-                             <ProtectedRoute requiredRole="ADMIN">
-                               <AdminPage />
-                             </ProtectedRoute>
-                           } />
+                            {/* Demo Admin Dashboard - Admin Only */}
+                            <Route path="/admin-dashboard" element={
+                              <ProtectedRoute requiredRole="ADMIN">
+                                <AdminPage />
+                              </ProtectedRoute>
+                            } />
+                            
+                            {/* Real Admin Dashboard - Admin Only */}
+                            <Route path="/admin-dashboard-real" element={
+                              <ProtectedRoute requiredRole="ADMIN">
+                                <AdminRealPage />
+                              </ProtectedRoute>
+                            } />
                            
                            {/* Family Content Review - Main User Only */}
                            <Route path="/review" element={

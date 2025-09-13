@@ -19,6 +19,7 @@ import { OTPCountdown } from '@/components/OTPCountdown';
 import { OTP_EXPIRY_MINUTES, isOTPExpired } from '@/config/otp';
 import { genderLabels } from "@/types/database";
 import { useNavigate } from 'react-router-dom';
+import { DEV_MODE_DEMO } from '@/config/dev';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -54,43 +55,50 @@ export const AuthModal = ({ isOpen, onClose, defaultRole = 'MAIN_USER' }: AuthMo
 
 const navigate = useNavigate();
 
-  const navigateAfterLogin = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      navigate('/', { replace: true });
-      return;
-    }
+  const navigateAfterLogin = async (user: any) => {
+    if (!user?.id) return;
 
-    const { data: rolesData } = await supabase
+    // Check user roles from database
+    const { data: rolesData, error: rolesError } = await supabase
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id);
 
-    const roles = (rolesData || []).map(r => r.role as string);
-
-    // Priority: family_member -> /family, then admin/primary_user -> /home
-    if (roles.includes('family_member')) {
-      navigate('/family', { replace: true });
-      return;
-    }
-    if (roles.includes('admin') || roles.includes('primary_user')) {
+    if (rolesError) {
+      console.error('Error fetching user roles:', rolesError);
       navigate('/home', { replace: true });
       return;
     }
 
-    // Fallback: approved family link
-    const { data: familyLink } = await supabase
+    const roles = (rolesData || []).map(r => r.role as string);
+
+    // Check if user is an approved family member (for users without explicit roles)
+    const { data: familyLink, error: familyError } = await supabase
       .from('family_links')
       .select('status')
       .eq('member_user_id', user.id)
       .eq('status', 'APPROVED')
-      .maybeSingle();
+      .single();
 
-    if (familyLink) {
-      navigate('/family', { replace: true });
-    } else {
-      navigate('/', { replace: true });
+    // Determine navigation path based on user type
+    const isRealUser = !DEV_MODE_DEMO; // Real users are those not in demo mode
+    
+    // Priority: family_member -> /family-real or /family, then admin/primary_user -> /admin-dashboard-real or /home
+    if (roles.includes('family_member') || (!familyError && familyLink)) {
+      navigate(isRealUser ? '/family-real' : '/family', { replace: true });
+      return;
     }
+    if (roles.includes('admin')) {
+      navigate(isRealUser ? '/admin-dashboard-real' : '/admin-dashboard', { replace: true });
+      return;
+    }
+    if (roles.includes('primary_user')) {
+      navigate('/home', { replace: true });
+      return;
+    }
+
+    // Default fallback
+    navigate('/home', { replace: true });
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -112,7 +120,8 @@ const navigate = useNavigate();
           description: 'ברוך הבא למערכת!',
         });
         onClose();
-        await navigateAfterLogin();
+        const { data: { user } } = await supabase.auth.getUser();
+        await navigateAfterLogin(user);
       }
     } catch (err: any) {
       setError('שגיאה בהתחברות. אנא נסה שוב.');
@@ -177,7 +186,8 @@ const navigate = useNavigate();
           description: 'ברוך הבא למערכת!',
         });
         onClose();
-        await navigateAfterLogin();
+        const { data: { user } } = await supabase.auth.getUser();
+        await navigateAfterLogin(user);
       }
     } catch (err: any) {
       setError('שגיאה באימות הקוד. אנא נסה שוב.');
