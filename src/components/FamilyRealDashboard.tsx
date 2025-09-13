@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/providers/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
+import { useFamilyPermissions } from '@/hooks/useFamilyPermissions';
 import { 
   Camera, MessageSquare, Calendar, Gamepad2, 
   Heart, Upload, User, Settings, Clock, Shield, CheckCircle, XCircle
@@ -39,6 +41,13 @@ interface Activity {
 const FamilyRealDashboard = () => {
   const { authState } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { 
+    requestPermission, 
+    getPermissionStatus, 
+    hasPermission, 
+    loading: permissionsLoading 
+  } = useFamilyPermissions();
   const [familyLink, setFamilyLink] = useState<FamilyLink | null>(null);
   const [mainUserProfile, setMainUserProfile] = useState<MainUserProfile | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -47,118 +56,11 @@ const FamilyRealDashboard = () => {
   const [uploadType, setUploadType] = useState<'MEDIA' | 'STORY' | 'REMINDER' | 'GAME_INVITE'>('MEDIA');
   const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState(false);
   
-  // Permission states
-  const [permissions, setPermissions] = useState<any[]>([]);
-  const [permissionsLoading, setPermissionsLoading] = useState(true);
+  // Remove the old permission states and functions since we're using the hook now
 
   useEffect(() => {
     loadFamilyData();
-    loadPermissions();
   }, [authState.user?.id]);
-
-  const loadPermissions = async () => {
-    if (!authState.user?.id) return;
-
-    try {
-      setPermissionsLoading(true);
-
-      // Get family link for current user
-      const { data: familyLink, error: linkError } = await supabase
-        .from('family_links')
-        .select('id')
-        .eq('member_user_id', authState.user.id)
-        .single();
-
-      if (linkError || !familyLink) {
-        console.error('Error finding family link:', linkError);
-        return;
-      }
-
-      // Get permissions for this family member
-      const { data: permissionsData, error: permissionsError } = await supabase
-        .from('family_members_permissions')
-        .select('*')
-        .eq('family_member_id', familyLink.id)
-        .order('created_at', { ascending: false });
-
-      if (permissionsError) throw permissionsError;
-
-      setPermissions(permissionsData || []);
-    } catch (error) {
-      console.error('Error loading permissions:', error);
-    } finally {
-      setPermissionsLoading(false);
-    }
-  };
-
-  const requestPermission = async (feature: string) => {
-    if (!authState.user?.id) return;
-
-    try {
-      // Get family link
-      const { data: familyLink, error: linkError } = await supabase
-        .from('family_links')  
-        .select('id')
-        .eq('member_user_id', authState.user.id)
-        .single();
-
-      if (linkError || !familyLink) {
-        throw new Error('לא נמצא קישור משפחתי');
-      }
-
-      // Check if there's already a pending request for this feature
-      const existingRequest = permissions.find(p => 
-        p.feature === feature && p.status === 'pending'
-      );
-
-      if (existingRequest) {
-        toast({
-          title: 'בקשה קיימת',
-          description: 'כבר נשלחה בקשה עבור פיצ\'ר זה וממתינה לאישור',
-          variant: 'default'
-        });
-        return;
-      }
-
-      // Create new permission request
-      const { error } = await supabase
-        .from('family_members_permissions')
-        .insert({
-          family_member_id: familyLink.id,
-          feature,
-          status: 'pending'
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: 'בקשה נשלחה',
-        description: 'בקשתך נשלחה למשתמש הראשי לבדיקה',
-      });
-
-      // Reload permissions
-      await loadPermissions();
-    } catch (error: any) {
-      console.error('Error requesting permission:', error);
-      toast({
-        title: 'שגיאה',
-        description: error.message || 'שגיאה בשליחת הבקשה',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const getPermissionStatus = (feature: string): 'none' | 'pending' | 'approved' | 'rejected' => {
-    const permission = permissions
-      .filter(p => p.feature === feature)
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
-
-    return permission?.status || 'none';
-  };
-
-  const hasPermission = (feature: string): boolean => {
-    return getPermissionStatus(feature) === 'approved';
-  };
 
   const loadFamilyData = async () => {
     if (!authState.user?.id) return;
@@ -386,7 +288,7 @@ const FamilyRealDashboard = () => {
           </div>
           <Button 
             variant="outline" 
-            onClick={() => setIsProfileSettingsOpen(true)}
+            onClick={() => navigate('/family-profile-real')}
             className="flex items-center gap-2"
           >
             <User className="h-4 w-4" />

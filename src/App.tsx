@@ -22,6 +22,7 @@ import FamilyBoardPage from "./pages/FamilyBoardPage";
 import FamilyManagementPage from "./pages/FamilyManagementPage";
 import FamilyPage from "./pages/FamilyPage";
 import FamilyRealPage from "./pages/FamilyRealPage";
+import FamilyProfileRealPage from "./pages/FamilyProfileRealPage";
 import NotFound from "./pages/NotFound";
 import { FamilyAuthChoiceWrapper, FamilyMemberSignupWrapper } from "./components/FamilyRouteWrappers";
 import FamilyRequestsPage from "./pages/FamilyRequestsPage";
@@ -95,6 +96,13 @@ const App = () => {
                            <Route path="/family-real" element={
                              <ProtectedRoute requiredRole="FAMILY">
                                <FamilyRealPage />
+                             </ProtectedRoute>
+                           } />
+                           
+                           {/* Family Profile Page */}
+                           <Route path="/family-profile-real" element={
+                             <ProtectedRoute requiredRole="FAMILY">
+                               <FamilyProfileRealPage />
                              </ProtectedRoute>
                            } />
                           

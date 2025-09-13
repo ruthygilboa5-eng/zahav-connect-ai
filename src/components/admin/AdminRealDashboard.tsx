@@ -70,6 +70,45 @@ export default function AdminRealDashboard() {
   useEffect(() => {
     if (isAdmin) {
       loadDashboardData();
+      
+      // Set up real-time subscription for permission requests
+      const permissionsChannel = supabase
+        .channel('admin-permission-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'family_members_permissions'
+          },
+          (payload) => {
+            console.log('Permission change received:', payload);
+            loadDashboardData(); // Reload data when permissions change
+          }
+        )
+        .subscribe();
+
+      // Set up real-time subscription for family links
+      const familyChannel = supabase
+        .channel('admin-family-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'family_links'
+          },
+          (payload) => {
+            console.log('Family link change received:', payload);
+            loadDashboardData(); // Reload data when family links change
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(permissionsChannel);
+        supabase.removeChannel(familyChannel);
+      };
     }
   }, [isAdmin, getPendingCount]);
 
