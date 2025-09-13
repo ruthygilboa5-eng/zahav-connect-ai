@@ -22,8 +22,7 @@ import FamilyBoardPage from "./pages/FamilyBoardPage";
 import FamilyManagementPage from "./pages/FamilyManagementPage";
 import FamilyPage from "./pages/FamilyPage";
 import NotFound from "./pages/NotFound";
-import FamilyMemberSignup from "./components/FamilyMemberSignup";
-import FamilyAuthChoice from "./components/FamilyAuthChoice";
+import { FamilyAuthChoiceWrapper, FamilyMemberSignupWrapper } from "./components/FamilyRouteWrappers";
 import FamilyRequestsPage from "./pages/FamilyRequestsPage";
 import AdminPage from "./pages/AdminPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
@@ -64,16 +63,9 @@ const App = () => {
                           <Route path="/admin-login" element={<AdminLoginPage />} />
                           <Route path="/admin-setup" element={<AdminSetupPage />} />
                           
-                          {/* Family Auth Routes */}
-                           <Route path="/family-auth" element={
-                             <FamilyAuthChoice onBack={() => window.history.back()} />
-                           } />
-                           <Route path="/register-family-member" element={
-                             <FamilyMemberSignup 
-                               onComplete={() => window.location.href = '/'}
-                               onBack={() => window.location.href = '/family-auth'}
-                             />
-                           } />
+                           {/* Family Auth Routes */}
+                            <Route path="/family-auth" element={<FamilyAuthChoiceWrapper />} />
+                            <Route path="/register-family-member" element={<FamilyMemberSignupWrapper />} />
                           
                           {/* Family Requests Management - Main User Only */}
                           <Route path="/family-requests" element={

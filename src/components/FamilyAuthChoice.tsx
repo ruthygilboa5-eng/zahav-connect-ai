@@ -22,16 +22,7 @@ const FamilyAuthChoice: React.FC<FamilyAuthChoiceProps> = ({ onBack }) => {
   const navigate = useNavigate();
   const { authState } = useAuth();
 
-  // Redirect authenticated users to their appropriate dashboard
-  useEffect(() => {
-    if (authState.isAuthenticated) {
-      if (authState.role === 'MAIN_USER') {
-        navigate('/home');
-      } else if (authState.role === 'FAMILY') {
-        navigate('/family');
-      }
-    }
-  }, [authState.isAuthenticated, authState.role, navigate]);
+  // Remove automatic redirection - let users access family-auth page even if authenticated
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +50,8 @@ const FamilyAuthChoice: React.FC<FamilyAuthChoiceProps> = ({ onBack }) => {
           .maybeSingle();
 
         if (familyLink) {
-          navigate('/family');
+          // Successful family member login - redirect to family dashboard
+          navigate('/family', { replace: true });
         } else {
           setError('החשבון שלך עדיין ממתין לאישור מהמשתמש הראשי');
         }

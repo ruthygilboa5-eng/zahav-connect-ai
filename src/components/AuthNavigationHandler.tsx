@@ -17,23 +17,14 @@ export const AuthNavigationHandler = () => {
     const currentPath = location.pathname;
 
     if (!authState.isAuthenticated) {
-      // Not authenticated - don't redirect from root path, allow users to see home options
+      // Not authenticated - redirect to root from protected paths only
       const publicPaths = ['/', '/admin-login', '/admin-setup', '/family-auth', '/register-family-member'] as const;
       if (!publicPaths.includes(currentPath as typeof publicPaths[number])) {
         navigate('/', { replace: true });
       }
-    } else {
-      // Authenticated - navigate based on role, but only from root path  
-      if (currentPath === '/') {
-        if (authState.role === 'MAIN_USER') {
-          navigate('/home', { replace: true });
-        } else if (authState.role === 'FAMILY') {
-          navigate('/family', { replace: true });
-        } else if (authState.role === 'ADMIN') {
-          navigate('/admin-dashboard', { replace: true });
-        }
-      }
     }
+    // Removed automatic redirection for authenticated users from root path
+    // Let users stay on "/" if they want to see the main page
   }, [authState.isAuthenticated, authState.role, loading, navigate, location.pathname]);
 
   // This component doesn't render anything
