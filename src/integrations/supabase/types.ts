@@ -184,6 +184,41 @@ export type Database = {
         }
         Relationships: []
       }
+      family_members_permissions: {
+        Row: {
+          created_at: string
+          family_member_id: string
+          feature: string
+          id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          family_member_id: string
+          feature: string
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          family_member_id?: string
+          feature?: string
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_family_member"
+            columns: ["family_member_id"]
+            isOneToOne: false
+            referencedRelation: "family_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       family_permission_requests: {
         Row: {
           created_at: string
