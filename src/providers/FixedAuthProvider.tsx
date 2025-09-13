@@ -89,7 +89,17 @@ export const FixedAuthProvider = ({ children }: FixedAuthProviderProps) => {
             if (roles.includes('admin')) userRole = 'ADMIN';
             else if (roles.includes('family_member')) userRole = 'FAMILY';
             else if (roles.includes('primary_user')) userRole = 'MAIN_USER';
-            else userRole = 'MAIN_USER'; // Default to MAIN_USER for users without explicit roles
+            
+            // Fallback by approved family link if no explicit role
+            if (!userRole) {
+              const { data: approvedLink } = await supabase
+                .from('family_links')
+                .select('id')
+                .eq('member_user_id', session.user!.id)
+                .eq('status', 'APPROVED')
+                .maybeSingle();
+              userRole = approvedLink ? 'FAMILY' : 'MAIN_USER';
+            }
 
             const firstName = profile?.first_name || '';
 

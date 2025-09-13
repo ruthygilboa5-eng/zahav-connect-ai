@@ -54,6 +54,45 @@ export const AuthModal = ({ isOpen, onClose, defaultRole = 'MAIN_USER' }: AuthMo
 
 const navigate = useNavigate();
 
+  const navigateAfterLogin = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      navigate('/', { replace: true });
+      return;
+    }
+
+    const { data: rolesData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id);
+
+    const roles = (rolesData || []).map(r => r.role as string);
+
+    // Priority: admin/primary_user -> /home, family_member -> /family
+    if (roles.includes('admin') || roles.includes('primary_user')) {
+      navigate('/home', { replace: true });
+      return;
+    }
+    if (roles.includes('family_member')) {
+      navigate('/family', { replace: true });
+      return;
+    }
+
+    // Fallback: approved family link
+    const { data: familyLink } = await supabase
+      .from('family_links')
+      .select('status')
+      .eq('member_user_id', user.id)
+      .eq('status', 'APPROVED')
+      .maybeSingle();
+
+    if (familyLink) {
+      navigate('/family', { replace: true });
+    } else {
+      navigate('/', { replace: true });
+    }
+  };
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -73,7 +112,7 @@ const navigate = useNavigate();
           description: 'ברוך הבא למערכת!',
         });
         onClose();
-        navigate('/home', { replace: true });
+        await navigateAfterLogin();
       }
     } catch (err: any) {
       setError('שגיאה בהתחברות. אנא נסה שוב.');
@@ -138,7 +177,7 @@ const navigate = useNavigate();
           description: 'ברוך הבא למערכת!',
         });
         onClose();
-        navigate('/home', { replace: true });
+        await navigateAfterLogin();
       }
     } catch (err: any) {
       setError('שגיאה באימות הקוד. אנא נסה שוב.');
