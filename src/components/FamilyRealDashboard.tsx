@@ -7,11 +7,12 @@ import { useAuth } from '@/providers/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Camera, MessageSquare, Calendar, Gamepad2, 
-  Heart, Upload, User, Settings
+  Heart, Upload, User, Settings, Clock, Shield, CheckCircle, XCircle
 } from 'lucide-react';
 import ActionCard from '@/components/ActionCard';
 import ContentUploadModal from '@/components/ContentUploadModal';
 import ProfileSettingsModal from '@/components/ProfileSettingsModal';
+import PermissionCard from '@/components/PermissionCard';
 
 interface FamilyLink {
   id: string;
@@ -45,10 +46,119 @@ const FamilyRealDashboard = () => {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [uploadType, setUploadType] = useState<'MEDIA' | 'STORY' | 'REMINDER' | 'GAME_INVITE'>('MEDIA');
   const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState(false);
+  
+  // Permission states
+  const [permissions, setPermissions] = useState<any[]>([]);
+  const [permissionsLoading, setPermissionsLoading] = useState(true);
 
   useEffect(() => {
     loadFamilyData();
+    loadPermissions();
   }, [authState.user?.id]);
+
+  const loadPermissions = async () => {
+    if (!authState.user?.id) return;
+
+    try {
+      setPermissionsLoading(true);
+
+      // Get family link for current user
+      const { data: familyLink, error: linkError } = await supabase
+        .from('family_links')
+        .select('id')
+        .eq('member_user_id', authState.user.id)
+        .single();
+
+      if (linkError || !familyLink) {
+        console.error('Error finding family link:', linkError);
+        return;
+      }
+
+      // Get permissions for this family member
+      const { data: permissionsData, error: permissionsError } = await supabase
+        .from('family_members_permissions')
+        .select('*')
+        .eq('family_member_id', familyLink.id)
+        .order('created_at', { ascending: false });
+
+      if (permissionsError) throw permissionsError;
+
+      setPermissions(permissionsData || []);
+    } catch (error) {
+      console.error('Error loading permissions:', error);
+    } finally {
+      setPermissionsLoading(false);
+    }
+  };
+
+  const requestPermission = async (feature: string) => {
+    if (!authState.user?.id) return;
+
+    try {
+      // Get family link
+      const { data: familyLink, error: linkError } = await supabase
+        .from('family_links')  
+        .select('id')
+        .eq('member_user_id', authState.user.id)
+        .single();
+
+      if (linkError || !familyLink) {
+        throw new Error('לא נמצא קישור משפחתי');
+      }
+
+      // Check if there's already a pending request for this feature
+      const existingRequest = permissions.find(p => 
+        p.feature === feature && p.status === 'pending'
+      );
+
+      if (existingRequest) {
+        toast({
+          title: 'בקשה קיימת',
+          description: 'כבר נשלחה בקשה עבור פיצ\'ר זה וממתינה לאישור',
+          variant: 'default'
+        });
+        return;
+      }
+
+      // Create new permission request
+      const { error } = await supabase
+        .from('family_members_permissions')
+        .insert({
+          family_member_id: familyLink.id,
+          feature,
+          status: 'pending'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: 'בקשה נשלחה',
+        description: 'בקשתך נשלחה למשתמש הראשי לבדיקה',
+      });
+
+      // Reload permissions
+      await loadPermissions();
+    } catch (error: any) {
+      console.error('Error requesting permission:', error);
+      toast({
+        title: 'שגיאה',
+        description: error.message || 'שגיאה בשליחת הבקשה',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const getPermissionStatus = (feature: string): 'none' | 'pending' | 'approved' | 'rejected' => {
+    const permission = permissions
+      .filter(p => p.feature === feature)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+
+    return permission?.status || 'none';
+  };
+
+  const hasPermission = (feature: string): boolean => {
+    return getPermissionStatus(feature) === 'approved';
+  };
 
   const loadFamilyData = async () => {
     if (!authState.user?.id) return;
@@ -303,6 +413,30 @@ const FamilyRealDashboard = () => {
 
         {familyLink.status === 'APPROVED' ? (
           <>
+            {/* Permissions Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>הרשאות גישה</CardTitle>
+                <CardDescription>
+                  נהל את ההרשאות שלך לפיצ'רים שונים במערכת
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {['memories', 'games', 'reminders', 'emergency', 'contacts', 'wakeup'].map((feature) => (
+                    <PermissionCard
+                      key={feature}
+                      feature={feature}
+                      status={getPermissionStatus(feature)}
+                      onRequestPermission={() => requestPermission(feature)}
+                      disabled={permissionsLoading}
+                    />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Activity Section - Only show if user has approved permissions */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Today's Activity */}
               <Card className="md:col-span-2">
@@ -339,8 +473,10 @@ const FamilyRealDashboard = () => {
                 </CardContent>
               </Card>
 
-              {/* Family Actions */}
-              {familyActions.map((action, index) => (
+              {/* Family Actions - Only show approved ones */}
+              {familyActions
+                .filter(action => hasPermission(action.scope.toLowerCase().replace('post_', '').replace('suggest_', '')))
+                .map((action, index) => (
                 <ActionCard
                   key={index}
                   scope={action.scope}

@@ -7,10 +7,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle, XCircle, Users, UserPlus, AlertCircle, LogOut } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CheckCircle, XCircle, Users, UserPlus, AlertCircle, LogOut, Clock, Filter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
+import { useAdminPermissions } from '@/hooks/useAdminPermissions';
 
 interface PermissionRequest {
   id: string;
@@ -45,7 +47,14 @@ export default function AdminRealDashboard() {
   const { authState } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [permissionRequests, setPermissionRequests] = useState<PermissionRequest[]>([]);
+  const { 
+    permissionRequests, 
+    loading: permissionsLoading, 
+    updatePermissionStatus, 
+    getPendingCount,
+    getRequestsByStatus 
+  } = useAdminPermissions();
+  
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [stats, setStats] = useState<DashboardStats>({ 
     activeUsers: 0, 
@@ -54,6 +63,7 @@ export default function AdminRealDashboard() {
     pendingPermissions: 0 
   });
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
   const isAdmin = authState.role === 'ADMIN';
 
@@ -61,51 +71,12 @@ export default function AdminRealDashboard() {
     if (isAdmin) {
       loadDashboardData();
     }
-  }, [isAdmin]);
+  }, [isAdmin, getPendingCount]);
 
   const loadDashboardData = async () => {
     try {
       setLoading(true);
       
-      // Load permission requests with proper join
-      const { data: permissionsData, error: permissionsError } = await supabase
-        .from('family_permission_requests')
-        .select(`
-          id,
-          family_link_id,
-          scope,
-          status,
-          created_at,
-          owner_user_id
-        `)
-        .eq('status', 'PENDING');
-
-      if (permissionsError) throw permissionsError;
-
-      // Get family member details for each permission request
-      const formattedPermissions = await Promise.all(
-        (permissionsData || []).map(async (request) => {
-          const { data: familyLink } = await supabase
-            .from('family_links')
-            .select('full_name, email')
-            .eq('id', request.family_link_id)
-            .single();
-
-          return {
-            id: request.id,
-            family_link_id: request.family_link_id,
-            scope: request.scope,
-            status: request.status,
-            created_at: request.created_at,
-            family_member_name: familyLink?.full_name || 'לא ידוע',
-            family_member_email: familyLink?.email || '',
-            owner_user_id: request.owner_user_id
-          };
-        })
-      );
-
-      setPermissionRequests(formattedPermissions);
-
       // Load family members
       const { data: familyData, error: familyError } = await supabase
         .from('family_links')
@@ -125,12 +96,12 @@ export default function AdminRealDashboard() {
         .select('*', { count: 'exact', head: true })
         .eq('status', 'PENDING');
 
-      // Calculate stats
+      // Calculate stats (permission requests count will come from the hook)
       setStats({
         activeUsers: usersCount || 0,
         totalFamilies: familyData?.length || 0,
         pendingApprovals: pendingCount || 0,
-        pendingPermissions: formattedPermissions.length
+        pendingPermissions: getPendingCount()
       });
 
     } catch (error) {
@@ -145,30 +116,23 @@ export default function AdminRealDashboard() {
     }
   };
 
-  const handlePermissionAction = async (requestId: string, action: 'APPROVED' | 'DECLINED') => {
-    try {
-      const { error } = await supabase
-        .from('family_permission_requests')
-        .update({ status: action })
-        .eq('id', requestId);
+  const handlePermissionAction = async (requestId: string, action: 'approved' | 'rejected') => {
+    const request = permissionRequests.find(r => r.id === requestId);
+    if (!request) return;
 
-      if (error) throw error;
-
-      toast({
-        title: 'הפעולה בוצעה בהצלחה',
-        description: action === 'APPROVED' ? 'ההרשאה אושרה' : 'ההרשאה נדחתה'
-      });
-
-      // Reload data
-      loadDashboardData();
-    } catch (error) {
-      console.error('Error updating permission request:', error);
-      toast({
-        title: 'שגיאה',
-        description: 'שגיאה בעדכון בקשת ההרשאה',
-        variant: 'destructive'
-      });
-    }
+    await updatePermissionStatus(
+      requestId, 
+      action, 
+      request.family_member_name, 
+      request.family_member_email, 
+      request.feature
+    );
+    
+    // Update stats after action
+    setStats(prev => ({
+      ...prev,
+      pendingPermissions: getPendingCount()
+    }));
   };
 
   const handleFamilyMemberAction = async (memberId: string, action: 'APPROVED' | 'DECLINED') => {
@@ -210,15 +174,17 @@ export default function AdminRealDashboard() {
     }
   };
 
-  const getScopeLabel = (scope: string) => {
-    const scopeLabels: Record<string, string> = {
-      'memories': 'זיכרונות',
+  const getScopeLabel = (feature: string) => {
+    const featureLabels: Record<string, string> = {
+      'wakeup': 'שירות השכמה',
+      'memories': 'זיכרונות ותמונות',
+      'games': 'משחקים',
       'reminders': 'תזכורות',
+      'emergency': 'שירותי חירום',
       'contacts': 'אנשי קשר',
-      'emergency': 'חירום',
-      'full': 'גישה מלאה'
+      'family_board': 'לוח המשפחה'
     };
-    return scopeLabels[scope] || scope;
+    return featureLabels[feature] || feature;
   };
 
   const handleLogout = async () => {
@@ -345,64 +311,114 @@ export default function AdminRealDashboard() {
           <TabsContent value="permissions">
             <Card>
               <CardHeader>
-                <CardTitle>בקשות הרשאות ממתינות</CardTitle>
-                <CardDescription>
-                  בקשות הרשאות מבני משפחה שממתינות לאישור
-                </CardDescription>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle>ניהול בקשות הרשאות</CardTitle>
+                    <CardDescription>
+                      בקשות הרשאות מבני משפחה לגישה לפיצ'רים שונים
+                    </CardDescription>
+                  </div>
+                  <Select
+                    value={statusFilter}
+                    onValueChange={(value: any) => setStatusFilter(value)}
+                  >
+                    <SelectTrigger className="w-40">
+                      <Filter className="h-4 w-4 mr-2" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">כל הבקשות</SelectItem>
+                      <SelectItem value="pending">ממתינות</SelectItem>
+                      <SelectItem value="approved">מאושרות</SelectItem>
+                      <SelectItem value="rejected">נדחות</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>בן משפחה</TableHead>
-                      <TableHead>סוג הרשאה</TableHead>
-                      <TableHead>תאריך בקשה</TableHead>
-                      <TableHead>סטטוס</TableHead>
-                      <TableHead>פעולות</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {permissionRequests.map((request) => (
-                      <TableRow key={request.id}>
-                        <TableCell className="font-medium">
-                          {request.family_member_name}
-                          <span className="text-muted-foreground text-sm block">
-                            {request.family_member_email}
-                          </span>
-                        </TableCell>
-                        <TableCell>{getScopeLabel(request.scope)}</TableCell>
-                        <TableCell>
-                          {format(new Date(request.created_at), 'dd/MM/yyyy', { locale: he })}
-                        </TableCell>
-                        <TableCell>{getStatusBadge(request.status)}</TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2 space-x-reverse">
-                            <Button
-                              size="sm"
-                              onClick={() => handlePermissionAction(request.id, 'APPROVED')}
-                              className="bg-green-600 hover:bg-green-700"
-                            >
-                              <CheckCircle className="h-4 w-4 ml-1" />
-                              אשר
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handlePermissionAction(request.id, 'DECLINED')}
-                            >
-                              <XCircle className="h-4 w-4 ml-1" />
-                              דחה
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                {permissionRequests.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    אין בקשות הרשאות ממתינות
+                {permissionsLoading ? (
+                  <div className="text-center py-8">
+                    <Clock className="h-8 w-8 animate-spin mx-auto mb-4" />
+                    <p>טוען בקשות הרשאות...</p>
                   </div>
+                ) : (
+                  <>
+                    {(() => {
+                      const filteredRequests = statusFilter === 'all' 
+                        ? permissionRequests 
+                        : getRequestsByStatus(statusFilter as any);
+                      
+                      return filteredRequests.length > 0 ? (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>בן משפחה</TableHead>
+                              <TableHead>קרבה</TableHead>
+                              <TableHead>פיצ'ר מבוקש</TableHead>
+                              <TableHead>תאריך בקשה</TableHead>
+                              <TableHead>סטטוס</TableHead>
+                              <TableHead>פעולות</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {filteredRequests.map((request) => (
+                              <TableRow key={request.id}>
+                                <TableCell className="font-medium">
+                                  {request.family_member_name}
+                                  <span className="text-muted-foreground text-sm block">
+                                    {request.family_member_email}
+                                  </span>
+                                </TableCell>
+                                <TableCell>{request.relationship_to_primary_user || 'לא צוין'}</TableCell>
+                                <TableCell>
+                                  <Badge variant="outline">
+                                    {getScopeLabel(request.feature)}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  {format(new Date(request.created_at), 'dd/MM/yyyy HH:mm', { locale: he })}
+                                </TableCell>
+                                <TableCell>{getStatusBadge(request.status)}</TableCell>
+                                <TableCell>
+                                  {request.status === 'pending' ? (
+                                    <div className="flex space-x-2 space-x-reverse">
+                                      <Button
+                                        size="sm"
+                                        onClick={() => handlePermissionAction(request.id, 'approved')}
+                                        className="bg-green-600 hover:bg-green-700"
+                                      >
+                                        <CheckCircle className="h-4 w-4 ml-1" />
+                                        אשר
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="destructive"
+                                        onClick={() => handlePermissionAction(request.id, 'rejected')}
+                                      >
+                                        <XCircle className="h-4 w-4 ml-1" />
+                                        דחה
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <span className="text-muted-foreground text-sm">
+                                      {request.status === 'approved' ? 'טופל - אושר' : 'טופל - נדחה'}
+                                    </span>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          {statusFilter === 'all' 
+                            ? 'אין בקשות הרשאות כרגע'
+                            : `אין בקשות ${statusFilter === 'pending' ? 'ממתינות' : statusFilter === 'approved' ? 'מאושרות' : 'נדחות'}`
+                          }
+                        </div>
+                      );
+                    })()}
+                  </>
                 )}
               </CardContent>
             </Card>
