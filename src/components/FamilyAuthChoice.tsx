@@ -20,6 +20,18 @@ const FamilyAuthChoice: React.FC<FamilyAuthChoiceProps> = ({ onBack }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const { authState } = useAuth();
+
+  // Redirect authenticated users to their appropriate dashboard
+  useEffect(() => {
+    if (authState.isAuthenticated) {
+      if (authState.role === 'MAIN_USER') {
+        navigate('/home');
+      } else if (authState.role === 'FAMILY') {
+        navigate('/family');
+      }
+    }
+  }, [authState.isAuthenticated, authState.role, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
