@@ -189,8 +189,8 @@ const FamilyAuthChoice: React.FC<FamilyAuthChoiceProps> = ({ onBack }) => {
   }
 
   if (mode === 'register') {
-    // Use useEffect to handle navigation properly
-    useEffect(() => {
+    // Navigate immediately without useEffect to avoid state update during render
+    React.useLayoutEffect(() => {
       navigate('/register-family-member');
     }, [navigate]);
     return null;

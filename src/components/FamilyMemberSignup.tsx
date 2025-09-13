@@ -139,6 +139,14 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         ? formData.customRelationship 
         : formData.relationshipToPrimary;
 
+      // Get owner user ID by email using the database function
+      const { data: ownerData, error: ownerError } = await supabase
+        .rpc('get_user_id_by_email', { email_address: formData.ownerEmail });
+
+      if (ownerError) {
+        console.error('Error finding owner user:', ownerError);
+      }
+
       const { error: linkError } = await supabase
         .from('family_links')
         .insert({
@@ -147,6 +155,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
           relation: finalRelationship,
           phone: formData.phone,
           owner_email: formData.ownerEmail,
+          owner_user_id: ownerData || null, // Use the found owner user ID
           member_user_id: data.user?.id,
           scopes: selectedScopes,
           status: 'PENDING',
