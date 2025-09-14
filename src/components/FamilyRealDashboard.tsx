@@ -70,6 +70,27 @@ const FamilyRealDashboard = () => {
 
   useEffect(() => {
     loadFamilyData();
+
+    // Set up real-time subscription for family link updates
+    const channel = supabase
+      .channel('family-link-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'family_links'
+        },
+        (payload) => {
+          console.log('Family link change received:', payload);
+          loadFamilyData(); // Reload when changes occur
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [authState.user?.id]);
 
   const loadFamilyData = async () => {
@@ -92,22 +113,8 @@ const FamilyRealDashboard = () => {
 
       setFamilyLink(linkData);
 
-      // Get family member data from family_members table
+      // Get main user profile
       if (linkData.owner_user_id) {
-        const { data: familyMemberData, error: familyMemberError } = await supabase
-          .from('family_members')
-          .select('id, full_name, relationship_label, gender, email')
-          .eq('owner_user_id', linkData.owner_user_id)
-          .eq('email', authState.user.email)
-          .single();
-
-        if (familyMemberError) {
-          console.error('Error loading family member data:', familyMemberError);
-        } else {
-          setFamilyMemberData(familyMemberData);
-        }
-
-        // Get main user profile
         const { data: profileData, error: profileError } = await supabase
           .from('user_profiles')
           .select('first_name, last_name, display_name')
@@ -302,13 +309,13 @@ const FamilyRealDashboard = () => {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">
-              שלום {familyMemberData?.full_name || familyLink.full_name}
+              שלום {familyLink.full_name || 'בן משפחה'}
             </h1>
-            {mainUserProfile && (
-              <p className="text-muted-foreground">
-                מחובר/ת לחשבון של {mainUserProfile.display_name || `${mainUserProfile.first_name} ${mainUserProfile.last_name}`}
-              </p>
-            )}
+            <p className="text-muted-foreground">
+              מחובר/ת לחשבון של {mainUserProfile ? 
+                (mainUserProfile.display_name || `${mainUserProfile.first_name} ${mainUserProfile.last_name}`.trim()) : 
+                'המשתמש הראשי'}
+            </p>
           </div>
           <Button 
             variant="outline" 
