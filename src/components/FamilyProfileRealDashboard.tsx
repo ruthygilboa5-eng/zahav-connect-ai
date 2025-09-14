@@ -86,7 +86,7 @@ const FamilyProfileRealDashboard = () => {
 
       setMemberData(familyLink);
       
-      // Get main user profile
+      // Get main user profile with proper name handling
       if (familyLink.owner_user_id) {
         const { data: profileData, error: profileError } = await supabase
           .from('user_profiles')
@@ -97,13 +97,18 @@ const FamilyProfileRealDashboard = () => {
         if (profileError) {
           console.error('Error loading main user profile:', profileError);
         } else {
-          setMainUserProfile(profileData);
+          setMainUserProfile({
+            first_name: profileData.first_name,
+            last_name: profileData.last_name,
+            display_name: profileData.display_name || `${profileData.first_name} ${profileData.last_name}`.trim(),
+            email: profileData.email
+          });
         }
       }
 
       setFormData({
         full_name: familyLink.full_name || '',
-        relationship_to_primary_user: familyLink.relationship_to_primary_user || '',
+        relationship_to_primary_user: familyLink.relationship_to_primary_user || familyLink.relation || '',
         gender: familyLink.gender || '',
         email: familyLink.email || '',
         phone: familyLink.phone || ''
@@ -132,6 +137,7 @@ const FamilyProfileRealDashboard = () => {
         .update({
           full_name: formData.full_name,
           relationship_to_primary_user: formData.relationship_to_primary_user,
+          relation: formData.relationship_to_primary_user, // Update both fields for compatibility
           gender: formData.gender,
           email: formData.email,
           phone: formData.phone,

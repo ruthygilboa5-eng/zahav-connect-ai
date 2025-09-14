@@ -32,6 +32,7 @@ import AdminRealPage from "./pages/AdminRealPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import AdminSetupPage from "./pages/AdminSetupPage";
 import SystemDashboardPage from "./pages/SystemDashboardPage";
+import AdminSetupRealPage from "./pages/AdminSetupRealPage";
 import { AuthNavigationHandler } from "./components/AuthNavigationHandler";
 
 const queryClient = new QueryClient();
@@ -149,11 +150,17 @@ const App = () => {
                            } />
                            
                            {/* Permission Requests - Main User Only */}
-                           <Route path="/permission-requests" element={
-                             <ProtectedRoute requiredRole="MAIN_USER">
-                               <PermissionRequestsPage />
-                             </ProtectedRoute>
-                           } />
+                            <Route path="/permission-requests" element={
+                              <ProtectedRoute requiredRole="MAIN_USER">
+                                <PermissionRequestsPage />
+                              </ProtectedRoute>
+                            } />
+                            
+                            <Route path="/admin-setup-real" element={
+                              <ProtectedRoute requiredRole="ADMIN">
+                                <AdminSetupRealPage />
+                              </ProtectedRoute>
+                            } />
                           
                           <Route path="*" element={<NotFound />} />
                         </Routes>

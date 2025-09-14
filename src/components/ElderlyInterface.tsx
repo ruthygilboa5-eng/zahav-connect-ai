@@ -28,6 +28,7 @@ import { PendingApprovals } from '@/components/PendingApprovals';
 import PermissionRequestsSection from '@/components/PermissionRequestsSection';
 import NotificationBadge from '@/components/NotificationBadge';
 import ProfileSettingsModal from '@/components/ProfileSettingsModal';
+import MainUserDashboard from '@/components/MainUserDashboard';
 
 interface ElderlyInterfaceProps {
   userName?: string;
@@ -172,6 +173,11 @@ const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
           התנתק
         </Button>
       </div>
+
+      {/* Family Members Dashboard */}
+      <MainUserDashboard />
+
+      <Separator className="my-8" />
 
       {/* Header */}
       <div className="text-center mb-8">
