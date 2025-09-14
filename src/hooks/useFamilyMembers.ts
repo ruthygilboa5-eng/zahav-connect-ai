@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export interface FamilyMember {
   id: string;
-  owner_user_id: string;
+  main_user_id: string; // Changed from owner_user_id
   email: string;
   full_name: string;
   relationship_label: string;
@@ -35,7 +35,7 @@ export const useFamilyMembers = () => {
       const { data, error } = await supabase
         .from('family_members')
         .select('*')
-        .eq('owner_user_id', authState.user.id)
+        .eq('main_user_id', authState.user.id)
         .eq('status', 'ACTIVE')
         .order('created_at', { ascending: false });
 
@@ -69,7 +69,7 @@ export const useFamilyMembers = () => {
     }
   };
 
-  const addFamilyMember = async (memberData: Omit<FamilyMember, 'id' | 'owner_user_id' | 'created_at' | 'updated_at'>) => {
+  const addFamilyMember = async (memberData: Omit<FamilyMember, 'id' | 'main_user_id' | 'created_at' | 'updated_at'>) => {
     if (!authState.user) {
       toast({
         title: 'שגיאה',
@@ -84,7 +84,7 @@ export const useFamilyMembers = () => {
         .from('family_members')
         .insert({
           ...memberData,
-          owner_user_id: authState.user.id
+          main_user_id: authState.user.id
         })
         .select()
         .single();
@@ -125,7 +125,7 @@ export const useFamilyMembers = () => {
         .from('family_members')
         .update(updates)
         .eq('id', id)
-        .eq('owner_user_id', authState.user!.id)
+        .eq('main_user_id', authState.user!.id)
         .select()
         .single();
 
@@ -167,7 +167,7 @@ export const useFamilyMembers = () => {
         .from('family_members')
         .delete()
         .eq('id', id)
-        .eq('owner_user_id', authState.user!.id);
+        .eq('main_user_id', authState.user!.id);
 
       if (error) {
         console.error('Error deleting family member:', error);

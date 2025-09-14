@@ -22,6 +22,13 @@ interface FamilyMemberData {
   owner_user_id: string;
 }
 
+interface MainUserProfile {
+  first_name: string;
+  last_name: string;
+  display_name?: string;
+  email?: string;
+}
+
 interface Permission {
   id: string;
   feature: string;
@@ -40,6 +47,7 @@ const FamilyProfileRealDashboard = () => {
     permissions 
   } = useFamilyPermissions();
   const [memberData, setMemberData] = useState<FamilyMemberData | null>(null);
+  const [mainUserProfile, setMainUserProfile] = useState<MainUserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -77,6 +85,22 @@ const FamilyProfileRealDashboard = () => {
       }
 
       setMemberData(familyLink);
+      
+      // Get main user profile
+      if (familyLink.owner_user_id) {
+        const { data: profileData, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('first_name, last_name, display_name, email')
+          .eq('user_id', familyLink.owner_user_id)
+          .single();
+
+        if (profileError) {
+          console.error('Error loading main user profile:', profileError);
+        } else {
+          setMainUserProfile(profileData);
+        }
+      }
+
       setFormData({
         full_name: familyLink.full_name || '',
         relationship_to_primary_user: familyLink.relationship_to_primary_user || '',
@@ -329,6 +353,36 @@ const FamilyProfileRealDashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Main User Connection Info */}
+        {mainUserProfile && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                קשר למשתמש ראשי
+              </CardTitle>
+              <CardDescription>
+                פרטי המשתמש הראשי שאליו אתה משויך
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <p><strong>שם מלא:</strong> {
+                  mainUserProfile.display_name || 
+                  `${mainUserProfile.first_name} ${mainUserProfile.last_name}`.trim() ||
+                  'לא הוזן'
+                }</p>
+                {mainUserProfile.email && (
+                  <p><strong>אימייל:</strong> {mainUserProfile.email}</p>
+                )}
+                <p className="text-sm text-muted-foreground">
+                  אתה מחובר כבן משפחה למשתמש זה ויכול לבקש הרשאות לפיצ'רים השונים
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Permissions Section */}
         <Card>

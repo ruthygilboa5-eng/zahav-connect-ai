@@ -41,6 +41,21 @@ export const FAMILY_SCOPES = {
   EMERGENCY_ONLY: 'EMERGENCY_ONLY' as const,
 } as const;
 
+// Database family member interface (matches actual table structure)
+export interface DatabaseFamilyMember {
+  id: string;
+  main_user_id: string; // Updated from owner_user_id
+  full_name: string;
+  relationship_label: string;
+  gender: string;
+  email: string;
+  phone?: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Keep original FamilyMember interface for backwards compatibility
 export interface FamilyMember {
   id: string;
   fullName: string;

@@ -28,11 +28,12 @@ export const useAdminPermissions = () => {
     try {
       setLoading(true);
 
-      // Get all permission requests for family members owned by this user
-      const { data: requestsData, error } = await supabase
+      // Update existing permission requests with main_user_id using updated SQL query
+      const { data: updatedRequests, error: updateError } = await supabase
         .from('family_members_permissions')
         .select(`
           *,
+          main_user_id,
           family_links:family_member_id (
             full_name,
             email,
@@ -40,13 +41,14 @@ export const useAdminPermissions = () => {
             owner_user_id
           )
         `)
+        .not('main_user_id', 'is', null)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
       // Filter requests for family members owned by current user
-      const filteredRequests = (requestsData || []).filter(request => 
-        request.family_links?.owner_user_id === authState.user?.id
+      const filteredRequests = (updatedRequests || []).filter(request => 
+        request.main_user_id === authState.user?.id
       );
 
       // Format the data

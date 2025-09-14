@@ -40,7 +40,7 @@ export const useWakeUpNotification = () => {
       const { data: familyMembers, error: familyError } = await supabase
         .from('family_members')
         .select('id, email, full_name, relationship_label, gender')
-        .eq('owner_user_id', authState.user.id)
+        .eq('main_user_id', authState.user.id)
         .eq('status', 'ACTIVE');
 
       if (familyError) {

@@ -35,10 +35,10 @@ const PermissionsDebugView = () => {
     setError(null);
     
     try {
-      // First get all permissions
+      // First get all permissions with new main_user_id column
       const { data: permissionsData, error: permError } = await supabase
         .from('family_members_permissions')
-        .select('*')
+        .select('*, main_user_id')
         .order('created_at', { ascending: false })
         .limit(20);
 
@@ -61,7 +61,8 @@ const PermissionsDebugView = () => {
       // Get user profiles for owners and members
       const allUserIds = [
         ...familyLinksData?.map(fl => fl.owner_user_id).filter(Boolean) || [],
-        ...familyLinksData?.map(fl => fl.member_user_id).filter(Boolean) || []
+        ...familyLinksData?.map(fl => fl.member_user_id).filter(Boolean) || [],
+        ...permissionsData?.map(p => p.main_user_id).filter(Boolean) || []
       ];
       const uniqueUserIds = [...new Set(allUserIds)];
 
@@ -226,6 +227,7 @@ const PermissionsDebugView = () => {
           <h4 className="font-semibold mb-2">מידע על הקשרים:</h4>
           <ul className="text-sm text-muted-foreground space-y-1">
             <li>• family_members_permissions.family_member_id → family_links.id</li>
+            <li>• family_members_permissions.main_user_id → user_profiles.user_id (משתמש ראשי - מנורמל)</li>
             <li>• family_links.owner_user_id → user_profiles.user_id (משתמש ראשי)</li>
             <li>• family_links.member_user_id → user_profiles.user_id (בן משפחה)</li>
             <li>• סה״כ רשומות: {debugData.length}</li>
