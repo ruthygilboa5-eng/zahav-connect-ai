@@ -37,7 +37,7 @@ export const useRoleBasedNavigation = () => {
       '/review'
     ];
 
-    const familyOnlyPaths = ['/family'];
+    const familyOnlyPaths = ['/family', '/family-real', '/family-profile-real'];
 
     // Redirect based on role and current path
     if (role === 'MAIN_USER') {
@@ -48,14 +48,17 @@ export const useRoleBasedNavigation = () => {
     } else if (role === 'FAMILY') {
       // Family member trying to access main user paths
       if (mainUserOnlyPaths.includes(currentPath)) {
-        navigate('/family', { replace: true });
+        // For authenticated family members (real users), redirect to /family-real
+        // The navigation logic in auth components handles demo vs real routing
+        navigate('/family-real', { replace: true });
       }
     }
   }, [authState, navigate, location.pathname]);
 
   // Return helper functions for navigation
   const navigateToUserHome = () => {
-    const targetPath = authState.role === 'MAIN_USER' ? '/dashboard' : '/family';
+    // For authenticated family members, navigate to /family-real (not /family demo)
+    const targetPath = authState.role === 'MAIN_USER' ? '/dashboard' : '/family-real';
     navigate(targetPath);
   };
 
@@ -67,7 +70,7 @@ export const useRoleBasedNavigation = () => {
       '/reminders', '/memories', '/games', '/family-board', '/family-management', '/review'
     ];
     
-    const familyOnlyPaths = ['/family'];
+    const familyOnlyPaths = ['/family', '/family-real', '/family-profile-real'];
 
     if (authState.role === 'MAIN_USER') {
       return !familyOnlyPaths.includes(path);

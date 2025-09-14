@@ -80,16 +80,17 @@ const navigate = useNavigate();
       .eq('status', 'APPROVED')
       .single();
 
-    // Determine navigation path based on user type
-    const isRealUser = !DEV_MODE_DEMO; // Real users are those not in demo mode
+    // Real users are those who have actual authentication (not demo mode)
+    // They should be directed to the -real pages
+    const isRealUser = true; // All authenticated users through this modal are real users
     
-    // Priority: family_member -> /family-real or /family, then admin/primary_user -> /admin-dashboard-real or /home
+    // Priority: family_member -> /family-real, then admin -> /admin-dashboard-real, then primary_user -> /home
     if (roles.includes('family_member') || (!familyError && familyLink)) {
-      navigate(isRealUser ? '/family-real' : '/family', { replace: true });
+      navigate('/family-real', { replace: true });
       return;
     }
     if (roles.includes('admin')) {
-      navigate(isRealUser ? '/admin-dashboard-real' : '/admin-dashboard', { replace: true });
+      navigate('/admin-dashboard-real', { replace: true });
       return;
     }
     if (roles.includes('primary_user')) {

@@ -244,6 +244,25 @@ const FamilyDashboard = () => {
   return (
     <div className="p-6 rtl-text">
       <div className="max-w-6xl mx-auto">
+        {/* Demo Notice */}
+        <div className="mb-6">
+          <Card className="border-l-4 border-l-amber-500 bg-amber-50/50">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-amber-800">
+                    זהו דף דמו – הנתונים כאן אינם אמיתיים
+                  </p>
+                  <p className="text-xs text-amber-600 mt-1">
+                    דף זה משמש להדגמת המערכת בלבד
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">

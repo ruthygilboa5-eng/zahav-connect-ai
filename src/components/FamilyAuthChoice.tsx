@@ -56,8 +56,9 @@ const FamilyAuthChoice: React.FC<FamilyAuthChoiceProps> = ({ onBack }) => {
         const roles = (rolesData || []).map(r => r.role as string);
         
         // Navigate based on role priority (prefer family dashboard if the user has both roles)
+        // Real authenticated users go to /family-real, not /family (demo)
         if (roles.includes('family_member')) {
-          navigate('/family', { replace: true });
+          navigate('/family-real', { replace: true });
           return;
         }
         if (roles.includes('admin') || roles.includes('primary_user')) {
@@ -74,8 +75,8 @@ const FamilyAuthChoice: React.FC<FamilyAuthChoiceProps> = ({ onBack }) => {
           .maybeSingle();
 
         if (familyLink) {
-          // User has approved family link but no explicit role - navigate to family
-          navigate('/family', { replace: true });
+          // User has approved family link but no explicit role - navigate to real family page
+          navigate('/family-real', { replace: true });
         } else {
           setError('החשבון שלך עדיין ממתין לאישור מהמשתמש הראשי');
         }
