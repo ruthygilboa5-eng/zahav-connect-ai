@@ -8,12 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CheckCircle, XCircle, Users, UserPlus, AlertCircle, LogOut, Clock, Filter } from 'lucide-react';
+import { CheckCircle, XCircle, Users, UserPlus, AlertCircle, LogOut, Clock, Filter, Database } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { useAdminPermissions } from '@/hooks/useAdminPermissions';
 import PermissionsDebugView from '@/components/PermissionsDebugView';
+import SystemDashboard from '@/components/SystemDashboard';
 
 interface PermissionRequest {
   id: string;
@@ -287,14 +288,24 @@ export default function AdminRealDashboard() {
             <h1 className="text-3xl font-bold">מסך ניהול מערכת</h1>
             <p className="text-muted-foreground">ניהול משתמשים ובקשות הרשאות</p>
           </div>
-          <Button 
-            variant="outline" 
-            onClick={handleLogout}
-            className="flex items-center gap-2"
-          >
-            <LogOut className="h-4 w-4" />
-            התנתק
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/system-dashboard')}
+              className="flex items-center gap-2"
+            >
+              <Database className="h-4 w-4" />
+              ניהול מערכת מתקדם
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handleLogout}
+              className="flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              התנתק
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -342,9 +353,10 @@ export default function AdminRealDashboard() {
 
         {/* Main Content */}
         <Tabs defaultValue="permissions" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="permissions">בקשות הרשאות</TabsTrigger>
             <TabsTrigger value="family">בני משפחה</TabsTrigger>
+            <TabsTrigger value="system">ניהול מערכת</TabsTrigger>
             <TabsTrigger value="debug">בדיקת קשרים</TabsTrigger>
           </TabsList>
 
@@ -526,6 +538,11 @@ export default function AdminRealDashboard() {
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* System Management Tab */}
+          <TabsContent value="system">
+            <SystemDashboard />
           </TabsContent>
 
           {/* Debug Tab */}

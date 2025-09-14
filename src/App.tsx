@@ -31,6 +31,7 @@ import AdminPage from "./pages/AdminPage";
 import AdminRealPage from "./pages/AdminRealPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import AdminSetupPage from "./pages/AdminSetupPage";
+import SystemDashboardPage from "./pages/SystemDashboardPage";
 import { AuthNavigationHandler } from "./components/AuthNavigationHandler";
 
 const queryClient = new QueryClient();
@@ -65,7 +66,11 @@ const App = () => {
                           
                           {/* Admin Routes */}
                           <Route path="/admin-login" element={<AdminLoginPage />} />
-                          <Route path="/admin-setup" element={<AdminSetupPage />} />
+                          <Route path="/system-dashboard" element={
+                            <ProtectedRoute requiredRole="ADMIN">
+                              <SystemDashboardPage />
+                            </ProtectedRoute>
+                          } />
                           
                            {/* Family Auth Routes */}
                              <Route path="/family-auth" element={<FamilyAuthChoiceWrapper />} />
