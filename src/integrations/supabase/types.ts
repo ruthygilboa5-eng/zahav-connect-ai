@@ -152,7 +152,7 @@ export type Database = {
           full_name: string
           gender: string
           id: string
-          owner_user_id: string
+          main_user_id: string
           phone: string | null
           relationship_label: string
           status: string
@@ -164,7 +164,7 @@ export type Database = {
           full_name: string
           gender: string
           id?: string
-          owner_user_id: string
+          main_user_id: string
           phone?: string | null
           relationship_label: string
           status?: string
@@ -176,7 +176,7 @@ export type Database = {
           full_name?: string
           gender?: string
           id?: string
-          owner_user_id?: string
+          main_user_id?: string
           phone?: string | null
           relationship_label?: string
           status?: string
@@ -190,6 +190,7 @@ export type Database = {
           family_member_id: string
           feature: string
           id: string
+          main_user_id: string | null
           status: string
           updated_at: string
         }
@@ -198,6 +199,7 @@ export type Database = {
           family_member_id: string
           feature: string
           id?: string
+          main_user_id?: string | null
           status?: string
           updated_at?: string
         }
@@ -206,6 +208,7 @@ export type Database = {
           family_member_id?: string
           feature?: string
           id?: string
+          main_user_id?: string | null
           status?: string
           updated_at?: string
         }
