@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { useAdminPermissions } from '@/hooks/useAdminPermissions';
+import PermissionsDebugView from '@/components/PermissionsDebugView';
 
 interface PermissionRequest {
   id: string;
@@ -341,9 +342,10 @@ export default function AdminRealDashboard() {
 
         {/* Main Content */}
         <Tabs defaultValue="permissions" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="permissions">בקשות הרשאות</TabsTrigger>
             <TabsTrigger value="family">בני משפחה</TabsTrigger>
+            <TabsTrigger value="debug">בדיקת קשרים</TabsTrigger>
           </TabsList>
 
           {/* Permission Requests Tab */}
@@ -524,6 +526,11 @@ export default function AdminRealDashboard() {
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Debug Tab */}
+          <TabsContent value="debug">
+            <PermissionsDebugView />
           </TabsContent>
         </Tabs>
       </div>
