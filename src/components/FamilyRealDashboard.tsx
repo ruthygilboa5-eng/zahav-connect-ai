@@ -24,6 +24,14 @@ interface FamilyLink {
   scopes: string[];
 }
 
+interface FamilyMemberData {
+  id: string;
+  full_name: string;
+  relationship_label: string;
+  gender: string;
+  email: string;
+}
+
 interface MainUserProfile {
   first_name: string;
   last_name: string;
@@ -36,6 +44,7 @@ interface Activity {
   title: string;
   description: string;
   timestamp: string;
+  shared_with_family_id?: string;
 }
 
 const FamilyRealDashboard = () => {
@@ -49,6 +58,7 @@ const FamilyRealDashboard = () => {
     loading: permissionsLoading 
   } = useFamilyPermissions();
   const [familyLink, setFamilyLink] = useState<FamilyLink | null>(null);
+  const [familyMemberData, setFamilyMemberData] = useState<FamilyMemberData | null>(null);
   const [mainUserProfile, setMainUserProfile] = useState<MainUserProfile | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,8 +92,22 @@ const FamilyRealDashboard = () => {
 
       setFamilyLink(linkData);
 
-      // Get main user profile
+      // Get family member data from family_members table
       if (linkData.owner_user_id) {
+        const { data: familyMemberData, error: familyMemberError } = await supabase
+          .from('family_members')
+          .select('id, full_name, relationship_label, gender, email')
+          .eq('owner_user_id', linkData.owner_user_id)
+          .eq('email', authState.user.email)
+          .single();
+
+        if (familyMemberError) {
+          console.error('Error loading family member data:', familyMemberError);
+        } else {
+          setFamilyMemberData(familyMemberData);
+        }
+
+        // Get main user profile
         const { data: profileData, error: profileError } = await supabase
           .from('user_profiles')
           .select('first_name, last_name, display_name')
@@ -96,7 +120,7 @@ const FamilyRealDashboard = () => {
           setMainUserProfile(profileData);
         }
 
-        // Load recent activities (memories, reminders)
+        // Load shared activities - for now, load all activities from the main user
         const { data: memoriesData } = await supabase
           .from('memories')
           .select('*')
@@ -278,7 +302,7 @@ const FamilyRealDashboard = () => {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">
-              שלום {familyLink.full_name}
+              שלום {familyMemberData?.full_name || familyLink.full_name}
             </h1>
             {mainUserProfile && (
               <p className="text-muted-foreground">
@@ -366,11 +390,11 @@ const FamilyRealDashboard = () => {
                           </div>
                         </div>
                       ))
-                    ) : (
-                      <p className="text-muted-foreground text-sm">
-                        אין פעילות אחרונה
-                      </p>
-                    )}
+                     ) : (
+                       <p className="text-muted-foreground text-sm">
+                         אין פעילויות משותפות עבורך להיום
+                       </p>
+                     )}
                   </div>
                 </CardContent>
               </Card>
