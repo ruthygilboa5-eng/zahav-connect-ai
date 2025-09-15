@@ -24,10 +24,23 @@ const WaitingApprovalPage = () => {
 
   const loadPermissionRequest = async () => {
     try {
+      // Find the current user's family link id first
+      const { data: link, error: linkErr } = await supabase
+        .from('family_links')
+        .select('id')
+        .eq('member_user_id', authState.user?.id!)
+        .maybeSingle();
+      if (linkErr) throw linkErr;
+      if (!link?.id) {
+        setPermissionRequest(null);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('permissions_requests')
         .select('*')
-        .eq('family_member_id', authState.user?.id)
+        .eq('family_member_id', link.id)
+        .order('created_at', { ascending: false })
         .maybeSingle();
 
       if (error) throw error;

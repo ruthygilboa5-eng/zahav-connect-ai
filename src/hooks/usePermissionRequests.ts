@@ -20,34 +20,40 @@ export const usePermissionRequests = () => {
         return;
       }
 
-      const { data, error } = await supabase
-        .from('family_permission_requests')
-        .select('*')
-        .eq('owner_user_id', authState.user.id)
-        .order('created_at', { ascending: false });
+      // Main user sees all requests for their family. Family members don't have SELECT on this table.
+      if (authState.role === 'MAIN_USER') {
+        const { data, error } = await supabase
+          .from('permissions_requests')
+          .select('*')
+          .eq('primary_user_id', authState.user.id)
+          .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error loading permission requests:', error);
-        toast({
-          title: 'שגיאה',
-          description: 'לא ניתן לטעון את בקשות ההרשאות',
-          variant: 'destructive'
-        });
-        return;
+        if (error) {
+          console.error('Error loading permission requests:', error);
+          toast({
+            title: 'שגיאה',
+            description: 'לא ניתן לטעון את בקשות ההרשאות',
+            variant: 'destructive'
+          });
+          return;
+        }
+
+        // Transform database format to internal format
+        const transformedRequests: FamilyPermissionRequest[] = (data || []).map(item => ({
+          id: item.id,
+          ownerUserId: item.primary_user_id,
+          familyLinkId: item.family_member_id,
+          scope: (item.permission_type as FamilyScope) || 'CHAT',
+          status: (item.status as 'PENDING' | 'APPROVED' | 'DECLINED') || 'PENDING',
+          createdAt: item.created_at,
+          updatedAt: item.updated_at
+        }));
+
+        setRequests(transformedRequests);
+      } else {
+        // Family members cannot select from permissions_requests due to RLS; keep empty array.
+        setRequests([]);
       }
-
-      // Transform database format to internal format
-      const transformedRequests: FamilyPermissionRequest[] = (data || []).map(item => ({
-        id: item.id,
-        ownerUserId: item.owner_user_id,
-        familyLinkId: item.family_link_id,
-        scope: item.scope as FamilyScope,
-        status: item.status as 'PENDING' | 'APPROVED' | 'DECLINED',
-        createdAt: item.created_at,
-        updatedAt: item.updated_at
-      }));
-
-      setRequests(transformedRequests);
     } finally {
       setLoading(false);
     }
@@ -72,12 +78,31 @@ export const usePermissionRequests = () => {
         throw new Error('לא ניתן למצוא את בעל החשבון');
       }
 
+      // Fetch family member name + email for saving in permissions_requests
+      const { data: profile, error: profileErr } = await supabase
+        .from('user_profiles')
+        .select('first_name, last_name, email')
+        .eq('user_id', authState.user.id)
+        .maybeSingle();
+      if (profileErr) console.warn('Profile fetch warning:', profileErr.message);
+
+      const familyMemberName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : 'בן משפחה';
+      const familyMemberEmail = profile?.email || '';
+
+      console.info('Creating permissions_requests row', {
+        primary_user_id: linkData.owner_user_id,
+        family_member_id: authState.memberId,
+        permission_type: scope
+      });
+
       const { data, error } = await supabase
-        .from('family_permission_requests')
+        .from('permissions_requests')
         .insert({
-          owner_user_id: linkData.owner_user_id,
-          family_link_id: authState.memberId,
-          scope: scope,
+          primary_user_id: linkData.owner_user_id,
+          family_member_id: authState.memberId,
+          family_member_name: familyMemberName,
+          family_member_email: familyMemberEmail,
+          permission_type: scope,
           status: 'PENDING'
         })
         .select()
@@ -87,76 +112,49 @@ export const usePermissionRequests = () => {
 
       const newRequest: FamilyPermissionRequest = {
         id: data.id,
-        ownerUserId: data.owner_user_id,
-        familyLinkId: data.family_link_id,
-        scope: data.scope as FamilyScope,
-        status: data.status as 'PENDING' | 'APPROVED' | 'DECLINED',
+        ownerUserId: data.primary_user_id,
+        familyLinkId: data.family_member_id,
+        scope: (data.permission_type as FamilyScope) || scope,
+        status: (data.status as 'PENDING' | 'APPROVED' | 'DECLINED') || 'PENDING',
         createdAt: data.created_at,
         updatedAt: data.updated_at
       };
 
       setRequests(prev => [...prev, newRequest]);
-      
-      toast({
-        title: 'בקשה נשלחה',
-        description: 'הבקשה להרשאה נשלחה למשתמש הראשי'
-      });
-
+      toast({ title: 'בקשה נשלחה', description: 'הבקשה להרשאה נשלחה למשתמש הראשי' });
       return newRequest;
-    } catch (error) {
-      console.error('Error requesting permission:', error);
-      toast({
-        title: 'שגיאה',
-        description: 'לא ניתן לשלוח את הבקשה להרשאה',
-        variant: 'destructive'
-      });
+    } catch (error: any) {
+      console.error('Error requesting permission (permissions_requests insert failed):', error?.message || error);
+      toast({ title: 'שגיאה', description: 'לא ניתן לשלוח את הבקשה להרשאה', variant: 'destructive' });
     }
   };
 
   const approveRequest = async (requestId: string) => {
     try {
-      // Update the permission request to APPROVED
-      const { data: requestData, error: updateError } = await supabase
-        .from('family_permission_requests')
+      // Update the permission request to APPROVED (DB trigger will sync to family_members_permissions)
+      const { data, error } = await supabase
+        .from('permissions_requests')
         .update({ status: 'APPROVED' })
         .eq('id', requestId)
         .select()
         .single();
 
-      if (updateError) throw updateError;
-
-      // Add the scope to the family member's scopes
-      const { data: currentLink, error: fetchError } = await supabase
-        .from('family_links')
-        .select('scopes')
-        .eq('id', requestData.family_link_id)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      const newScopes = [...(currentLink.scopes || []), requestData.scope];
-      const { error: scopeError } = await supabase
-        .from('family_links')
-        .update({ scopes: newScopes })
-        .eq('id', requestData.family_link_id);
+      if (error) throw error;
 
       const updatedRequest: FamilyPermissionRequest = {
-        id: requestData.id,
-        ownerUserId: requestData.owner_user_id,
-        familyLinkId: requestData.family_link_id,
-        scope: requestData.scope as FamilyScope,
-        status: requestData.status as 'PENDING' | 'APPROVED' | 'DECLINED',
-        createdAt: requestData.created_at,
-        updatedAt: requestData.updated_at
+        id: data.id,
+        ownerUserId: data.primary_user_id,
+        familyLinkId: data.family_member_id,
+        scope: (data.permission_type as FamilyScope),
+        status: (data.status as 'PENDING' | 'APPROVED' | 'DECLINED'),
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
       };
 
-      setRequests(prev => 
-        prev.map(req => req.id === requestId ? updatedRequest : req)
-      );
-
+      setRequests(prev => prev.map(req => req.id === requestId ? updatedRequest : req));
       return updatedRequest;
     } catch (error) {
-      console.error('Error approving request:', error);
+      console.error('Error approving request (permissions_requests):', error);
       throw error;
     }
   };
@@ -164,7 +162,7 @@ export const usePermissionRequests = () => {
   const declineRequest = async (requestId: string) => {
     try {
       const { data, error } = await supabase
-        .from('family_permission_requests')
+        .from('permissions_requests')
         .update({ status: 'DECLINED' })
         .eq('id', requestId)
         .select()
@@ -174,21 +172,18 @@ export const usePermissionRequests = () => {
 
       const updatedRequest: FamilyPermissionRequest = {
         id: data.id,
-        ownerUserId: data.owner_user_id,
-        familyLinkId: data.family_link_id,
-        scope: data.scope as FamilyScope,
-        status: data.status as 'PENDING' | 'APPROVED' | 'DECLINED',
+        ownerUserId: data.primary_user_id,
+        familyLinkId: data.family_member_id,
+        scope: (data.permission_type as FamilyScope),
+        status: (data.status as 'PENDING' | 'APPROVED' | 'DECLINED'),
         createdAt: data.created_at,
         updatedAt: data.updated_at
       };
 
-      setRequests(prev => 
-        prev.map(req => req.id === requestId ? updatedRequest : req)
-      );
-
+      setRequests(prev => prev.map(req => req.id === requestId ? updatedRequest : req));
       return updatedRequest;
     } catch (error) {
-      console.error('Error declining request:', error);
+      console.error('Error declining request (permissions_requests):', error);
       throw error;
     }
   };
