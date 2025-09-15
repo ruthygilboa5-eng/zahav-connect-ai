@@ -398,6 +398,7 @@ const FamilyProfileRealDashboard = () => {
                 <p className="text-sm text-muted-foreground">
                   אתה מחובר כבן משפחה למשתמש זה ויכול לבקש הרשאות לפיצ'רים השונים
                 </p>
+                <p className="text-sm"><strong>קשר משפחתי:</strong> {memberData.relationship_to_primary_user || formData.relationship_to_primary_user || 'לא הוגדר'}</p>
               </div>
             </CardContent>
           </Card>

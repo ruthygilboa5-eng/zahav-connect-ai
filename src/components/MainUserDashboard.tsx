@@ -39,22 +39,22 @@ const MainUserDashboard = () => {
     try {
       const membersWithPerms = await Promise.all(
         familyMembers.map(async (member) => {
-          // Get permission requests count from family_members_permissions using family_link id
-          const { data: familyLinksData } = await supabase
+          // Get family_link id by matching owner (current main user) and member email
+          const { data: familyLinkData, error: linkErr } = await supabase
             .from('family_links')
             .select('id')
-            .eq('member_user_id', authState.user?.id)
-            .eq('owner_user_id', member.main_user_id)
-            .single();
+            .eq('owner_user_id', authState.user?.id as string)
+            .eq('email', member.email)
+            .maybeSingle();
 
           let pendingCount = 0;
           let approvedCount = 0;
 
-          if (familyLinksData) {
+          if (familyLinkData) {
             const { data: permissionsData } = await supabase
               .from('family_members_permissions')
               .select('status')
-              .eq('family_member_id', familyLinksData.id);
+              .eq('family_member_id', familyLinkData.id);
 
             pendingCount = permissionsData?.filter(p => p.status === 'pending').length || 0;
             approvedCount = permissionsData?.filter(p => p.status === 'approved').length || 0;
