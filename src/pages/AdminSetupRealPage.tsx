@@ -408,19 +408,19 @@ const AdminSetupRealPage = () => {
                     <div key={`${result.type}-${result.id}`} className="border rounded-lg p-3">
                       <div className="flex justify-between items-start">
                         <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{result.name}</span>
-                            <Badge variant="outline">
-                              {result.type === 'main_user' ? 'משתמש ראשי' : 'בן משפחה'}
-                            </Badge>
-                            {result.status && getStatusBadge(result.status)}
-                          </div>
-                          <p className="text-sm text-muted-foreground">{result.email}</p>
-                          {result.main_user_name && (
-                            <p className="text-sm text-muted-foreground">
-                              משויך ל: {result.main_user_name} ({result.relationship})
-                            </p>
-                          )}
+                           <div className="flex items-center gap-2">
+                             <span className="font-medium">{result.name || 'לא ידוע'}</span>
+                             <Badge variant="outline">
+                               {result.type === 'main_user' ? 'משתמש ראשי' : 'בן משפחה'}
+                             </Badge>
+                             {result.status && getStatusBadge(result.status)}
+                           </div>
+                           <p className="text-sm text-muted-foreground">{result.email || 'לא הוגדר'}</p>
+                           {result.main_user_name && (
+                             <p className="text-sm text-muted-foreground">
+                               משויך ל: {result.main_user_name} {result.relationship ? `(${result.relationship})` : ''}
+                             </p>
+                           )}
                         </div>
                       </div>
                     </div>
@@ -570,12 +570,12 @@ const FamilyMembersSection = ({ mainUserId }: { mainUserId: string }) => {
                 {getStatusBadge(member.status)}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-1 text-xs text-muted-foreground">
-                <p><strong>קשר משפחתי:</strong> {member.relationship_label}</p>
-                <p><strong>אימייל:</strong> {member.email}</p>
+                <p><strong>קשר משפחתי:</strong> {member.relationship_label || 'לא הוגדר'}</p>
+                <p><strong>אימייל:</strong> {member.email || 'לא הוגדר'}</p>
                 {member.phone && (
                   <p><strong>טלפון:</strong> {member.phone}</p>
                 )}
-                <p><strong>תאריך רישום:</strong> {formatDate(member.created_at)}</p>
+                <p><strong>תאריך רישום:</strong> {member.created_at ? formatDate(member.created_at) : 'לא זמין'}</p>
               </div>
             </div>
           </div>
