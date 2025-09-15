@@ -30,7 +30,7 @@ export const useFamilyPermissions = () => {
         .from('family_links')
         .select('id')
         .eq('member_user_id', authState.user.id)
-        .single();
+        .maybeSingle();
 
       if (linkError || !familyLink) {
         console.error('Error finding family link:', linkError);
@@ -67,7 +67,7 @@ export const useFamilyPermissions = () => {
         .from('family_links')
         .select('id, owner_user_id')
         .eq('member_user_id', authState.user.id)
-        .single();
+        .maybeSingle();
 
       if (linkError || !familyLink) {
         throw new Error('לא נמצא קישור משפחתי');
@@ -130,6 +130,71 @@ export const useFamilyPermissions = () => {
     }
   };
 
+  // Request to join a primary user (creates family_link if missing and logs in permissions_requests)
+  const requestJoin = async (primaryUserId: string) => {
+    if (!authState.user?.id) return;
+
+    try {
+      // Fetch profile for details
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('first_name, last_name, email, phone')
+        .eq('user_id', authState.user.id)
+        .maybeSingle();
+
+      const familyMemberName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : 'בן משפחה';
+      const familyMemberEmail = profile?.email || '';
+
+      // Ensure family_link exists (or create one)
+      const { data: existingLink } = await supabase
+        .from('family_links')
+        .select('id')
+        .eq('member_user_id', authState.user.id)
+        .eq('owner_user_id', primaryUserId)
+        .maybeSingle();
+
+      let familyLinkId = existingLink?.id as string | undefined;
+
+      if (!familyLinkId) {
+        const { data: newLink, error: linkInsertError } = await supabase
+          .from('family_links')
+          .insert({
+            owner_user_id: primaryUserId,
+            member_user_id: authState.user.id,
+            full_name: familyMemberName || 'בן משפחה',
+            relation: 'בן משפחה',
+            email: familyMemberEmail,
+            phone: profile?.phone || null,
+            status: 'PENDING'
+          })
+          .select('id')
+          .maybeSingle();
+        if (linkInsertError) throw linkInsertError;
+        familyLinkId = newLink?.id as string;
+      }
+
+      if (!familyLinkId) throw new Error('יצירת קישור משפחתי נכשלה');
+
+      // Insert permissions request for join
+      const { error: reqErr } = await supabase
+        .from('permissions_requests')
+        .insert({
+          primary_user_id: primaryUserId,
+          family_member_id: familyLinkId,
+          family_member_name: familyMemberName,
+          family_member_email: familyMemberEmail,
+          permission_type: 'join',
+          status: 'PENDING'
+        });
+      if (reqErr) throw reqErr;
+
+      toast({ title: 'בקשת הצטרפות נשלחה', description: 'הבקשה הועברה למשתמש הראשי' });
+    } catch (error: any) {
+      console.error('Error requesting join:', error);
+      toast({ title: 'שגיאה', description: error.message || 'שגיאה בשליחת בקשת הצטרפות', variant: 'destructive' });
+    }
+  };
+
   // Get permission status for a specific feature
   const getPermissionStatus = (feature: string): 'none' | 'pending' | 'approved' | 'rejected' => {
     const permission = permissions
@@ -175,6 +240,7 @@ export const useFamilyPermissions = () => {
     permissions,
     loading,
     requestPermission,
+    requestJoin,
     getPermissionStatus,
     hasPermission,
     loadPermissions

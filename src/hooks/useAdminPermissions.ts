@@ -13,6 +13,9 @@ interface PermissionRequestWithDetails {
   family_member_name: string;
   family_member_email: string;
   relationship_to_primary_user: string;
+  primary_user_id: string;
+  primary_user_name?: string;
+  primary_user_email?: string;
 }
 
 export const useAdminPermissions = () => {
@@ -29,11 +32,17 @@ export const useAdminPermissions = () => {
       setLoading(true);
 
       // Load from permissions_requests table
-      const { data: requestsData, error: requestsError } = await supabase
+      let baseQuery = supabase
         .from('permissions_requests')
         .select('*')
-        .eq('primary_user_id', authState.user.id)
         .order('created_at', { ascending: false });
+
+      // If admin - load all, if main user - only theirs
+      if (authState.role !== 'ADMIN') {
+        baseQuery = baseQuery.eq('primary_user_id', authState.user.id);
+      }
+
+      const { data: requestsData, error: requestsError } = await baseQuery;
 
       if (requestsError) throw requestsError;
 
@@ -53,9 +62,25 @@ export const useAdminPermissions = () => {
         }, {} as Record<string, any>);
       }
 
+      // Fetch primary users profiles for display
+      const primaryUserIds = Array.from(new Set((requestsData || []).map(r => r.primary_user_id).filter(Boolean)));
+      let primaryProfilesMap: Record<string, any> = {};
+      if (primaryUserIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('user_profiles')
+          .select('user_id, display_name, first_name, last_name, email')
+          .in('user_id', primaryUserIds);
+        primaryProfilesMap = (profiles || []).reduce((acc, p) => {
+          acc[p.user_id] = p;
+          return acc;
+        }, {} as Record<string, any>);
+      }
+
       // Format the data from permissions_requests
       const formattedRequests: PermissionRequestWithDetails[] = (requestsData || []).map(request => {
         const familyLink = familyLinksMap[request.family_member_id];
+        const primaryProfile = primaryProfilesMap[request.primary_user_id];
+        const primaryName = primaryProfile ? (primaryProfile.display_name || `${primaryProfile.first_name || ''} ${primaryProfile.last_name || ''}`.trim()) : '';
         return {
           id: request.id,
           family_member_id: request.family_member_id,
@@ -65,7 +90,10 @@ export const useAdminPermissions = () => {
           updated_at: request.updated_at,
           family_member_name: request.family_member_name || familyLink?.full_name || 'לא ידוע',
           family_member_email: request.family_member_email || familyLink?.email || '',
-          relationship_to_primary_user: familyLink?.relationship_to_primary_user || ''
+          relationship_to_primary_user: familyLink?.relationship_to_primary_user || '',
+          primary_user_id: request.primary_user_id,
+          primary_user_name: primaryName,
+          primary_user_email: primaryProfile?.email || ''
         };
       });
 

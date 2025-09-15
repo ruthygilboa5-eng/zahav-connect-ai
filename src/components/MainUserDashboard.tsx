@@ -109,6 +109,37 @@ const MainUserDashboard = () => {
 
   return (
     <div className="space-y-6" dir="rtl">
+      {/* Feature shortcuts */}
+      <Card>
+        <CardHeader>
+          <CardTitle>פיצ'רים</CardTitle>
+          <CardDescription>גישה מהירה לפיצ'רים המרכזיים</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 md:grid-cols-7 gap-3">
+            {[
+              { key: 'wakeup', label: 'התעוררות', to: '/wakeup' },
+              { key: 'emergency', label: 'מוקדי חירום', to: '/emergency' },
+              { key: 'games', label: 'משחקים', to: '/games' },
+              { key: 'memories', label: 'זכרונות', to: '/memories' },
+              { key: 'family', label: 'משפחה', to: '/family-management' },
+              { key: 'reminders', label: 'תזכורות', to: '/reminders' },
+              { key: 'contacts', label: 'אנשי קשר', to: '/emergency-contacts' }
+            ].map(item => (
+              <button
+                key={item.key}
+                onClick={() => navigate(item.to)}
+                className="rounded-full aspect-square border flex items-center justify-center text-sm hover:bg-muted transition-colors"
+                aria-label={item.label}
+                title={item.label}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>

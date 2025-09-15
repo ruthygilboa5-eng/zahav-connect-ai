@@ -364,28 +364,30 @@ export default function AdminRealDashboard() {
           <TabsContent value="permissions">
             <Card>
               <CardHeader>
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center">
                   <div>
                     <CardTitle>ניהול בקשות הרשאות</CardTitle>
                     <CardDescription>
                       בקשות הרשאות מבני משפחה לגישה לפיצ'רים שונים
                     </CardDescription>
                   </div>
-                  <Select
-                    value={statusFilter}
-                    onValueChange={(value: any) => setStatusFilter(value)}
-                  >
-                    <SelectTrigger className="w-40">
-                      <Filter className="h-4 w-4 mr-2" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">כל הבקשות</SelectItem>
-                      <SelectItem value="pending">ממתינות</SelectItem>
-                      <SelectItem value="approved">מאושרות</SelectItem>
-                      <SelectItem value="rejected">נדחות</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex flex-col md:flex-row gap-2 md:items-center">
+                    <Select
+                      value={statusFilter}
+                      onValueChange={(value: any) => setStatusFilter(value)}
+                    >
+                      <SelectTrigger className="w-40">
+                        <Filter className="h-4 w-4 mr-2" />
+                        <SelectValue placeholder="סטטוס" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">כל הבקשות</SelectItem>
+                        <SelectItem value="pending">ממתינות</SelectItem>
+                        <SelectItem value="approved">מאושרות</SelectItem>
+                        <SelectItem value="rejected">נדחות</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -407,6 +409,7 @@ export default function AdminRealDashboard() {
                             <TableRow>
                               <TableHead>בן משפחה</TableHead>
                               <TableHead>קרבה</TableHead>
+                              <TableHead>משתמש ראשי</TableHead>
                               <TableHead>פיצ'ר מבוקש</TableHead>
                               <TableHead>תאריך בקשה</TableHead>
                               <TableHead>סטטוס</TableHead>
@@ -423,6 +426,7 @@ export default function AdminRealDashboard() {
                                   </span>
                                 </TableCell>
                                 <TableCell>{request.relationship_to_primary_user || 'לא צוין'}</TableCell>
+                                <TableCell>{request.primary_user_name || request.primary_user_id}</TableCell>
                                 <TableCell>
                                   <Badge variant="outline">
                                     {getScopeLabel(request.feature)}
