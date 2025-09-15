@@ -119,12 +119,19 @@ const FamilyRealDashboard = () => {
           .from('user_profiles')
           .select('first_name, last_name, display_name')
           .eq('user_id', linkData.owner_user_id)
-          .single();
+          .maybeSingle();
 
         if (profileError) {
           console.error('Error loading main user profile:', profileError);
-        } else {
+        } else if (profileData) {
           setMainUserProfile(profileData);
+        } else {
+          // No profile found - create a fallback
+          setMainUserProfile({
+            first_name: 'משתמש',
+            last_name: 'ראשי',
+            display_name: 'משתמש ראשי'
+          });
         }
 
         // Load shared activities - for now, load all activities from the main user

@@ -92,16 +92,24 @@ const FamilyProfileRealDashboard = () => {
           .from('user_profiles')
           .select('first_name, last_name, display_name, email')
           .eq('user_id', familyLink.owner_user_id)
-          .single();
+          .maybeSingle();
 
         if (profileError) {
           console.error('Error loading main user profile:', profileError);
-        } else {
+        } else if (profileData) {
           setMainUserProfile({
             first_name: profileData.first_name,
             last_name: profileData.last_name,
             display_name: profileData.display_name || `${profileData.first_name} ${profileData.last_name}`.trim(),
             email: profileData.email
+          });
+        } else {
+          // No profile found - create a fallback
+          setMainUserProfile({
+            first_name: 'משתמש',
+            last_name: 'ראשי',
+            display_name: 'משתמש ראשי',
+            email: undefined
           });
         }
       }
