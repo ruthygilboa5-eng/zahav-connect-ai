@@ -5,15 +5,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, XCircle, Clock, User } from 'lucide-react';
-import { usePermissionRequests } from '@/hooks/usePermissionRequests';
+import { usePermissionRequestsAdmin } from '@/hooks/usePermissionRequestsAdmin';
 import { useFamilyProvider } from '@/providers/FamilyProvider';
-import { scopeLabels, FamilyPermissionRequest } from '@/types/family';
+import { scopeLabels } from '@/types/family';
 
 const PermissionRequestsSection = () => {
   const { toast } = useToast();
-  const { requests, loading, approveRequest, declineRequest, refresh } = usePermissionRequests();
+  const { requests, loading, updateRequestStatus, refresh } = usePermissionRequestsAdmin();
   const { familyMembers } = useFamilyProvider();
-  const [pendingRequests, setPendingRequests] = useState<FamilyPermissionRequest[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
 
   useEffect(() => {
     setPendingRequests(requests.filter(req => req.status === 'PENDING'));
@@ -21,41 +21,32 @@ const PermissionRequestsSection = () => {
 
   const handleApprove = async (requestId: string) => {
     try {
-      await approveRequest(requestId);
-      toast({
-        title: 'בקשה אושרה',
-        description: 'ההרשאה הוענקה לבן המשפחה'
-      });
+      await updateRequestStatus(requestId, 'APPROVED');
       refresh();
     } catch (error) {
-      toast({
-        title: 'שגיאה',
-        description: 'אירעה שגיאה באישור הבקשה',
-        variant: 'destructive'
-      });
+      // Error handling is done in the hook
     }
   };
 
   const handleDecline = async (requestId: string) => {
     try {
-      await declineRequest(requestId);
-      toast({
-        title: 'בקשה נדחתה',
-        description: 'הבקשה להרשאה נדחתה'
-      });
+      await updateRequestStatus(requestId, 'DECLINED');
       refresh();
     } catch (error) {
-      toast({
-        title: 'שגיאה',
-        description: 'אירעה שגיאה בדחיית הבקשה',
-        variant: 'destructive'
-      });
+      // Error handling is done in the hook
     }
   };
 
-  const getMemberName = (familyLinkId: string) => {
-    const member = familyMembers.find(m => m.id === familyLinkId);
-    return member?.fullName || 'בן משפחה';
+  const getPermissionLabel = (permissionType: string) => {
+    const labels: Record<string, string> = {
+      'memories': 'זיכרונות',
+      'games': 'משחקים',
+      'reminders': 'תזכורות',
+      'emergency': 'חירום',
+      'contacts': 'אנשי קשר',
+      'wakeup': 'התעוררות'
+    };
+    return labels[permissionType] || permissionType;
   };
 
   if (loading) {
@@ -88,14 +79,19 @@ const PermissionRequestsSection = () => {
                 <User className="w-5 h-5 text-muted-foreground" />
                 <div>
                   <div className="font-medium">
-                    {getMemberName(request.familyLinkId)}
+                    {request.family_member_name}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    מבקש הרשאה עבור: {scopeLabels[request.scope]}
+                    מבקש הרשאה עבור: {getPermissionLabel(request.permission_type)}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    נשלח: {new Date(request.createdAt).toLocaleDateString('he-IL')}
+                    נשלח: {new Date(request.created_at).toLocaleDateString('he-IL')}
                   </div>
+                  {request.relationship_to_primary_user && (
+                    <div className="text-xs text-muted-foreground">
+                      קשר: {request.relationship_to_primary_user}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2">

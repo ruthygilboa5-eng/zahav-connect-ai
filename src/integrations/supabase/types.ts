@@ -358,6 +358,7 @@ export type Database = {
           family_member_id: string
           family_member_name: string
           id: string
+          permission_type: string | null
           primary_user_id: string
           requested_permissions: string[] | null
           status: string
@@ -369,6 +370,7 @@ export type Database = {
           family_member_id: string
           family_member_name: string
           id?: string
+          permission_type?: string | null
           primary_user_id: string
           requested_permissions?: string[] | null
           status?: string
@@ -380,6 +382,7 @@ export type Database = {
           family_member_id?: string
           family_member_name?: string
           id?: string
+          permission_type?: string | null
           primary_user_id?: string
           requested_permissions?: string[] | null
           status?: string

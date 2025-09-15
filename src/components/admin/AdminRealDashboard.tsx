@@ -81,7 +81,7 @@ export default function AdminRealDashboard() {
           {
             event: '*',
             schema: 'public',
-            table: 'family_members_permissions'
+            table: 'permissions_requests'
           },
           (payload) => {
             console.log('Permission change received:', payload);

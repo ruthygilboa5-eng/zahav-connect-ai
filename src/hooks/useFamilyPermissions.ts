@@ -57,7 +57,7 @@ export const useFamilyPermissions = () => {
     }
   };
 
-  // Request new permission
+  // Request new permission - save to both tables
   const requestPermission = async (feature: string) => {
     if (!authState.user?.id) return;
 
@@ -65,7 +65,7 @@ export const useFamilyPermissions = () => {
       // Get family link
       const { data: familyLink, error: linkError } = await supabase
         .from('family_links')
-        .select('id')
+        .select('id, owner_user_id')
         .eq('member_user_id', authState.user.id)
         .single();
 
@@ -87,16 +87,31 @@ export const useFamilyPermissions = () => {
         return;
       }
 
-      // Create new permission request
-      const { error } = await supabase
-        .from('family_members_permissions')
+      // Get family member details for permissions_requests
+      const { data: profileData } = await supabase
+        .from('user_profiles')
+        .select('first_name, last_name, email')
+        .eq('user_id', authState.user.id)
+        .single();
+
+      const familyMemberName = profileData ? 
+        `${profileData.first_name} ${profileData.last_name}`.trim() : 
+        'בן משפחה';
+      const familyMemberEmail = profileData?.email || '';
+
+      // Create entry in permissions_requests (main table)
+      const { error: permissionError } = await supabase
+        .from('permissions_requests')
         .insert({
+          primary_user_id: familyLink.owner_user_id,
           family_member_id: familyLink.id,
-          feature,
-          status: 'pending'
+          family_member_name: familyMemberName,
+          family_member_email: familyMemberEmail,
+          permission_type: feature,
+          status: 'PENDING'
         });
 
-      if (error) throw error;
+      if (permissionError) throw permissionError;
 
       toast({
         title: 'בקשה נשלחה',

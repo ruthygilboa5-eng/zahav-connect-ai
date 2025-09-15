@@ -21,48 +21,53 @@ export const useAdminPermissions = () => {
   const [permissionRequests, setPermissionRequests] = useState<PermissionRequestWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load permission requests for admin/main user
+  // Load permission requests for admin/main user - now from permissions_requests table
   const loadPermissionRequests = async () => {
     if (!authState.user?.id) return;
 
     try {
       setLoading(true);
 
-      // Update existing permission requests with main_user_id using updated SQL query
-      const { data: updatedRequests, error: updateError } = await supabase
-        .from('family_members_permissions')
-        .select(`
-          *,
-          main_user_id,
-          family_links:family_member_id (
-            full_name,
-            email,
-            relationship_to_primary_user,
-            owner_user_id
-          )
-        `)
-        .not('main_user_id', 'is', null)
+      // Load from permissions_requests table
+      const { data: requestsData, error: requestsError } = await supabase
+        .from('permissions_requests')
+        .select('*')
+        .eq('primary_user_id', authState.user.id)
         .order('created_at', { ascending: false });
 
-      if (updateError) throw updateError;
+      if (requestsError) throw requestsError;
 
-      // Filter requests for family members owned by current user
-      const filteredRequests = (updatedRequests || []).filter(request => 
-        request.main_user_id === authState.user?.id
-      );
+      // Get additional family member details if needed
+      const familyLinkIds = (requestsData || []).map(req => req.family_member_id).filter(Boolean);
+      let familyLinksMap: Record<string, any> = {};
+      
+      if (familyLinkIds.length > 0) {
+        const { data: familyLinksData } = await supabase
+          .from('family_links')
+          .select('id, full_name, email, relationship_to_primary_user')
+          .in('id', familyLinkIds);
+        
+        familyLinksMap = (familyLinksData || []).reduce((acc, link) => {
+          acc[link.id] = link;
+          return acc;
+        }, {} as Record<string, any>);
+      }
 
-      // Format the data
-      const formattedRequests: PermissionRequestWithDetails[] = filteredRequests.map(request => ({
-        id: request.id,
-        family_member_id: request.family_member_id,
-        feature: request.feature,
-        status: request.status as 'pending' | 'approved' | 'rejected',
-        created_at: request.created_at,
-        updated_at: request.updated_at,
-        family_member_name: request.family_links?.full_name || 'לא ידוע',
-        family_member_email: request.family_links?.email || '',
-        relationship_to_primary_user: request.family_links?.relationship_to_primary_user || ''
-      }));
+      // Format the data from permissions_requests
+      const formattedRequests: PermissionRequestWithDetails[] = (requestsData || []).map(request => {
+        const familyLink = familyLinksMap[request.family_member_id];
+        return {
+          id: request.id,
+          family_member_id: request.family_member_id,
+          feature: request.permission_type || 'unknown',
+          status: request.status?.toLowerCase() as 'pending' | 'approved' | 'rejected' || 'pending',
+          created_at: request.created_at,
+          updated_at: request.updated_at,
+          family_member_name: request.family_member_name || familyLink?.full_name || 'לא ידוע',
+          family_member_email: request.family_member_email || familyLink?.email || '',
+          relationship_to_primary_user: familyLink?.relationship_to_primary_user || ''
+        };
+      });
 
       setPermissionRequests(formattedRequests);
     } catch (error) {
@@ -77,7 +82,7 @@ export const useAdminPermissions = () => {
     }
   };
 
-  // Update permission request status
+  // Update permission request status - now updates permissions_requests (will sync to family_members_permissions via trigger)
   const updatePermissionStatus = async (
     requestId: string, 
     newStatus: 'approved' | 'rejected',
@@ -87,8 +92,8 @@ export const useAdminPermissions = () => {
   ) => {
     try {
       const { error } = await supabase
-        .from('family_members_permissions')
-        .update({ status: newStatus })
+        .from('permissions_requests')
+        .update({ status: newStatus.toUpperCase() })
         .eq('id', requestId);
 
       if (error) throw error;
@@ -152,7 +157,7 @@ export const useAdminPermissions = () => {
           {
             event: '*',
             schema: 'public',
-            table: 'family_members_permissions'
+            table: 'permissions_requests'
           },
           (payload) => {
             console.log('Admin permission change received:', payload);
