@@ -6,7 +6,21 @@ import { useAuth } from '@/providers/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { useNavigate } from 'react-router-dom';
-import { Users, Plus, Eye } from 'lucide-react';
+import { 
+  Users, 
+  Plus, 
+  Eye, 
+  Heart, 
+  MessageSquare, 
+  Calendar, 
+  Gamepad2, 
+  AlertTriangle, 
+  Phone,
+  Bell,
+  Camera,
+  Shield
+} from 'lucide-react';
+import PermissionRequestsSection from './PermissionRequestsSection';
 
 interface FamilyMemberWithPermissions {
   id: string;
@@ -107,154 +121,169 @@ const MainUserDashboard = () => {
     );
   }
 
+  const buttons = [
+    {
+      id: 'wakeup',
+      name: 'התעוררתי',
+      description: 'אני בסדר',
+      icon: Heart,
+      className: 'zahav-button zahav-button-green',
+      action: 'wakeup',
+      position: 'center'
+    },
+    {
+      id: 'emergency',
+      name: 'חירום',
+      description: 'עזרה מיידית',
+      icon: AlertTriangle,
+      className: 'zahav-button zahav-button-red',
+      action: 'emergency',
+      position: 'petal'
+    },
+    {
+      id: 'contacts',
+      name: 'מוקדים',
+      description: 'משטרה ומד״א',
+      icon: Phone,
+      className: 'zahav-button zahav-button-purple',
+      action: 'emergency-contacts',
+      position: 'petal'
+    },
+    {
+      id: 'reminders',
+      name: 'תזכורות',
+      description: 'תרופות ופגישות',
+      icon: Bell,
+      className: 'zahav-button zahav-button-blue',
+      action: 'reminders',
+      position: 'petal'
+    },
+    {
+      id: 'memories',
+      name: 'זכרונות',
+      description: 'תמונות וסיפורים',
+      icon: Camera,
+      className: 'zahav-button zahav-button-yellow',
+      action: 'memories',
+      position: 'petal'
+    },
+    {
+      id: 'games',
+      name: 'משחקים',
+      description: 'עם הנכדים',
+      icon: Gamepad2,
+      className: 'zahav-button zahav-button-pink',
+      action: 'games',
+      position: 'petal'
+    },
+    {
+      id: 'family',
+      name: 'המשפחה',
+      description: 'הודעות ועדכונים',
+      icon: MessageSquare,
+      className: 'zahav-button zahav-button-orange',
+      action: 'family-board',
+      position: 'petal'
+    }
+  ];
+
+  const centerButton = buttons.find(b => b.position === 'center');
+  const petalButtons = buttons.filter(b => b.position === 'petal');
+
+  const handleButtonClick = (action: string, buttonName: string) => {
+    console.log(`Action: ${action}`);
+    
+    // Navigate to specific pages
+    switch (action) {
+      case 'wakeup':
+        navigate('/wakeup');
+        break;
+      case 'emergency':
+        navigate('/emergency');
+        break;
+      case 'emergency-contacts':
+        navigate('/emergency-contacts');
+        break;
+      case 'reminders':
+        navigate('/reminders');
+        break;
+      case 'memories':
+        navigate('/memories');
+        break;
+      case 'games':
+        navigate('/games');
+        break;
+      case 'family-board':
+        navigate('/family-board');
+        break;
+      case 'permission-requests':
+        navigate('/permission-requests');
+        break;
+      default:
+        console.log(`No navigation defined for action: ${action}`);
+    }
+  };
+
   return (
     <div className="space-y-6" dir="rtl">
-      {/* Feature shortcuts */}
-      <Card>
-        <CardHeader>
-          <CardTitle>פיצ'רים</CardTitle>
-          <CardDescription>גישה מהירה לפיצ'רים המרכזיים</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 md:grid-cols-7 gap-3">
-            {[
-              { key: 'wakeup', label: 'התעוררות', to: '/wakeup' },
-              { key: 'emergency', label: 'מוקדי חירום', to: '/emergency' },
-              { key: 'games', label: 'משחקים', to: '/games' },
-              { key: 'memories', label: 'זכרונות', to: '/memories' },
-              { key: 'family', label: 'משפחה', to: '/family-management' },
-              { key: 'reminders', label: 'תזכורות', to: '/reminders' },
-              { key: 'contacts', label: 'אנשי קשר', to: '/emergency-contacts' }
-            ].map(item => (
-              <button
-                key={item.key}
-                onClick={() => navigate(item.to)}
-                className="rounded-full aspect-square border flex items-center justify-center text-sm hover:bg-muted transition-colors"
-                aria-label={item.label}
-                title={item.label}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold">בני המשפחה שלי</h2>
-          <p className="text-muted-foreground">
-            נהל את בני המשפחה המשויכים אליך ואת ההרשאות שלהם
-          </p>
-        </div>
-        <Button onClick={() => navigate('/family-management')} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          הוסף בן משפחה
-        </Button>
+      <div className="text-center mb-8">
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+          שלום, משתמש ראשי!
+        </h1>
+        <p className="text-xl text-muted-foreground">
+          מה תרצה לעשות היום?
+        </p>
       </div>
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{familyMembers.length}</div>
-              <p className="text-sm font-medium">בני משפחה רשומים</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {membersWithPermissions.filter(m => m.status === 'ACTIVE').length}
-              </div>
-              <p className="text-sm font-medium">פעילים</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">
-                {membersWithPermissions.reduce((sum, m) => sum + m.pending_requests_count, 0)}
-              </div>
-              <p className="text-sm font-medium">בקשות הרשאה פתוחות</p>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Flower Arrangement */}
+      <div className="flower-arrangement mb-8">
+        {/* Center Button */}
+        {centerButton && (
+          <div className="flower-center">
+            <button
+              onClick={() => handleButtonClick(centerButton.action, centerButton.name)}
+              className={`${centerButton.className} w-28 h-28 md:w-36 md:h-36`}
+              aria-label={centerButton.description}
+            >
+              <centerButton.icon className="w-8 h-8 md:w-10 md:h-10 mb-1" />
+              <span className="text-sm md:text-base font-bold">
+                {centerButton.name}
+              </span>
+            </button>
+          </div>
+        )}
+
+        {/* Surrounding Buttons */}
+        {petalButtons.map((button, index) => (
+          <div key={button.id} className="flower-petal">
+            <button
+              onClick={() => handleButtonClick(button.action, button.name)}
+              className={button.className}
+              aria-label={button.description}
+            >
+              <button.icon className="w-6 h-6 md:w-7 md:h-7 mb-1" />
+              <span className="text-xs md:text-sm font-bold leading-tight">
+                {button.name}
+              </span>
+            </button>
+          </div>
+        ))}
       </div>
 
-      {/* Family Members List */}
+      {/* Family Permission Requests */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            רשימת בני המשפחה
+            <Shield className="h-5 w-5" />
+            ניהול הרשאות בני המשפחה
           </CardTitle>
           <CardDescription>
-            כל בני המשפחה המשויכים אליך וסטטוס הבקשות שלהם
+            בקשות הרשאות ממתינות לאישור מבני המשפחה
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {membersWithPermissions.length === 0 ? (
-            <div className="text-center py-8">
-              <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-lg font-medium text-muted-foreground">
-                אין בני משפחה רשומים עדיין
-              </p>
-              <p className="text-sm text-muted-foreground mt-2">
-                השתמש בכפתור "הוסף בן משפחה" כדי להתחיל
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {membersWithPermissions.map((member) => (
-                <div
-                  key={member.id}
-                  className="border rounded-lg p-4 hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-medium text-lg">{member.full_name}</h3>
-                        {getStatusBadge(member.status)}
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
-                        <p><strong>קשר משפחתי:</strong> {member.relationship_label}</p>
-                        <p><strong>אימייל:</strong> {member.email}</p>
-                        {member.phone && (
-                          <p><strong>טלפון:</strong> {member.phone}</p>
-                        )}
-                        <p><strong>תאריך הרשמה:</strong> {formatDate(member.created_at)}</p>
-                      </div>
-                      <div className="flex gap-4 mt-3">
-                        <span className="text-sm">
-                          <strong>הרשאות מאושרות:</strong> 
-                          <span className="text-green-600 mr-1">{member.approved_permissions_count}</span>
-                        </span>
-                        <span className="text-sm">
-                          <strong>בקשות ממתינות:</strong> 
-                          <span className="text-orange-600 mr-1">{member.pending_requests_count}</span>
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => navigate('/permission-requests')}
-                      >
-                        <Eye className="h-4 w-4" />
-                        צפה בבקשות
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <PermissionRequestsSection />
         </CardContent>
       </Card>
     </div>

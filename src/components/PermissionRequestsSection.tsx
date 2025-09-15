@@ -5,13 +5,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, XCircle, Clock, User } from 'lucide-react';
-import { usePermissionRequestsAdmin } from '@/hooks/usePermissionRequestsAdmin';
+import { usePermissionRequests } from '@/hooks/usePermissionRequests';
 import { useFamilyProvider } from '@/providers/FamilyProvider';
 import { scopeLabels } from '@/types/family';
 
 const PermissionRequestsSection = () => {
   const { toast } = useToast();
-  const { requests, loading, updateRequestStatus, refresh } = usePermissionRequestsAdmin();
+  const { requests, loading, approveRequest, declineRequest, refresh } = usePermissionRequests();
   const { familyMembers } = useFamilyProvider();
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
 
@@ -21,19 +21,35 @@ const PermissionRequestsSection = () => {
 
   const handleApprove = async (requestId: string) => {
     try {
-      await updateRequestStatus(requestId, 'APPROVED');
+      await approveRequest(requestId);
       refresh();
+      toast({
+        title: 'בקשה אושרה',
+        description: 'הבקשה להרשאה אושרה בהצלחה'
+      });
     } catch (error) {
-      // Error handling is done in the hook
+      toast({
+        title: 'שגיאה',
+        description: 'לא ניתן לאשר את הבקשה',
+        variant: 'destructive'
+      });
     }
   };
 
   const handleDecline = async (requestId: string) => {
     try {
-      await updateRequestStatus(requestId, 'DECLINED');
+      await declineRequest(requestId);
       refresh();
+      toast({
+        title: 'בקשה נדחתה',
+        description: 'הבקשה להרשאה נדחתה'
+      });
     } catch (error) {
-      // Error handling is done in the hook
+      toast({
+        title: 'שגיאה',
+        description: 'לא ניתן לדחות את הבקשה',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -77,22 +93,20 @@ const PermissionRequestsSection = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <User className="w-5 h-5 text-muted-foreground" />
-                <div>
-                  <div className="font-medium">
-                    {request.family_member_name}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    מבקש הרשאה עבור: {getPermissionLabel(request.permission_type)}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    נשלח: {new Date(request.created_at).toLocaleDateString('he-IL')}
-                  </div>
-                  {request.relationship_to_primary_user && (
-                    <div className="text-xs text-muted-foreground">
-                      קשר: {request.relationship_to_primary_user}
-                    </div>
-                  )}
-                </div>
+                 <div>
+                   <div className="font-medium">
+                     {request.familyLinkId ? 
+                       (familyMembers.find(m => m.id === request.familyLinkId)?.fullName || 'בן משפחה לא ידוע') :
+                       'בן משפחה לא ידוע'
+                     }
+                   </div>
+                   <div className="text-sm text-muted-foreground">
+                     מבקש הרשאה עבור: {getPermissionLabel(request.scope)}
+                   </div>
+                   <div className="text-xs text-muted-foreground">
+                     נשלח: {new Date(request.createdAt).toLocaleDateString('he-IL')}
+                   </div>
+                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
