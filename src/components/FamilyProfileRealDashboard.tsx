@@ -366,22 +366,27 @@ const FamilyProfileRealDashboard = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                קשר למשתמש ראשי
+                משויך לחשבון של
               </CardTitle>
               <CardDescription>
                 פרטי המשתמש הראשי שאליו אתה משויך
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                <p><strong>שם מלא:</strong> {
-                  mainUserProfile.display_name || 
-                  `${mainUserProfile.first_name} ${mainUserProfile.last_name}`.trim() ||
-                  'לא הוזן'
-                }</p>
-                {mainUserProfile.email && (
-                  <p><strong>אימייל:</strong> {mainUserProfile.email}</p>
-                )}
+              <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <User className="h-8 w-8 text-primary" />
+                  <div>
+                    <p className="text-lg font-medium">{
+                      mainUserProfile.display_name || 
+                      `${mainUserProfile.first_name} ${mainUserProfile.last_name}`.trim() ||
+                      'לא הוזן'
+                    }</p>
+                    {mainUserProfile.email && (
+                      <p className="text-sm text-muted-foreground">{mainUserProfile.email}</p>
+                    )}
+                  </div>
+                </div>
                 <p className="text-sm text-muted-foreground">
                   אתה מחובר כבן משפחה למשתמש זה ויכול לבקש הרשאות לפיצ'רים השונים
                 </p>

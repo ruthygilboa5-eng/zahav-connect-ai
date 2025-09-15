@@ -155,14 +155,16 @@ const App = () => {
                                 <PermissionRequestsPage />
                               </ProtectedRoute>
                             } />
-                            
-                            <Route path="/admin-setup-real" element={
-                              <ProtectedRoute requiredRole="ADMIN">
-                                <AdminSetupRealPage />
-                              </ProtectedRoute>
-                            } />
-                          
-                          <Route path="*" element={<NotFound />} />
+                           
+                             {/* Admin Setup Routes - Redirect /admin-setup to /admin-setup-real */}
+                             <Route path="/admin-setup" element={<Navigate to="/admin-setup-real" replace />} />
+                             <Route path="/admin-setup-real" element={
+                               <ProtectedRoute requiredRole="ADMIN">
+                                 <AdminSetupRealPage />
+                               </ProtectedRoute>
+                             } />
+                           
+                           <Route path="*" element={<NotFound />} />
                         </Routes>
                       </div>
                     </div>

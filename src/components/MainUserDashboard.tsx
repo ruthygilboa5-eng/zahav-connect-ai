@@ -39,14 +39,26 @@ const MainUserDashboard = () => {
     try {
       const membersWithPerms = await Promise.all(
         familyMembers.map(async (member) => {
-          // Get permission requests count
-          const { data: permissionsData } = await supabase
-            .from('family_members_permissions')
-            .select('status')
-            .eq('family_member_id', member.id);
+          // Get permission requests count from family_members_permissions using family_link id
+          const { data: familyLinksData } = await supabase
+            .from('family_links')
+            .select('id')
+            .eq('member_user_id', authState.user?.id)
+            .eq('owner_user_id', member.main_user_id)
+            .single();
 
-          const pendingCount = permissionsData?.filter(p => p.status === 'pending').length || 0;
-          const approvedCount = permissionsData?.filter(p => p.status === 'approved').length || 0;
+          let pendingCount = 0;
+          let approvedCount = 0;
+
+          if (familyLinksData) {
+            const { data: permissionsData } = await supabase
+              .from('family_members_permissions')
+              .select('status')
+              .eq('family_member_id', familyLinksData.id);
+
+            pendingCount = permissionsData?.filter(p => p.status === 'pending').length || 0;
+            approvedCount = permissionsData?.filter(p => p.status === 'approved').length || 0;
+          }
 
           return {
             ...member,

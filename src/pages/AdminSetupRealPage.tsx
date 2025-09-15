@@ -198,13 +198,23 @@ const AdminSetupRealPage = () => {
         const { data: familyMembersData } = await supabase
           .from('family_members')
           .select(`
-            id, full_name, email, status, relationship_label,
-            user_profiles!family_members_main_user_id_fkey (first_name, last_name)
+            id, full_name, email, status, relationship_label, main_user_id
           `)
           .or(`full_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`);
 
+        // Get main user profiles for the family members
+        const mainUserIds = [...new Set((familyMembersData || []).map(m => m.main_user_id).filter(Boolean))];
+        const { data: mainUsersData } = await supabase
+          .from('user_profiles')
+          .select('user_id, first_name, last_name')
+          .in('user_id', mainUserIds);
+
+        const mainUsersMap = new Map(
+          (mainUsersData || []).map(user => [user.user_id, user])
+        );
+
         (familyMembersData || []).forEach(member => {
-          const mainUserProfile = member.user_profiles as any;
+          const mainUserProfile = mainUsersMap.get(member.main_user_id);
           if (filterStatus === 'all' || member.status.toLowerCase() === filterStatus) {
             results.push({
               id: member.id,
@@ -230,24 +240,25 @@ const AdminSetupRealPage = () => {
   const loadFamilyMembers = async (mainUserId: string): Promise<FamilyMember[]> => {
     const { data, error } = await supabase
       .from('family_members')
-      .select(`
-        id, full_name, relationship_label, email, phone, status, created_at,
-        user_profiles!family_members_main_user_id_fkey (first_name, last_name)
-      `)
+      .select('id, full_name, relationship_label, email, phone, status, created_at, main_user_id')
       .eq('main_user_id', mainUserId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
 
-    return (data || []).map(member => {
-      const mainUserProfile = member.user_profiles as any;
-      return {
-        ...member,
-        main_user_name: mainUserProfile ? 
-          `${mainUserProfile.first_name} ${mainUserProfile.last_name}`.trim() : 
-          'לא ידוע'
-      };
-    });
+    // Get main user profile
+    const { data: mainUserProfile } = await supabase
+      .from('user_profiles')
+      .select('first_name, last_name')
+      .eq('user_id', mainUserId)
+      .single();
+
+    return (data || []).map(member => ({
+      ...member,
+      main_user_name: mainUserProfile ? 
+        `${mainUserProfile.first_name} ${mainUserProfile.last_name}`.trim() : 
+        'לא ידוע'
+    }));
   };
 
   const toggleUserExpansion = async (userId: string) => {
