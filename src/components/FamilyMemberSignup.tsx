@@ -164,8 +164,8 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
             gender: formData.gender
           });
 
-        // Create permission requests for the selected scopes
-        if (!linkError && selectedScopes.length > 0) {
+        // Create permission requests for the selected scopes in the correct table
+        if (!linkError && selectedScopes.length > 0 && ownerData && data.user?.id) {
           const { data: linkData } = await supabase
             .from('family_links')
             .select('id')
@@ -173,16 +173,24 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
             .single();
 
           if (linkData) {
+            const familyMemberName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
+            
             const permissionRequests = selectedScopes.map(scope => ({
-              owner_user_id: ownerData || null,
-              family_link_id: linkData.id,
-              scope: scope,
+              primary_user_id: ownerData,
+              family_member_id: linkData.id,
+              family_member_name: familyMemberName,
+              family_member_email: formData.email,
+              permission_type: scope,
               status: 'PENDING' as const
             }));
 
-            await supabase
-              .from('family_permission_requests')
+            const { error: permissionError } = await supabase
+              .from('permissions_requests')
               .insert(permissionRequests);
+              
+            if (permissionError) {
+              console.error('Error creating permission requests:', permissionError);
+            }
           }
         }
 

@@ -16,9 +16,12 @@ export const usePermissionRequests = () => {
     setLoading(true);
     try {
       if (!authState.user) {
+        console.log('loadRequests: No authenticated user');
         setRequests([]);
         return;
       }
+
+      console.log('loadRequests: Loading requests for user:', authState.user.id, 'role:', authState.role);
 
       // Main user sees all requests for their family. Family members don't have SELECT on this table.
       if (authState.role === 'MAIN_USER') {
@@ -27,6 +30,8 @@ export const usePermissionRequests = () => {
           .select('*')
           .eq('primary_user_id', authState.user.id)
           .order('created_at', { ascending: false });
+
+        console.log('loadRequests result:', { data, error });
 
         if (error) {
           console.error('Error loading permission requests:', error);
@@ -49,9 +54,11 @@ export const usePermissionRequests = () => {
           updatedAt: item.updated_at
         }));
 
+        console.log('loadRequests: Transformed requests:', transformedRequests);
         setRequests(transformedRequests);
       } else {
         // Family members cannot select from permissions_requests due to RLS; keep empty array.
+        console.log('loadRequests: Not a main user, clearing requests');
         setRequests([]);
       }
     } finally {
