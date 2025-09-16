@@ -164,34 +164,34 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         console.error('Error finding owner user:', ownerError);
       }
 
-      const { data: linkRow, error: linkError } = await supabase
-        .from('family_links')
+      // Create family member record in the unified table
+      const { data: memberData, error: memberError } = await supabase
+        .from('family_members')
         .insert({
-          full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+          main_user_id: ownerData || null,
+          user_id: memberUserId,
           email: formData.email,
-          relation: finalRelationship,
+          full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+          relationship_label: finalRelationship,
+          gender: formData.gender,
           phone: formData.phone,
-          owner_email: formData.ownerEmail,
-          owner_user_id: ownerData || null, // Use the found owner user ID
-          member_user_id: memberUserId,
-          scopes: selectedScopes,
-          status: 'PENDING',
-          relationship_to_primary_user: finalRelationship,
-          gender: formData.gender
+          status: 'PENDING'
         })
         .select('id')
         .single();
 
-      // Create permission requests for the selected scopes in the correct table
-      if (!linkError && selectedScopes.length > 0 && ownerData && linkRow?.id) {
-        const familyMemberName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
+      if (memberError) {
+        console.error('Error creating family member:', memberError);
+        throw new Error(`שגיאה ביצירת בן משפחה: ${memberError.message}`);
+      }
+
+      // Create permission requests for the selected scopes
+      if (selectedScopes.length > 0 && ownerData && memberData?.id) {
         const permissionRequests = selectedScopes.map(scope => ({
           primary_user_id: ownerData,
-          family_member_id: linkRow.id,
-          family_member_name: familyMemberName,
-          family_member_email: formData.email,
+          family_member_id: memberData.id,
           permission_type: scope,
-          status: 'PENDING' as const
+          status: 'pending'
         }));
 
         const { error: permissionError } = await supabase
@@ -201,11 +201,6 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         if (permissionError) {
           console.error('Error creating permission requests:', permissionError);
         }
-      }
-
-      if (linkError) {
-        console.error('Error creating family link:', linkError);
-        throw new Error(`שגיאה ביצירת קשר משפחתי: ${linkError.message}`);
       }
 
       // Get owner details for welcome email
@@ -242,7 +237,8 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
               metadata: {
                 subject: template.subject,
                 first_name: formData.firstName,
-                main_user_name: ownerName
+                main_user_name: ownerName,
+                family_member_id: memberData.id
               }
             }
           });

@@ -48,8 +48,8 @@ export const usePermissionRequests = () => {
           id: item.id,
           ownerUserId: item.primary_user_id,
           familyLinkId: item.family_member_id,
-          scope: (item.permission_type as FamilyScope) || 'CHAT',
-          status: (item.status as 'PENDING' | 'APPROVED' | 'DECLINED') || 'PENDING',
+          scope: item.permission_type as FamilyScope,
+          status: item.status.toUpperCase() as 'PENDING' | 'APPROVED' | 'DECLINED',
           createdAt: item.created_at,
           updatedAt: item.updated_at
         }));

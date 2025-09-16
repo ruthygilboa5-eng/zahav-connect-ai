@@ -28,12 +28,13 @@ export const usePermissionRequestsAdmin = () => {
     try {
       setLoading(true);
 
+      // Use the unified admin view
       let query = supabase
-        .from('permissions_requests')
+        .from('v_permission_requests_admin')
         .select('*')
         .order('created_at', { ascending: false });
 
-      // If admin - show all requests, if main user - show only their requests
+      // If main user - show only their requests
       if (authState.role === 'MAIN_USER') {
         query = query.eq('primary_user_id', authState.user.id);
       }
@@ -42,24 +43,7 @@ export const usePermissionRequestsAdmin = () => {
 
       if (error) throw error;
 
-      // Get additional family member details if needed
-      const familyLinkIds = (data || []).map(req => req.family_member_id).filter(Boolean);
-      let familyLinksMap: Record<string, any> = {};
-      
-      if (familyLinkIds.length > 0) {
-        const { data: familyLinksData } = await supabase
-          .from('family_links')
-          .select('id, relationship_to_primary_user')
-          .in('id', familyLinkIds);
-        
-        familyLinksMap = (familyLinksData || []).reduce((acc, link) => {
-          acc[link.id] = link;
-          return acc;
-        }, {} as Record<string, any>);
-      }
-
       const formattedRequests: PermissionRequestAdmin[] = (data || []).map(request => {
-        const familyLink = familyLinksMap[request.family_member_id];
         return {
           id: request.id,
           primary_user_id: request.primary_user_id,
@@ -70,7 +54,7 @@ export const usePermissionRequestsAdmin = () => {
           status: request.status as 'PENDING' | 'APPROVED' | 'DECLINED',
           created_at: request.created_at,
           updated_at: request.updated_at,
-          relationship_to_primary_user: familyLink?.relationship_to_primary_user
+          relationship_to_primary_user: '' // Can be added to the view if needed
         };
       });
 

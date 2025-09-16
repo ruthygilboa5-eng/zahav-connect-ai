@@ -704,7 +704,42 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      family_links_legacy: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          gender: string | null
+          id: string | null
+          member_user_id: string | null
+          owner_email: string | null
+          owner_phone: string | null
+          owner_user_id: string | null
+          phone: string | null
+          relation: string | null
+          relationship_to_primary_user: string | null
+          scopes: string[] | null
+          status: string | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
+      v_permission_requests_admin: {
+        Row: {
+          created_at: string | null
+          family_member_email: string | null
+          family_member_id: string | null
+          family_member_name: string | null
+          id: string | null
+          permission_type: string | null
+          primary_user_email: string | null
+          primary_user_id: string | null
+          primary_user_name: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_current_user_email: {

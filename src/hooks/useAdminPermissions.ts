@@ -24,20 +24,20 @@ export const useAdminPermissions = () => {
   const [permissionRequests, setPermissionRequests] = useState<PermissionRequestWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load permission requests for admin/main user - now from permissions_requests table
+  // Load permission requests for admin/main user - using unified view
   const loadPermissionRequests = async () => {
     if (!authState.user?.id) return;
 
     try {
       setLoading(true);
 
-      // Load from permissions_requests table
+      // Use the unified admin view
       let baseQuery = supabase
-        .from('permissions_requests')
+        .from('v_permission_requests_admin')
         .select('*')
         .order('created_at', { ascending: false });
 
-      // If admin - load all, if main user - only theirs
+      // If not admin - only their requests
       if (authState.role !== 'ADMIN') {
         baseQuery = baseQuery.eq('primary_user_id', authState.user.id);
       }
@@ -46,41 +46,8 @@ export const useAdminPermissions = () => {
 
       if (requestsError) throw requestsError;
 
-      // Get additional family member details if needed
-      const familyLinkIds = (requestsData || []).map(req => req.family_member_id).filter(Boolean);
-      let familyLinksMap: Record<string, any> = {};
-      
-      if (familyLinkIds.length > 0) {
-        const { data: familyLinksData } = await supabase
-          .from('family_links')
-          .select('id, full_name, email, relationship_to_primary_user')
-          .in('id', familyLinkIds);
-        
-        familyLinksMap = (familyLinksData || []).reduce((acc, link) => {
-          acc[link.id] = link;
-          return acc;
-        }, {} as Record<string, any>);
-      }
-
-      // Fetch primary users profiles for display
-      const primaryUserIds = Array.from(new Set((requestsData || []).map(r => r.primary_user_id).filter(Boolean)));
-      let primaryProfilesMap: Record<string, any> = {};
-      if (primaryUserIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from('user_profiles')
-          .select('user_id, display_name, first_name, last_name, email')
-          .in('user_id', primaryUserIds);
-        primaryProfilesMap = (profiles || []).reduce((acc, p) => {
-          acc[p.user_id] = p;
-          return acc;
-        }, {} as Record<string, any>);
-      }
-
-      // Format the data from permissions_requests
+      // Format the data from the view
       const formattedRequests: PermissionRequestWithDetails[] = (requestsData || []).map(request => {
-        const familyLink = familyLinksMap[request.family_member_id];
-        const primaryProfile = primaryProfilesMap[request.primary_user_id];
-        const primaryName = primaryProfile ? (primaryProfile.display_name || `${primaryProfile.first_name || ''} ${primaryProfile.last_name || ''}`.trim()) : '';
         return {
           id: request.id,
           family_member_id: request.family_member_id,
@@ -88,12 +55,12 @@ export const useAdminPermissions = () => {
           status: request.status?.toLowerCase() as 'pending' | 'approved' | 'rejected' || 'pending',
           created_at: request.created_at,
           updated_at: request.updated_at,
-          family_member_name: request.family_member_name || familyLink?.full_name || 'לא ידוע',
-          family_member_email: request.family_member_email || familyLink?.email || '',
-          relationship_to_primary_user: familyLink?.relationship_to_primary_user || '',
+          family_member_name: request.family_member_name || 'לא ידוע',
+          family_member_email: request.family_member_email || '',
+          relationship_to_primary_user: '', // This can be added to the view if needed
           primary_user_id: request.primary_user_id,
-          primary_user_name: primaryName,
-          primary_user_email: primaryProfile?.email || ''
+          primary_user_name: request.primary_user_name,
+          primary_user_email: request.primary_user_email
         };
       });
 

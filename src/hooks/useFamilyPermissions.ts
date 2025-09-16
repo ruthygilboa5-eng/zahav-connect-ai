@@ -25,15 +25,15 @@ export const useFamilyPermissions = () => {
     try {
       setLoading(true);
 
-      // Get family link for current user
-      const { data: familyLink, error: linkError } = await supabase
-        .from('family_links')
+      // Get family member record for current user
+      const { data: familyMember, error: memberError } = await supabase
+        .from('family_members')
         .select('id')
-        .eq('member_user_id', authState.user.id)
+        .eq('user_id', authState.user.id)
         .maybeSingle();
 
-      if (linkError || !familyLink) {
-        console.error('Error finding family link:', linkError);
+      if (memberError || !familyMember) {
+        console.error('Error finding family member:', memberError);
         return;
       }
 
@@ -41,7 +41,7 @@ export const useFamilyPermissions = () => {
       const { data: permissionsData, error: permissionsError } = await supabase
         .from('family_members_permissions')
         .select('*')
-        .eq('family_member_id', familyLink.id)
+        .eq('family_member_id', familyMember.id)
         .order('created_at', { ascending: false });
 
       if (permissionsError) throw permissionsError;
@@ -62,15 +62,15 @@ export const useFamilyPermissions = () => {
     if (!authState.user?.id) return;
 
     try {
-      // Get family link
-      const { data: familyLink, error: linkError } = await supabase
-        .from('family_links')
-        .select('id, owner_user_id')
-        .eq('member_user_id', authState.user.id)
+      // Get family member record
+      const { data: familyMember, error: memberError } = await supabase
+        .from('family_members')
+        .select('id, main_user_id')
+        .eq('user_id', authState.user.id)
         .maybeSingle();
 
-      if (linkError || !familyLink) {
-        throw new Error('לא נמצא קישור משפחתי');
+      if (memberError || !familyMember) {
+        throw new Error('לא נמצא רישום בן משפחה');
       }
 
       // Check if there's already a pending request for this feature
@@ -87,28 +87,14 @@ export const useFamilyPermissions = () => {
         return;
       }
 
-      // Get family member details for permissions_requests
-      const { data: profileData } = await supabase
-        .from('user_profiles')
-        .select('first_name, last_name, email')
-        .eq('user_id', authState.user.id)
-        .single();
-
-      const familyMemberName = profileData ? 
-        `${profileData.first_name} ${profileData.last_name}`.trim() : 
-        'בן משפחה';
-      const familyMemberEmail = profileData?.email || '';
-
       // Create entry in permissions_requests (main table)
       const { error: permissionError } = await supabase
         .from('permissions_requests')
         .insert({
-          primary_user_id: familyLink.owner_user_id,
-          family_member_id: familyLink.id,
-          family_member_name: familyMemberName,
-          family_member_email: familyMemberEmail,
+          primary_user_id: familyMember.main_user_id,
+          family_member_id: familyMember.id,
           permission_type: feature,
-          status: 'PENDING'
+          status: 'pending'
         });
 
       if (permissionError) throw permissionError;
@@ -145,46 +131,45 @@ export const useFamilyPermissions = () => {
       const familyMemberName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : 'בן משפחה';
       const familyMemberEmail = profile?.email || '';
 
-      // Ensure family_link exists (or create one)
-      const { data: existingLink } = await supabase
-        .from('family_links')
+      // Ensure family_member exists (or create one)
+      const { data: existingMember } = await supabase
+        .from('family_members')
         .select('id')
-        .eq('member_user_id', authState.user.id)
-        .eq('owner_user_id', primaryUserId)
+        .eq('user_id', authState.user.id)
+        .eq('main_user_id', primaryUserId)
         .maybeSingle();
 
-      let familyLinkId = existingLink?.id as string | undefined;
+      let familyMemberId = existingMember?.id as string | undefined;
 
-      if (!familyLinkId) {
-        const { data: newLink, error: linkInsertError } = await supabase
-          .from('family_links')
+      if (!familyMemberId) {
+        const { data: newMember, error: memberInsertError } = await supabase
+          .from('family_members')
           .insert({
-            owner_user_id: primaryUserId,
-            member_user_id: authState.user.id,
+            main_user_id: primaryUserId,
+            user_id: authState.user.id,
             full_name: familyMemberName || 'בן משפחה',
-            relation: 'בן משפחה',
+            relationship_label: 'בן משפחה',
             email: familyMemberEmail,
-            phone: profile?.phone || null,
+            phone: profile?.phone || '',
+            gender: 'male', // Default value, can be updated later
             status: 'PENDING'
           })
           .select('id')
-          .maybeSingle();
-        if (linkInsertError) throw linkInsertError;
-        familyLinkId = newLink?.id as string;
+          .single();
+        if (memberInsertError) throw memberInsertError;
+        familyMemberId = newMember?.id as string;
       }
 
-      if (!familyLinkId) throw new Error('יצירת קישור משפחתי נכשלה');
+      if (!familyMemberId) throw new Error('יצירת רישום בן משפחה נכשלה');
 
       // Insert permissions request for join
       const { error: reqErr } = await supabase
         .from('permissions_requests')
         .insert({
           primary_user_id: primaryUserId,
-          family_member_id: familyLinkId,
-          family_member_name: familyMemberName,
-          family_member_email: familyMemberEmail,
+          family_member_id: familyMemberId,
           permission_type: 'join',
-          status: 'PENDING'
+          status: 'pending'
         });
       if (reqErr) throw reqErr;
 
