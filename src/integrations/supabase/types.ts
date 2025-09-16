@@ -401,6 +401,7 @@ export type Database = {
           feature: string
           id: string
           main_user_id: string | null
+          permission_type: string | null
           status: string
           updated_at: string
         }
@@ -410,6 +411,7 @@ export type Database = {
           feature: string
           id?: string
           main_user_id?: string | null
+          permission_type?: string | null
           status?: string
           updated_at?: string
         }
@@ -419,6 +421,7 @@ export type Database = {
           feature?: string
           id?: string
           main_user_id?: string | null
+          permission_type?: string | null
           status?: string
           updated_at?: string
         }
