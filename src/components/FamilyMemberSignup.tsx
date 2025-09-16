@@ -117,22 +117,38 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
     setIsLoading(true);
     
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
-            phone: formData.phone,
-            birth_date: getBirthDate()?.toISOString().split('T')[0], // YYYY-MM-DD format
-            is_family: true // Ensure role assignment via trigger
-          }
-        }
-      });
+      // If the user is already authenticated, use their id. Otherwise, sign them up.
+      const { data: authResult } = await supabase.auth.getUser();
+      let memberUserId = authResult.user?.id as string | undefined;
 
-      if (error) {
-        throw error;
+      if (!memberUserId) {
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+              phone: formData.phone,
+              birth_date: getBirthDate()?.toISOString().split('T')[0], // YYYY-MM-DD format
+              is_family: true // Ensure role assignment via trigger
+            }
+          }
+        });
+
+        if (signUpError) {
+          throw signUpError;
+        }
+
+        memberUserId = signUpData.user?.id;
+
+        // If email confirmation is required, there will be no active session yet → avoid RLS violation
+        const { data: afterSignUpAuth } = await supabase.auth.getUser();
+        if (!afterSignUpAuth.user) {
+          toast.success('ההרשמה בוצעה. נא לאשר את המייל ואז להתחבר כדי להשלים את הקישור למשתמש הראשי.');
+          onComplete();
+          return;
+        }
       }
 
       // Create family link request
@@ -148,51 +164,44 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         console.error('Error finding owner user:', ownerError);
       }
 
-        const { error: linkError } = await supabase
-          .from('family_links')
-          .insert({
-            full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
-            email: formData.email,
-            relation: finalRelationship,
-            phone: formData.phone,
-            owner_email: formData.ownerEmail,
-            owner_user_id: ownerData || null, // Use the found owner user ID
-            member_user_id: data.user?.id,
-            scopes: selectedScopes,
-            status: 'PENDING',
-            relationship_to_primary_user: finalRelationship,
-            gender: formData.gender
-          });
+      const { data: linkRow, error: linkError } = await supabase
+        .from('family_links')
+        .insert({
+          full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+          email: formData.email,
+          relation: finalRelationship,
+          phone: formData.phone,
+          owner_email: formData.ownerEmail,
+          owner_user_id: ownerData || null, // Use the found owner user ID
+          member_user_id: memberUserId,
+          scopes: selectedScopes,
+          status: 'PENDING',
+          relationship_to_primary_user: finalRelationship,
+          gender: formData.gender
+        })
+        .select('id')
+        .single();
 
-        // Create permission requests for the selected scopes in the correct table
-        if (!linkError && selectedScopes.length > 0 && ownerData && data.user?.id) {
-          const { data: linkData } = await supabase
-            .from('family_links')
-            .select('id')
-            .eq('member_user_id', data.user?.id)
-            .single();
+      // Create permission requests for the selected scopes in the correct table
+      if (!linkError && selectedScopes.length > 0 && ownerData && linkRow?.id) {
+        const familyMemberName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
+        const permissionRequests = selectedScopes.map(scope => ({
+          primary_user_id: ownerData,
+          family_member_id: linkRow.id,
+          family_member_name: familyMemberName,
+          family_member_email: formData.email,
+          permission_type: scope,
+          status: 'PENDING' as const
+        }));
 
-          if (linkData) {
-            const familyMemberName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
-            
-            const permissionRequests = selectedScopes.map(scope => ({
-              primary_user_id: ownerData,
-              family_member_id: linkData.id,
-              family_member_name: familyMemberName,
-              family_member_email: formData.email,
-              permission_type: scope,
-              status: 'PENDING' as const
-            }));
-
-            const { error: permissionError } = await supabase
-              .from('permissions_requests')
-              .insert(permissionRequests);
-              
-            if (permissionError) {
-              console.error('Error creating permission requests:', permissionError);
-            }
-          }
+        const { error: permissionError } = await supabase
+          .from('permissions_requests')
+          .insert(permissionRequests);
+        
+        if (permissionError) {
+          console.error('Error creating permission requests:', permissionError);
         }
+      }
 
       if (linkError) {
         console.error('Error creating family link:', linkError);
