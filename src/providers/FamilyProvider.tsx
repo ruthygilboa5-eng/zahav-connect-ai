@@ -4,7 +4,7 @@ import { FamilyMember, LegacyFamilyMember, PendingItem, Memory, Reminder, Family
 interface FamilyContextType {
   // Family members management - using new schema
   familyMembers: FamilyMember[];
-  addFamilyMember: (member: Omit<FamilyMember, 'id' | 'created_at' | 'updated_at'>) => void;
+  addFamilyMember: (member: Partial<FamilyMember>) => FamilyMember;
   updateMemberStatus: (memberId: string, status: FamilyMember['status']) => void;
   updateMemberScopes: (memberId: string, scopes: FamilyScope[]) => void;
   removeFamilyMember: (memberId: string) => void;
@@ -109,14 +109,23 @@ export const FamilyProvider = ({ children }: FamilyProviderProps) => {
   ]);
 
   // Family members management
-  const addFamilyMember = (memberData: Omit<FamilyMember, 'id' | 'created_at' | 'updated_at'>) => {
+  const addFamilyMember = (memberData: Partial<FamilyMember>): FamilyMember => {
     const newMember: FamilyMember = {
-      ...memberData,
       id: `member-${Date.now()}`,
+      main_user_id: memberData.main_user_id || 'mock-main-user',
+      full_name: memberData.full_name || '',
+      relationship_label: memberData.relationship_label || '',
+      gender: memberData.gender || 'male',
+      email: memberData.email || '',
+      phone: memberData.phone,
+      status: memberData.status || 'PENDING',
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      user_id: memberData.user_id,
+      scopes: memberData.scopes || []
     };
     setFamilyMembers(prev => [...prev, newMember]);
+    return newMember;
   };
 
   const updateMemberStatus = (memberId: string, status: FamilyMember['status']) => {
