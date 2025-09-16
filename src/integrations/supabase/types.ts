@@ -351,6 +351,7 @@ export type Database = {
       }
       family_members: {
         Row: {
+          birth_date: string | null
           created_at: string
           email: string
           full_name: string
@@ -361,8 +362,10 @@ export type Database = {
           relationship_label: string
           status: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
+          birth_date?: string | null
           created_at?: string
           email: string
           full_name: string
@@ -373,8 +376,10 @@ export type Database = {
           relationship_label: string
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
+          birth_date?: string | null
           created_at?: string
           email?: string
           full_name?: string
@@ -385,6 +390,7 @@ export type Database = {
           relationship_label?: string
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -558,37 +564,28 @@ export type Database = {
       permissions_requests: {
         Row: {
           created_at: string
-          family_member_email: string
           family_member_id: string
-          family_member_name: string
           id: string
           permission_type: string | null
           primary_user_id: string
-          requested_permissions: string[] | null
           status: string
           updated_at: string
         }
         Insert: {
           created_at?: string
-          family_member_email: string
           family_member_id: string
-          family_member_name: string
           id?: string
           permission_type?: string | null
           primary_user_id: string
-          requested_permissions?: string[] | null
           status?: string
           updated_at?: string
         }
         Update: {
           created_at?: string
-          family_member_email?: string
           family_member_id?: string
-          family_member_name?: string
           id?: string
           permission_type?: string | null
           primary_user_id?: string
-          requested_permissions?: string[] | null
           status?: string
           updated_at?: string
         }
@@ -635,8 +632,9 @@ export type Database = {
           birth_date: string | null
           created_at: string
           display_name: string | null
-          email: string | null
+          email: string
           first_name: string
+          full_name: string | null
           gender: string | null
           id: string
           last_name: string
@@ -649,8 +647,9 @@ export type Database = {
           birth_date?: string | null
           created_at?: string
           display_name?: string | null
-          email?: string | null
+          email: string
           first_name: string
+          full_name?: string | null
           gender?: string | null
           id?: string
           last_name: string
@@ -663,8 +662,9 @@ export type Database = {
           birth_date?: string | null
           created_at?: string
           display_name?: string | null
-          email?: string | null
+          email?: string
           first_name?: string
+          full_name?: string | null
           gender?: string | null
           id?: string
           last_name?: string
