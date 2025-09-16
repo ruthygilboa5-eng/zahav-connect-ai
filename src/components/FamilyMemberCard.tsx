@@ -11,7 +11,7 @@ import {
   MoreHorizontal
 } from 'lucide-react';
 import { FamilyMember, scopeLabels } from '@/types/family';
-import { useFamilyProvider } from '@/providers/FamilyProvider';
+import { useFamilyMembers } from '@/hooks/useFamilyMembers';
 import { useAuth } from '@/providers/AuthProvider';
 import { 
   DropdownMenu,
@@ -26,7 +26,7 @@ interface FamilyMemberCardProps {
 }
 
 export const FamilyMemberCard = ({ member, showActions = false }: FamilyMemberCardProps) => {
-  const { updateMemberStatus, removeFamilyMember } = useFamilyProvider();
+  const { updateFamilyMember, deleteFamilyMember } = useFamilyMembers();
   const { authState } = useAuth();
 
   // Only Main Users can manage family member scopes and actions
@@ -34,26 +34,26 @@ export const FamilyMemberCard = ({ member, showActions = false }: FamilyMemberCa
 
   const handleApprove = () => {
     if (!canManageMembers) return;
-    updateMemberStatus(member.id, 'APPROVED');
+    updateFamilyMember(member.id, { status: 'ACTIVE' });
   };
 
   const handleReject = () => {
     if (!canManageMembers) return;
-    updateMemberStatus(member.id, 'REVOKED');
+    updateFamilyMember(member.id, { status: 'INACTIVE' });
   };
 
   const handleRemove = () => {
     if (!canManageMembers) return;
-    if (confirm(`האם אתה בטוח שברצונך להסיר את ${member.fullName}?`)) {
-      removeFamilyMember(member.id);
+    if (confirm(`האם אתה בטוח שברצונך להסיר את ${member.full_name}?`)) {
+      deleteFamilyMember(member.id);
     }
   };
 
   const getStatusBadge = () => {
     const statusConfig = {
       PENDING: { label: 'ממתין לאישור', variant: 'secondary' as const, color: 'text-orange-600' },
-      APPROVED: { label: 'מאושר', variant: 'default' as const, color: 'text-green-600' },
-      REVOKED: { label: 'נדחה', variant: 'destructive' as const, color: 'text-red-600' }
+      ACTIVE: { label: 'פעיל', variant: 'default' as const, color: 'text-green-600' },
+      INACTIVE: { label: 'לא פעיל', variant: 'destructive' as const, color: 'text-red-600' }
     };
     
     const config = statusConfig[member.status];
@@ -78,33 +78,27 @@ export const FamilyMemberCard = ({ member, showActions = false }: FamilyMemberCa
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-semibold text-foreground text-lg truncate">
-                  {member.fullName}
+                  {member.full_name}
                 </h3>
                 {getStatusBadge()}
               </div>
               
               <div className="flex flex-col gap-1 text-muted-foreground mb-2">
-                <span className="text-sm">{member.relation}</span>
-                {member.email && (
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm font-medium">אימייל:</span>
-                    <span className="text-sm">{member.email}</span>
-                  </div>
-                )}
-                {member.ownerEmail && (
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm font-medium">משתמש ראשי:</span>
-                    <span className="text-sm">{member.ownerEmail}</span>
-                  </div>
-                )}
+                <span className="text-sm">{member.relationship_label}</span>
                 <div className="flex items-center gap-1">
-                  <Phone className="w-3 h-3" />
-                  <span className="text-sm">{member.phone}</span>
+                  <span className="text-sm font-medium">אימייל:</span>
+                  <span className="text-sm">{member.email}</span>
                 </div>
+                {member.phone && (
+                  <div className="flex items-center gap-1">
+                    <Phone className="w-3 h-3" />
+                    <span className="text-sm">{member.phone}</span>
+                  </div>
+                )}
               </div>
 
               {/* Scopes Display - Read Only for Family Users */}
-              {member.status === 'APPROVED' && (
+              {member.status === 'ACTIVE' && member.scopes && (
                 <div className="mt-3">
                   <div className="flex items-center gap-2 mb-2">
                     <Shield className="w-4 h-4 text-primary" />
@@ -144,7 +138,7 @@ export const FamilyMemberCard = ({ member, showActions = false }: FamilyMemberCa
                 </>
               )}
               
-              {member.status === 'APPROVED' && (
+              {member.status === 'ACTIVE' && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm">
@@ -173,13 +167,13 @@ export const FamilyMemberCard = ({ member, showActions = false }: FamilyMemberCa
           )}
         </div>
 
-        {/* Invitation Date */}
+        {/* Creation Date */}
         <div className="mt-3 pt-3 border-t border-border">
           <p className="text-xs text-muted-foreground">
-            הוזמן ב: {new Date(member.invitedAt).toLocaleDateString('he-IL')}
-            {member.approvedAt && (
+            נוצר ב: {new Date(member.created_at).toLocaleDateString('he-IL')}
+            {member.updated_at !== member.created_at && (
               <span className="mr-3">
-                אושר ב: {new Date(member.approvedAt).toLocaleDateString('he-IL')}
+                עודכן ב: {new Date(member.updated_at).toLocaleDateString('he-IL')}
               </span>
             )}
           </p>

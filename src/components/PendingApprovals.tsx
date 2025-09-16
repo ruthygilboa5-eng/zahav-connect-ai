@@ -55,9 +55,9 @@ export const PendingApprovals = ({ pendingMembers, pendingItems }: PendingApprov
                   <User className="w-5 h-5 text-orange-600" />
                 </div>
                 <div>
-                  <h4 className="font-medium">{member.fullName}</h4>
+                  <h4 className="font-medium">{member.full_name}</h4>
                   <p className="text-sm text-muted-foreground">
-                    {member.relation} • {member.phone}
+                    {member.relationship_label} • {member.phone}
                   </p>
                   <Badge variant="secondary" className="mt-1">
                     הזמנה למשפחה
@@ -67,7 +67,7 @@ export const PendingApprovals = ({ pendingMembers, pendingItems }: PendingApprov
               <div className="flex gap-2">
                 <Button
                   size="sm"
-                  onClick={() => updateMemberStatus(member.id, 'APPROVED')}
+                  onClick={() => updateMemberStatus(member.id, 'ACTIVE')}
                   className="bg-green-600 hover:bg-green-700"
                 >
                   <Check className="w-4 h-4" />
@@ -75,7 +75,7 @@ export const PendingApprovals = ({ pendingMembers, pendingItems }: PendingApprov
                 <Button
                   size="sm"
                   variant="destructive"
-                  onClick={() => updateMemberStatus(member.id, 'REVOKED')}
+                  onClick={() => updateMemberStatus(member.id, 'INACTIVE')}
                 >
                   <X className="w-4 h-4" />
                 </Button>

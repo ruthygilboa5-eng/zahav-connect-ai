@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { FamilyMember, PendingItem, Memory, Reminder, FamilyScope } from '@/types/family';
+import { FamilyMember, LegacyFamilyMember, PendingItem, Memory, Reminder, FamilyScope } from '@/types/family';
 
 interface FamilyContextType {
-  // Family members management
+  // Family members management - using new schema
   familyMembers: FamilyMember[];
-  addFamilyMember: (member: Omit<FamilyMember, 'id' | 'invitedAt'>) => void;
+  addFamilyMember: (member: Omit<FamilyMember, 'id' | 'created_at' | 'updated_at'>) => void;
   updateMemberStatus: (memberId: string, status: FamilyMember['status']) => void;
   updateMemberScopes: (memberId: string, scopes: FamilyScope[]) => void;
   removeFamilyMember: (memberId: string) => void;
@@ -42,31 +42,34 @@ interface FamilyProviderProps {
 }
 
 export const FamilyProvider = ({ children }: FamilyProviderProps) => {
-  // State management
+  // State management with new schema
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([
-    // Mock data for development
+    // Mock data for development - using new schema
     {
       id: 'member-1',
-      fullName: 'רותי כהן',
-      relation: 'בת',
-      phone: '050-1234567',
+      main_user_id: 'mock-main-user',
+      full_name: 'רותי כהן',
+      relationship_label: 'בת',
+      gender: 'female',
       email: 'ruth.cohen@example.com',
-      ownerEmail: 'main@example.com',
-      status: 'APPROVED',
-      scopes: ['POST_MEDIA', 'SUGGEST_REMINDER', 'INVITE_GAME', 'CHAT'],
-      invitedAt: '2024-01-15T10:00:00Z',
-      approvedAt: '2024-01-15T10:05:00Z'
+      phone: '050-1234567',
+      status: 'ACTIVE',
+      created_at: '2024-01-15T10:00:00Z',
+      updated_at: '2024-01-15T10:05:00Z',
+      scopes: ['POST_MEDIA', 'SUGGEST_REMINDER', 'INVITE_GAME', 'CHAT']
     },
     {
-      id: 'member-2', 
-      fullName: 'דני לוי',
-      relation: 'בן',
-      phone: '050-7654321',
+      id: 'member-2',
+      main_user_id: 'mock-main-user',
+      full_name: 'דני לוי',
+      relationship_label: 'בן',
+      gender: 'male',
       email: 'dan.levy@example.com',
-      ownerEmail: 'main@example.com',
+      phone: '050-7654321',
       status: 'PENDING',
-      scopes: ['POST_MEDIA', 'EMERGENCY_ONLY'],
-      invitedAt: '2024-01-16T14:30:00Z'
+      created_at: '2024-01-16T14:30:00Z',
+      updated_at: '2024-01-16T14:30:00Z',
+      scopes: ['POST_MEDIA', 'EMERGENCY_ONLY']
     }
   ]);
 
@@ -106,11 +109,12 @@ export const FamilyProvider = ({ children }: FamilyProviderProps) => {
   ]);
 
   // Family members management
-  const addFamilyMember = (memberData: Omit<FamilyMember, 'id' | 'invitedAt'>) => {
+  const addFamilyMember = (memberData: Omit<FamilyMember, 'id' | 'created_at' | 'updated_at'>) => {
     const newMember: FamilyMember = {
       ...memberData,
       id: `member-${Date.now()}`,
-      invitedAt: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
     setFamilyMembers(prev => [...prev, newMember]);
   };
@@ -121,7 +125,7 @@ export const FamilyProvider = ({ children }: FamilyProviderProps) => {
         ? { 
             ...member, 
             status,
-            approvedAt: status === 'APPROVED' ? new Date().toISOString() : member.approvedAt
+            updated_at: new Date().toISOString()
           }
         : member
     ));
@@ -129,7 +133,7 @@ export const FamilyProvider = ({ children }: FamilyProviderProps) => {
 
   const updateMemberScopes = (memberId: string, scopes: FamilyScope[]) => {
     setFamilyMembers(prev => prev.map(member => 
-      member.id === memberId ? { ...member, scopes } : member
+      member.id === memberId ? { ...member, scopes, updated_at: new Date().toISOString() } : member
     ));
   };
 
@@ -229,7 +233,7 @@ export const FamilyProvider = ({ children }: FamilyProviderProps) => {
 
   const canMemberPerformAction = (memberId: string, scope: FamilyScope) => {
     const member = getMemberById(memberId);
-    return member?.status === 'APPROVED' && member.scopes.includes(scope);
+    return member?.status === 'ACTIVE' && (member.scopes?.includes(scope) || false);
   };
 
   const value: FamilyContextType = {

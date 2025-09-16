@@ -55,8 +55,24 @@ export interface DatabaseFamilyMember {
   updated_at: string;
 }
 
-// Keep original FamilyMember interface for backwards compatibility
+// Updated FamilyMember interface to match new database schema
 export interface FamilyMember {
+  id: string;
+  main_user_id: string;
+  full_name: string;
+  relationship_label: string;
+  gender: string;
+  email: string;
+  phone?: string;
+  status: 'ACTIVE' | 'INACTIVE' | 'PENDING';
+  created_at: string;
+  updated_at: string;
+  user_id?: string;
+  scopes?: FamilyScope[]; // Will be populated from family_members_permissions
+}
+
+// Legacy interface for backwards compatibility
+export interface LegacyFamilyMember {
   id: string;
   fullName: string;
   relation: string;

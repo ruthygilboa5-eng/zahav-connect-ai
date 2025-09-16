@@ -1,270 +1,282 @@
-import { useState, useCallback } from 'react';
-import { FamilyMember, PendingItem, Memory, Reminder, FamilyScope, FamilyPermissionRequest } from '@/types/family';
+import { useState, useEffect } from 'react';
+import { FamilyMember } from '@/types/family';
+import { useAuth } from '@/providers/AuthProvider';
+import { useToast } from '@/hooks/use-toast';
 
 // Mock data storage
-const mockProfiles = new Map();
 const mockFamilyLinks = new Map<string, FamilyMember>();
-const mockPendingQueue = new Map<string, PendingItem>();
-const mockMemories = new Map<string, Memory>();
-const mockReminders = new Map<string, Reminder>();
-const mockPermissionRequests = new Map<string, FamilyPermissionRequest>();
 
-// Initialize some mock data
+// Initialize mock data
 const initMockData = () => {
   if (mockFamilyLinks.size === 0) {
+    // Add some mock family members with new schema
     mockFamilyLinks.set('family-1', {
       id: 'family-1',
-      fullName: 'דוד כהן',
-      relation: 'בן',
+      main_user_id: 'mock-main-user-1',
+      full_name: 'דוד כהן',
+      relationship_label: 'בן',
+      gender: 'male',
+      email: 'david@example.com',
       phone: '050-1234567',
-      status: 'APPROVED',
-      scopes: ['POST_MEDIA', 'SUGGEST_REMINDER', 'INVITE_GAME', 'CHAT'],
-      invitedAt: new Date().toISOString(),
-      approvedAt: new Date().toISOString()
+      status: 'ACTIVE',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      scopes: ['POST_MEDIA', 'SUGGEST_REMINDER', 'INVITE_GAME', 'CHAT']
     });
 
     mockFamilyLinks.set('family-2', {
-      id: 'family-2', 
-      fullName: 'רחל לוי',
-      relation: 'בת',
+      id: 'family-2',
+      main_user_id: 'mock-main-user-1', 
+      full_name: 'רחל לוי',
+      relationship_label: 'בת',
+      gender: 'female',
+      email: 'rachel@example.com',
       phone: '052-9876543',
       status: 'PENDING',
-      scopes: ['POST_MEDIA', 'EMERGENCY_ONLY'],
-      invitedAt: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      scopes: ['POST_MEDIA', 'EMERGENCY_ONLY']
     });
   }
 };
 
 export const useMockSupabase = () => {
-  const [loading, setLoading] = useState(false);
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { authState } = useAuth();
+  const { toast } = useToast();
 
-  initMockData();
-
-  // Profile functions
-  const getProfile = useCallback(async () => {
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 200)); // Simulate API delay
-    const profile = mockProfiles.get('current-user') || {
-      id: 'user-1',
-      first_name: 'משה',
-      last_name: 'ישראלי',
-      phone: '050-1111111',
-      email: 'moshe@example.com'
-    };
-    setLoading(false);
-    return profile;
+  useEffect(() => {
+    initMockData();
+    loadFamilyMembers();
   }, []);
 
-  const updateProfile = useCallback(async (data: any) => {
+  const loadFamilyMembers = () => {
     setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 300));
-    mockProfiles.set('current-user', { ...mockProfiles.get('current-user'), ...data });
-    setLoading(false);
-    return mockProfiles.get('current-user');
-  }, []);
+    
+    // Simulate API delay
+    setTimeout(() => {
+      const members = Array.from(mockFamilyLinks.values());
+      setFamilyMembers(members);
+      setLoading(false);
+    }, 500);
+  };
 
-  // Family Links functions
-  const listFamilyLinks = useCallback(async () => {
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 150));
-    setLoading(false);
-    return Array.from(mockFamilyLinks.values());
-  }, []);
-
-  const inviteFamilyLink = useCallback(async (memberData: Omit<FamilyMember, 'id' | 'invitedAt'>) => {
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 300));
+  const addFamilyMember = (memberData: Partial<FamilyMember>) => {
     const newMember: FamilyMember = {
-      ...memberData,
       id: `family-${Date.now()}`,
-      invitedAt: new Date().toISOString()
+      main_user_id: authState.user?.id || 'mock-user',
+      full_name: memberData.full_name || '',
+      relationship_label: memberData.relationship_label || '',
+      gender: memberData.gender || 'male',
+      email: memberData.email || '',
+      phone: memberData.phone || '',
+      status: 'PENDING',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      scopes: []
     };
+
     mockFamilyLinks.set(newMember.id, newMember);
-    setLoading(false);
+    loadFamilyMembers();
+
+    toast({
+      title: 'בן משפחה נוסף',
+      description: `${newMember.full_name} נוסף בהצלחה`,
+    });
+
     return newMember;
-  }, []);
+  };
 
-  const setFamilyLinkStatus = useCallback(async (id: string, status: 'APPROVED' | 'REVOKED') => {
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 200));
-    const member = mockFamilyLinks.get(id);
+  const updateMemberStatus = (memberId: string, status: FamilyMember['status']) => {
+    const member = mockFamilyLinks.get(memberId);
     if (member) {
-      member.status = status;
-      if (status === 'APPROVED') {
-        member.approvedAt = new Date().toISOString();
-      }
-      mockFamilyLinks.set(id, member);
-    }
-    setLoading(false);
-    return member || null;
-  }, []);
+      const updatedMember = { 
+        ...member, 
+        status,
+        updated_at: new Date().toISOString()
+      };
+      mockFamilyLinks.set(memberId, updatedMember);
+      loadFamilyMembers();
 
-  const updateFamilyLink = useCallback(async (id: string, updates: Partial<FamilyMember>) => {
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 200));
-    const member = mockFamilyLinks.get(id);
+      toast({
+        title: 'סטטוס עודכן',
+        description: status === 'ACTIVE' ? 'הבקשה אושרה' : 'הבקשה נדחתה'
+      });
+    } else {
+      toast({
+        title: 'שגיאה',
+        description: 'בן המשפחה לא נמצא',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const updateMemberScopes = (memberId: string, scopes: string[]) => {
+    const member = mockFamilyLinks.get(memberId);
     if (member) {
-      Object.assign(member, updates);
-      mockFamilyLinks.set(id, member);
+      const updatedMember = { 
+        ...member, 
+        scopes,
+        updated_at: new Date().toISOString()
+      };
+      mockFamilyLinks.set(memberId, updatedMember);
+      loadFamilyMembers();
+
+      toast({
+        title: 'הרשאות עודכנו',
+        description: `הרשאות של ${member.full_name} עודכנו בהצלחה`
+      });
     }
-    setLoading(false);
-    return member || null;
-  }, []);
+  };
 
-  // Pending Queue functions  
-  const submitPending = useCallback(async (item: Omit<PendingItem, 'id' | 'submittedAt' | 'status'>) => {
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 250));
-    const newItem: PendingItem = {
-      ...item,
-      id: `pending-${Date.now()}`,
-      submittedAt: new Date().toISOString(),
-      status: 'PENDING'
-    };
-    mockPendingQueue.set(newItem.id, newItem);
-    setLoading(false);
-    return newItem;
-  }, []);
+  const removeFamilyMember = (memberId: string) => {
+    const member = mockFamilyLinks.get(memberId);
+    if (member) {
+      mockFamilyLinks.delete(memberId);
+      loadFamilyMembers();
 
-  const listPending = useCallback(async () => {
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 150));
-    setLoading(false);
-    return Array.from(mockPendingQueue.values());
-  }, []);
-
-  const approvePending = useCallback(async (id: string) => {
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const item = mockPendingQueue.get(id);
-    if (item) {
-      item.status = 'APPROVED';
-      
-      // Mock: Move approved content to appropriate collections
-      if (item.type === 'MEDIA' || item.type === 'STORY') {
-        const memory: Memory = {
-          id: `memory-${Date.now()}`,
-          title: item.title,
-          content: item.content,
-          type: item.type === 'MEDIA' ? 'PHOTO' : 'STORY',
-          createdAt: new Date().toISOString(),
-          fromFamily: true,
-          fromMemberName: item.fromMemberName
-        };
-        mockMemories.set(memory.id, memory);
-      } else if (item.type === 'REMINDER') {
-        const reminder: Reminder = {
-          id: `reminder-${Date.now()}`,
-          title: item.title,
-          description: item.content,
-          type: 'EVENT',
-          scheduledFor: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          fromFamily: true,
-          fromMemberName: item.fromMemberName
-        };
-        mockReminders.set(reminder.id, reminder);
-      }
-      
-      mockPendingQueue.set(id, item);
+      toast({
+        title: 'בן משפחה הוסר',
+        description: `${member.full_name} הוסר מהרשימה`
+      });
     }
-    setLoading(false);
-    return item || null;
-  }, []);
+  };
 
-  const declinePending = useCallback(async (id: string) => {
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 200));
-    const item = mockPendingQueue.get(id);
-    if (item) {
-      item.status = 'REJECTED';
-      mockPendingQueue.set(id, item);
-    }
-    setLoading(false);
-    return item || null;
-  }, []);
+  // Get pending members (status = PENDING)
+  const getPendingMembers = () => {
+    return familyMembers.filter(member => member.status === 'PENDING');
+  };
 
-  // Content functions (for display purposes)
-  const getMemories = useCallback(async () => {
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 150));
-    setLoading(false);
-    return Array.from(mockMemories.values());
-  }, []);
-
-  const getReminders = useCallback(async () => {
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 150));
-    setLoading(false);
-    return Array.from(mockReminders.values());
-  }, []);
-
-  // Permission Request functions
-  const createPermissionRequest = useCallback(async (request: Omit<FamilyPermissionRequest, 'id' | 'createdAt' | 'updatedAt'>) => {
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 200));
-    const newRequest: FamilyPermissionRequest = {
-      ...request,
-      id: `req-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    mockPermissionRequests.set(newRequest.id, newRequest);
-    setLoading(false);
-    return newRequest;
-  }, []);
-
-  const listPermissionRequests = useCallback(async () => {
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 150));
-    setLoading(false);
-    return Array.from(mockPermissionRequests.values());
-  }, []);
-
-  const updatePermissionRequest = useCallback(async (id: string, status: 'APPROVED' | 'DECLINED') => {
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 200));
-    const request = mockPermissionRequests.get(id);
-    if (request) {
-      request.status = status;
-      request.updatedAt = new Date().toISOString();
-      mockPermissionRequests.set(id, request);
-      
-      // If approved, add the scope to the family member
-      if (status === 'APPROVED') {
-        const familyMember = mockFamilyLinks.get(request.familyLinkId);
-        if (familyMember && !familyMember.scopes.includes(request.scope)) {
-          familyMember.scopes.push(request.scope);
-          mockFamilyLinks.set(request.familyLinkId, familyMember);
-        }
-      }
-    }
-    setLoading(false);
-    return request || null;
-  }, []);
+  // Get approved members (status = ACTIVE)
+  const getApprovedMembers = () => {
+    return familyMembers.filter(member => member.status === 'ACTIVE');
+  };
 
   return {
+    familyMembers,
     loading,
-    // Profile
-    getProfile,
-    updateProfile,
-    // Family Links
-    listFamilyLinks,
-    inviteFamilyLink,
-    setFamilyLinkStatus,
-    updateFamilyLink,
-    // Pending Queue
-    submitPending,
-    listPending,
-    approvePending,
-    declinePending,
-    // Content
-    getMemories,
-    getReminders,
-    // Permission Requests
-    createPermissionRequest,
-    listPermissionRequests,
-    updatePermissionRequest
+    addFamilyMember,
+    updateMemberStatus,
+    updateMemberScopes,
+    removeFamilyMember,
+    getPendingMembers,
+    getApprovedMembers,
+    refresh: loadFamilyMembers
+  };
+};
+
+// Export for direct use in dev mode
+export const mockFamilyLinksStore = mockFamilyLinks;
+
+// Helper to check if we're in mock mode
+export const isMockMode = () => {
+  return process.env.NODE_ENV === 'development';
+};
+
+// Helper to get all mock data
+export const getAllMockData = () => {
+  initMockData();
+  return Array.from(mockFamilyLinks.values());
+};
+
+// Helper to reset mock data
+export const resetMockData = () => {
+  mockFamilyLinks.clear();
+  initMockData();
+};
+
+// Helper to add bulk mock data
+export const addBulkMockData = (members: FamilyMember[]) => {
+  members.forEach(member => {
+    mockFamilyLinks.set(member.id, member);
+  });
+};
+
+// Mock API response structure
+export interface MockApiResponse<T> {
+  data: T | null;
+  error: string | null;
+  success: boolean;
+}
+
+// Mock API wrapper functions
+export const mockApiCall = <T>(
+  operation: () => T,
+  delay: number = 300
+): Promise<MockApiResponse<T>> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      try {
+        const data = operation();
+        resolve({
+          data,
+          error: null,
+          success: true
+        });
+      } catch (error) {
+        resolve({
+          data: null,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          success: false
+        });
+      }
+    }, delay);
+  });
+};
+
+// Mock Supabase client for development
+export const createMockSupabaseClient = () => {
+  return {
+    from: (table: string) => ({
+      select: (columns = '*') => ({
+        eq: (column: string, value: any) => ({
+          data: Array.from(mockFamilyLinks.values()).filter(
+            (item: any) => item[column] === value
+          ),
+          error: null
+        }),
+        data: Array.from(mockFamilyLinks.values()),
+        error: null
+      }),
+      insert: (data: any) => ({
+        select: () => ({
+          single: () => {
+            const newItem = { ...data, id: `mock-${Date.now()}` };
+            mockFamilyLinks.set(newItem.id, newItem);
+            return { data: newItem, error: null };
+          }
+        })
+      }),
+      update: (data: any) => ({
+        eq: (column: string, value: any) => ({
+          select: () => ({
+            single: () => {
+              const existing = Array.from(mockFamilyLinks.values()).find(
+                (item: any) => item[column] === value
+              );
+              if (existing) {
+                const updated = { ...existing, ...data };
+                mockFamilyLinks.set(updated.id, updated);
+                return { data: updated, error: null };
+              }
+              return { data: null, error: 'Item not found' };
+            }
+          })
+        })
+      }),
+      delete: () => ({
+        eq: (column: string, value: any) => {
+          const item = Array.from(mockFamilyLinks.values()).find(
+            (item: any) => item[column] === value
+          );
+          if (item) {
+            mockFamilyLinks.delete(item.id);
+            return { error: null };
+          }
+          return { error: 'Item not found' };
+        }
+      })
+    })
   };
 };

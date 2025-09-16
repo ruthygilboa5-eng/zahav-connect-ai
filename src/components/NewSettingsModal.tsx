@@ -369,12 +369,12 @@ function FamilyMemberScopeCard({ member, onApprove, onRevoke, onScopesUpdate }: 
 
   const getStatusBadge = () => {
     switch (member.status) {
-      case 'APPROVED':
-        return <Badge variant="default" className="bg-green-500">מאושר</Badge>;
+      case 'ACTIVE':
+        return <Badge variant="default" className="bg-green-500">פעיל</Badge>;
       case 'PENDING':
         return <Badge variant="outline" className="border-yellow-500 text-yellow-600">ממתין לאישור</Badge>;
-      case 'REVOKED':
-        return <Badge variant="destructive">מבוטל</Badge>;
+      case 'INACTIVE':
+        return <Badge variant="destructive">לא פעיל</Badge>;
       default:
         return null;
     }
@@ -404,8 +404,8 @@ function FamilyMemberScopeCard({ member, onApprove, onRevoke, onScopesUpdate }: 
             <Heart className="h-4 w-4" />
           </div>
           <div className="flex-1">
-            <div className="font-medium">{member.fullName}</div>
-            <div className="text-sm text-muted-foreground">{member.relation}</div>
+            <div className="font-medium">{member.full_name}</div>
+            <div className="text-sm text-muted-foreground">{member.relationship_label}</div>
             <div className="text-sm text-muted-foreground mt-1">{member.phone}</div>
           </div>
         </div>
@@ -416,7 +416,7 @@ function FamilyMemberScopeCard({ member, onApprove, onRevoke, onScopesUpdate }: 
               אשר
             </Button>
           )}
-          {member.status === 'APPROVED' && (
+          {member.status === 'ACTIVE' && (
             <Button variant="outline" size="sm" onClick={onRevoke}>
               בטל הרשאות
             </Button>

@@ -96,7 +96,7 @@ const PermissionRequestsSection = () => {
                  <div>
                    <div className="font-medium">
                      {request.familyLinkId ? 
-                       (familyMembers.find(m => m.id === request.familyLinkId)?.fullName || 'בן משפחה לא ידוע') :
+                       (familyMembers.find(m => m.id === request.familyLinkId)?.full_name || 'בן משפחה לא ידוע') :
                        'בן משפחה לא ידוע'
                      }
                    </div>

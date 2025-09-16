@@ -76,17 +76,24 @@ export const AddFamilyMemberModal = ({ isOpen, onClose }: AddFamilyMemberModalPr
     setIsSubmitting(true);
     
     try {
-      // Add family member with PENDING status
+      // Add family member with PENDING status - use useFamilyMembers hook method
       const fullName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
-      addFamilyMember({
-        fullName: fullName,
-        relation: formData.relation,
+      const result = await addFamilyMember({
+        full_name: fullName,
+        relationship_label: formData.relation,
         phone: formData.phone.trim(),
         email: formData.email.trim(),
-        ownerEmail: formData.ownerEmail.trim(),
-        status: 'PENDING',
-        scopes: selectedScopes,
+        gender: 'male',
+        status: 'PENDING'
       });
+
+      if (result) {
+        toast({
+          title: 'בן משפחה נוסף בהצלחה',
+          description: `${fullName} נוסף לרשימה ושובץ במערכת`,
+        });
+        onClose();
+      }
 
       toast.success(`הזמנה נשלחה בהצלחה ל${fullName}`);
       
