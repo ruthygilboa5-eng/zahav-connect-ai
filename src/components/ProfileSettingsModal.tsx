@@ -125,7 +125,7 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
 
   const handleApproveFamily = async (memberId: string) => {
     try {
-      await updateMemberStatus(memberId, 'APPROVED');
+      await updateMemberStatus(memberId, 'ACTIVE');
       toast({
         title: "הצלחה",
         description: "בן המשפחה אושר בהצלחה"
@@ -141,7 +141,7 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
 
   const handleRevokeFamily = async (memberId: string) => {
     try {
-      await updateMemberStatus(memberId, 'REVOKED');
+      await updateMemberStatus(memberId, 'INACTIVE');
       toast({
         title: "הצלחה",
         description: "הרשאות בן המשפחה בוטלו"
@@ -171,11 +171,11 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'APPROVED':
+      case 'ACTIVE':
         return <Badge className="bg-green-500 text-white"><CheckCircle className="w-3 h-3 mr-1" />מאושר</Badge>;
       case 'PENDING':
         return <Badge variant="outline" className="border-yellow-500 text-yellow-600"><Clock className="w-3 h-3 mr-1" />ממתין</Badge>;
-      case 'REVOKED':
+      case 'INACTIVE':
         return <Badge variant="destructive"><X className="w-3 h-3 mr-1" />מבוטל</Badge>;
       default:
         return null;
@@ -339,8 +339,8 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
                               <div className="flex items-start gap-3">
                                 <Phone className="h-4 w-4 mt-1 text-muted-foreground" />
                                  <div>
-                                   <div className="font-medium">{member.fullName}</div>
-                                   <div className="text-sm text-muted-foreground">{member.relation}</div>
+                                   <div className="font-medium">{member.full_name}</div>
+                                    <div className="text-sm text-muted-foreground">{member.relationship_label}</div>
                                    {member.email && (
                                      <div className="text-sm text-muted-foreground font-medium">
                                        אימייל: {member.email}
@@ -356,15 +356,15 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
                                     אשר בן משפחה
                                   </Button>
                                 )}
-                                {member.status === 'APPROVED' && (
-                                  <Button variant="outline" size="sm" onClick={() => handleRevokeFamily(member.id)}>
-                                    בטל הרשאות
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
+                                 {member.status === 'ACTIVE' && (
+                                   <Button variant="outline" size="sm" onClick={() => handleRevokeFamily(member.id)}>
+                                     בטל הרשאות
+                                   </Button>
+                                 )}
+                               </div>
+                             </div>
 
-                            {member.status === 'APPROVED' && (
+                             {member.status === 'ACTIVE' && (
                               <div className="space-y-3 pt-3 border-t">
                                 <div className="flex items-center gap-2">
                                   <Shield className="h-4 w-4 text-primary" />
@@ -415,7 +415,7 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
                             <div key={request.id} className="p-4 border rounded-lg bg-muted/20">
                               <div className="flex items-start justify-between">
                                 <div>
-                                  <div className="font-medium">{member?.fullName || 'לא ידוע'}</div>
+                                  <div className="font-medium">{member?.full_name || 'לא ידוע'}</div>
                                   <div className="text-sm text-muted-foreground">
                                     מבקש הרשאה: {scopeLabels[request.scope]}
                                   </div>
@@ -514,14 +514,14 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {familyMembers && familyMembers.filter(m => m.id !== authState.memberId && m.status === 'APPROVED').length > 0 ? (
-                      <div className="space-y-3">
-                        {familyMembers.filter(m => m.id !== authState.memberId && m.status === 'APPROVED').map((member) => (
+                     {familyMembers && familyMembers.filter(m => m.id !== authState.memberId && m.status === 'ACTIVE').length > 0 ? (
+                       <div className="space-y-3">
+                         {familyMembers.filter(m => m.id !== authState.memberId && m.status === 'ACTIVE').map((member) => (
                           <div key={member.id} className="flex items-center gap-3 p-3 border rounded-lg bg-muted/20">
                             <User className="w-4 h-4 text-muted-foreground" />
                             <div className="flex-1">
-                              <div className="font-medium">{member.fullName}</div>
-                              <div className="text-sm text-muted-foreground">{member.relation}</div>
+                               <div className="font-medium">{member.full_name}</div>
+                               <div className="text-sm text-muted-foreground">{member.relationship_label}</div>
                             </div>
                             {getStatusBadge(member.status)}
                           </div>

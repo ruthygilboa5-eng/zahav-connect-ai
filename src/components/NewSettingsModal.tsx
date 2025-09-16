@@ -440,19 +440,19 @@ function FamilyMemberScopeCard({ member, onApprove, onRevoke, onScopesUpdate }: 
               <Switch
                 checked={localScopes.includes(scope)}
                 onCheckedChange={(checked) => handleScopeToggle(scope, checked)}
-                disabled={member.status !== 'APPROVED'}
+                disabled={member.status !== 'ACTIVE'}
               />
             </div>
           ))}
         </div>
 
-        {member.status !== 'APPROVED' && (
+        {member.status !== 'ACTIVE' && (
           <p className="text-xs text-muted-foreground mt-2">
             הרשאות זמינות רק לאחר אישור בן המשפחה
           </p>
         )}
 
-        {hasUnsavedChanges && member.status === 'APPROVED' && (
+        {hasUnsavedChanges && member.status === 'ACTIVE' && (
           <div className="flex justify-end pt-2">
             <Button size="sm" onClick={handleSaveScopes}>
               שמור שינויים

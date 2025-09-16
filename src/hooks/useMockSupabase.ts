@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FamilyMember } from '@/types/family';
+import { FamilyMember, FamilyScope } from '@/types/family';
 import { useAuth } from '@/providers/AuthProvider';
 import { useToast } from '@/hooks/use-toast';
 
@@ -112,7 +112,7 @@ export const useMockSupabase = () => {
     }
   };
 
-  const updateMemberScopes = (memberId: string, scopes: string[]) => {
+  const updateMemberScopes = (memberId: string, scopes: FamilyScope[]) => {
     const member = mockFamilyLinks.get(memberId);
     if (member) {
       const updatedMember = { 
@@ -153,6 +153,54 @@ export const useMockSupabase = () => {
     return familyMembers.filter(member => member.status === 'ACTIVE');
   };
 
+  // Profile management
+  const getProfile = async () => {
+    return {
+      first_name: 'משתמש דמה',
+      last_name: 'ראשי',  
+      phone: '050-1234567',
+      email: 'user@example.com'
+    };
+  };
+
+  const updateProfile = async (data: any) => {
+    toast({
+      title: 'פרופיל עודכן',
+      description: 'הפרטים שלך עודכנו בהצלחה'
+    });
+    return true;
+  };
+
+  const setFamilyLinkStatus = async (memberId: string, status: string) => {
+    updateMemberStatus(memberId, status === 'APPROVED' ? 'ACTIVE' : 'INACTIVE');
+  };
+
+  const updateFamilyLink = async (memberId: string, data: any) => {
+    if (data.scopes) {
+      updateMemberScopes(memberId, data.scopes);
+    }
+  };
+
+  // Pending queue management  
+  const listPending = async () => {
+    return [];
+  };
+
+  const approvePending = async (itemId: string) => {
+    toast({
+      title: 'פריט אושר',
+      description: 'הפריט אושר בהצלחה'
+    });
+  };
+
+  const declinePending = async (itemId: string) => {
+    toast({
+      title: 'פריט נדחה', 
+      description: 'הפריט נדחה',
+      variant: 'destructive'
+    });
+  };
+
   return {
     familyMembers,
     loading,
@@ -162,7 +210,14 @@ export const useMockSupabase = () => {
     removeFamilyMember,
     getPendingMembers,
     getApprovedMembers,
-    refresh: loadFamilyMembers
+    refresh: loadFamilyMembers,
+    getProfile,
+    updateProfile,
+    setFamilyLinkStatus,
+    updateFamilyLink,
+    listPending,
+    approvePending,
+    declinePending
   };
 };
 

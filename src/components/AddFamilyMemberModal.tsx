@@ -94,15 +94,16 @@ export const AddFamilyMemberModal = ({ isOpen, onClose }: AddFamilyMemberModalPr
         
         // Reset form
         setFormData({
-        firstName: '',
-        lastName: '',
-        relation: '',
-        phone: '',
-        email: '',
-        ownerEmail: '',
-      });
-      setSelectedScopes(['POST_MEDIA']);
-      onClose();
+          firstName: '',
+          lastName: '',
+          relation: '',
+          phone: '',
+          email: '',
+          ownerEmail: '',
+        });
+        setSelectedScopes(['POST_MEDIA']);
+        onClose();
+      }
       
     } catch (error) {
       toast.error('שגיאה בשליחת ההזמנה');
