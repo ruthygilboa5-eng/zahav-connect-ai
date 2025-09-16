@@ -207,9 +207,58 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         console.error('Error creating family link:', linkError);
         throw new Error(`שגיאה ביצירת קשר משפחתי: ${linkError.message}`);
       }
+
+      // Get owner details for welcome email
+      const { data: ownerProfile } = await supabase
+        .from('user_profiles')
+        .select('first_name, last_name, display_name')
+        .eq('user_id', ownerData)
+        .single();
+
+      const ownerName = ownerProfile?.display_name || 
+                       `${ownerProfile?.first_name || ''} ${ownerProfile?.last_name || ''}`.trim() ||
+                       'המשתמש הראשי';
+
+      // Get welcome message template
+      const { data: template } = await supabase
+        .from('message_templates')
+        .select('subject, body')
+        .eq('feature', 'family_registration')
+        .eq('gender', 'neutral')
+        .single();
+
+      if (template) {
+        const personalizedMessage = template.body
+          .replace(/\[first_name\]/g, formData.firstName)
+          .replace(/\[main_user_name\]/g, ownerName);
+
+        // Send welcome email to family member
+        try {
+          const { error: emailError } = await supabase.functions.invoke('send-notification', {
+            body: {
+              type: 'family_registration',
+              message: personalizedMessage,
+              recipients: [formData.email],
+              metadata: {
+                subject: template.subject,
+                first_name: formData.firstName,
+                main_user_name: ownerName
+              }
+            }
+          });
+
+          if (emailError) {
+            console.error('Error sending welcome email:', emailError);
+          } else {
+            console.log('Welcome email sent successfully');
+          }
+        } catch (emailError) {
+          console.error('Error invoking email function:', emailError);
+        }
+      }
       
       toast.success(`הרשמה הושלמה בהצלחה!`);
-      toast.success(`בקשת הצטרפות נשלחה בהצלחה ל${formData.ownerEmail}`);
+      toast.success(`בקשת הצטרפות נשלחה בהצלחה ל${formData.ownerEmail} ונשלחה לך הודעה למייל`);
       toast.info('תקבל הודעה כאשר המשתמש הראשי יאשר את הבקשה');
       
       onComplete();

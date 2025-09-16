@@ -10,7 +10,7 @@ const corsHeaders = {
 };
 
 interface NotificationRequest {
-  type: 'wake_up' | 'emergency' | 'reminder' | 'memory' | 'game' | 'family_board';
+  type: 'wake_up' | 'emergency' | 'reminder' | 'memory' | 'game' | 'family_board' | 'family_registration';
   message: string;
   recipients: string[];
   metadata?: Record<string, any>;
@@ -110,6 +110,8 @@ function getEmailSubject(type: string): string {
       return '🎲 הזמנה למשחק - זהב';
     case 'family_board':
       return '💬 הודעה משפחתית - זהב';
+    case 'family_registration':
+      return '🏠 ברוכים הבאים למערכת זהב';
     default:
       return '📬 הודעה חדשה - זהב';
   }
