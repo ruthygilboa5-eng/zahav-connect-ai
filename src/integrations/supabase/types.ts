@@ -14,6 +14,210 @@ export type Database = {
   }
   public: {
     Tables: {
+      backup_family_links: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          gender: string | null
+          id: string | null
+          member_user_id: string | null
+          owner_email: string | null
+          owner_phone: string | null
+          owner_user_id: string | null
+          phone: string | null
+          relation: string | null
+          relationship_to_primary_user: string | null
+          scopes: string[] | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id?: string | null
+          member_user_id?: string | null
+          owner_email?: string | null
+          owner_phone?: string | null
+          owner_user_id?: string | null
+          phone?: string | null
+          relation?: string | null
+          relationship_to_primary_user?: string | null
+          scopes?: string[] | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id?: string | null
+          member_user_id?: string | null
+          owner_email?: string | null
+          owner_phone?: string | null
+          owner_user_id?: string | null
+          phone?: string | null
+          relation?: string | null
+          relationship_to_primary_user?: string | null
+          scopes?: string[] | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      backup_family_members: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          gender: string | null
+          id: string | null
+          main_user_id: string | null
+          phone: string | null
+          relationship_label: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id?: string | null
+          main_user_id?: string | null
+          phone?: string | null
+          relationship_label?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id?: string | null
+          main_user_id?: string | null
+          phone?: string | null
+          relationship_label?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      backup_family_permission_requests: {
+        Row: {
+          created_at: string | null
+          family_link_id: string | null
+          id: string | null
+          owner_user_id: string | null
+          scope: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          family_link_id?: string | null
+          id?: string | null
+          owner_user_id?: string | null
+          scope?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          family_link_id?: string | null
+          id?: string | null
+          owner_user_id?: string | null
+          scope?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      backup_permissions_requests: {
+        Row: {
+          created_at: string | null
+          family_member_email: string | null
+          family_member_id: string | null
+          family_member_name: string | null
+          id: string | null
+          permission_type: string | null
+          primary_user_id: string | null
+          requested_permissions: string[] | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          family_member_email?: string | null
+          family_member_id?: string | null
+          family_member_name?: string | null
+          id?: string | null
+          permission_type?: string | null
+          primary_user_id?: string | null
+          requested_permissions?: string[] | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          family_member_email?: string | null
+          family_member_id?: string | null
+          family_member_name?: string | null
+          id?: string | null
+          permission_type?: string | null
+          primary_user_id?: string | null
+          requested_permissions?: string[] | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      backup_user_profiles: {
+        Row: {
+          birth_date: string | null
+          created_at: string | null
+          display_name: string | null
+          email: string | null
+          first_name: string | null
+          gender: string | null
+          id: string | null
+          last_name: string | null
+          phone: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          birth_date?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          email?: string | null
+          first_name?: string | null
+          gender?: string | null
+          id?: string | null
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          birth_date?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          email?: string | null
+          first_name?: string | null
+          gender?: string | null
+          id?: string | null
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       contacts: {
         Row: {
           created_at: string
