@@ -186,6 +186,13 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
       }
 
       // Create permission requests for the selected scopes
+      console.log('Attempting to create permission requests:', {
+        selectedScopes,
+        ownerData,
+        memberDataId: memberData?.id,
+        shouldCreate: selectedScopes.length > 0 && ownerData && memberData?.id
+      });
+
       if (selectedScopes.length > 0 && ownerData && memberData?.id) {
         const permissionRequests = selectedScopes.map(scope => ({
           primary_user_id: ownerData,
@@ -194,13 +201,25 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
           status: 'PENDING'
         }));
 
+        console.log('Creating permission requests:', permissionRequests);
+
         const { error: permissionError } = await supabase
           .from('permissions_requests')
           .insert(permissionRequests);
         
         if (permissionError) {
           console.error('Error creating permission requests:', permissionError);
+          toast.error(`שגיאה ביצירת בקשות הרשאות: ${permissionError.message}`);
+        } else {
+          console.log('Permission requests created successfully');
+          toast.success('בקשות ההרשאות נוצרו בהצלחה');
         }
+      } else {
+        console.log('Skipping permission requests creation:', {
+          scopesLength: selectedScopes.length,
+          hasOwnerData: !!ownerData,
+          hasMemberData: !!memberData?.id
+        });
       }
 
       // Get owner details for welcome email
