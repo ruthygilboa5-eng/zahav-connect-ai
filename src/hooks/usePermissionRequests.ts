@@ -74,15 +74,15 @@ export const usePermissionRequests = () => {
     if (!authState.memberId || !authState.user) return;
 
     try {
-      // Get the owner user ID from family_links table
-      const { data: linkData, error: linkError } = await supabase
-        .from('family_links')
-        .select('owner_user_id')
-        .eq('id', authState.memberId)
+      // Get the owner user ID from family_members table
+      const { data: memberData, error: memberError } = await supabase
+        .from('family_members')
+        .select('main_user_id, id')
+        .eq('user_id', authState.user.id)
         .single();
 
-      if (linkError || !linkData) {
-        throw new Error('לא ניתן למצוא את בעל החשבון');
+      if (memberError || !memberData) {
+        throw new Error('לא ניתן למצוא את הקשר למשתמש הראשי');
       }
 
       // Fetch family member name + email for saving in permissions_requests
@@ -97,18 +97,16 @@ export const usePermissionRequests = () => {
       const familyMemberEmail = profile?.email || '';
 
       console.info('Creating permissions_requests row', {
-        primary_user_id: linkData.owner_user_id,
-        family_member_id: authState.memberId,
+        primary_user_id: memberData.main_user_id,
+        family_member_id: memberData.id,
         permission_type: scope
       });
 
       const { data, error } = await supabase
         .from('permissions_requests')
         .insert({
-          primary_user_id: linkData.owner_user_id,
-          family_member_id: authState.memberId,
-          family_member_name: familyMemberName,
-          family_member_email: familyMemberEmail,
+          primary_user_id: memberData.main_user_id,
+          family_member_id: memberData.id,
           permission_type: scope,
           status: 'PENDING'
         })
@@ -122,7 +120,7 @@ export const usePermissionRequests = () => {
         ownerUserId: data.primary_user_id,
         familyLinkId: data.family_member_id,
         scope: (data.permission_type as FamilyScope) || scope,
-        status: (data.status as 'PENDING' | 'APPROVED' | 'DECLINED') || 'PENDING',
+        status: (data.status?.toUpperCase() as 'PENDING' | 'APPROVED' | 'DECLINED') || 'PENDING',
         createdAt: data.created_at,
         updatedAt: data.updated_at
       };
@@ -196,13 +194,12 @@ export const usePermissionRequests = () => {
   };
 
   const getRequestStatus = (scope: FamilyScope) => {
-    if (!authState.memberId) return 'NONE';
+    if (!authState.user?.id) return 'NONE';
     
-    const currentMember = familyMembers.find(m => m.id === authState.memberId);
-    if (currentMember?.scopes.includes(scope)) return 'APPROVED';
-    
+    // Check if user has approved permission in family_members_permissions
+    // This would need to be checked via separate query, for now check requests
     const existingRequest = requests.find(
-      req => req.familyLinkId === authState.memberId && req.scope === scope
+      req => req.scope === scope
     );
     
     if (existingRequest) return existingRequest.status;

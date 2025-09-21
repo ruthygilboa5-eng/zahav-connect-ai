@@ -27,7 +27,8 @@ interface ProfileSettingsModalProps {
 export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSettingsModalProps) {
   const { authState, logout } = useAuth();
   const { profile, updateProfile, loading, loadUserProfile } = useProfile();
-  const { familyMembers, updateMemberScopes, updateMemberStatus } = useFamilyProvider();
+  const { familyMembers, updateMemberStatus } = useFamilyProvider();
+  // TODO: Implement updateMemberScopes with permissions system
   const { requests, approveRequest, declineRequest, requestPermission, getRequestStatus } = usePermissionRequests();
   const { ownerUserId } = useOwnerContext();
   const { toast } = useToast();
@@ -109,10 +110,12 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
         newScopes = member.scopes.filter(s => s !== scope);
       }
 
-      await updateMemberScopes(memberId, newScopes);
+      // TODO: Implement scope updates with permissions system
+      console.log('Would update member scopes:', memberId, 'new scopes:', newScopes);
+      
       toast({
-        title: "הצלחה",
-        description: "הרשאות עודכנו בהצלחה"
+        title: "מידע",
+        description: "עדכון הרשאות יוטמע בגרסה הבאה"
       });
     } catch (error) {
       toast({

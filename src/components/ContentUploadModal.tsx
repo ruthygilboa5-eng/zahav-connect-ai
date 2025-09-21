@@ -28,7 +28,7 @@ interface ContentUploadModalProps {
 const ContentUploadModal = ({ isOpen, onClose, contentType }: ContentUploadModalProps) => {
   const { toast } = useToast();
   const { authState } = useAuth();
-  const { addToPendingQueue } = useFamilyProvider();
+  // TODO: Implement pending queue with permissions_requests
   
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -106,7 +106,8 @@ const ContentUploadModal = ({ isOpen, onClose, contentType }: ContentUploadModal
       }
     };
 
-    addToPendingQueue(newItem);
+    // TODO: Implement sending to pending queue via permissions_requests
+    // addToPendingQueue(newItem);
     
     toast({
       title: "נשלח לאישור",

@@ -69,7 +69,8 @@ const FamilyDashboard = () => {
   const familyName = useAuthDisplayName();
   const mainUserName = useMainUserDisplayName();
   const { toast } = useToast();
-  const { familyMembers, addToPendingQueue } = useFamilyProvider();
+  const { familyMembers } = useFamilyProvider();
+  // TODO: Replace with actual pending queue management
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [uploadType, setUploadType] = useState<ContentType>('MEDIA');
   const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState(false);

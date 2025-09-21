@@ -11,7 +11,7 @@ export interface FamilyMember {
   relationship_label: string;
   gender: 'male' | 'female';
   phone?: string;
-  status: 'ACTIVE' | 'INACTIVE';
+  status: 'ACTIVE' | 'INACTIVE' | 'PENDING';
   created_at: string;
   updated_at: string;
 }
@@ -36,7 +36,7 @@ export const useFamilyMembers = () => {
         .from('family_members')
         .select('*')
         .eq('main_user_id', authState.user.id)
-        .eq('status', 'ACTIVE')
+        .in('status', ['ACTIVE', 'PENDING'])
         .order('created_at', { ascending: false });
 
       if (error) {

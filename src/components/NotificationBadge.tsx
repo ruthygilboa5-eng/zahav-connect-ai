@@ -2,11 +2,8 @@ import { Badge } from '@/components/ui/badge';
 import { useFamilyProvider } from '@/providers/FamilyProvider';
 
 const NotificationBadge = () => {
-  const { pendingQueue } = useFamilyProvider();
-  
-  const pendingCount = pendingQueue.filter(item => 
-    !item.status || item.status === 'PENDING'
-  ).length;
+  // TODO: Implement with real permissions_requests data
+  const pendingCount = 0; // Mock empty for now
 
   if (pendingCount === 0) return null;
 

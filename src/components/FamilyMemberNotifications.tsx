@@ -14,18 +14,14 @@ import { useFamilyProvider } from '@/providers/FamilyProvider';
 import { PendingItem } from '@/types/family';
 
 const FamilyMemberNotifications = () => {
-  const { pendingQueue } = useFamilyProvider();
-  const [notifications, setNotifications] = useState<PendingItem[]>([]);
+  // TODO: Implement with real permissions_requests data
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  // Filter notifications for current family member
+  // Mock empty notifications for now
   useEffect(() => {
-    const memberNotifications = pendingQueue.filter(item => {
-      // For now, show all items - in real app, filter by current member
-      return true;
-    });
-    setNotifications(memberNotifications);
-  }, [pendingQueue]);
+    setNotifications([]);
+  }, []);
 
   const getStatusIcon = (status?: string) => {
     switch (status) {

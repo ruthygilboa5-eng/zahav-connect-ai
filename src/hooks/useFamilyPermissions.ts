@@ -20,7 +20,7 @@ export const useFamilyPermissions = () => {
 
   // Load permissions for current family member
   const loadPermissions = async () => {
-    if (!authState.user?.id) return;
+    if (!authState.user?.id || authState.role !== 'FAMILY') return;
 
     try {
       setLoading(true);
@@ -37,18 +37,23 @@ export const useFamilyPermissions = () => {
         return;
       }
 
-      // Get permissions for this family member
+      // Get permissions based on approved requests in permissions_requests
       const { data: permissionsData, error: permissionsError } = await supabase
-        .from('family_members_permissions')
+        .from('permissions_requests')
         .select('*')
         .eq('family_member_id', familyMember.id)
+        .eq('status', 'APPROVED')
         .order('created_at', { ascending: false });
 
       if (permissionsError) throw permissionsError;
 
       setPermissions((permissionsData || []).map(p => ({
-        ...p,
-        status: p.status as 'pending' | 'approved' | 'rejected'
+        id: p.id,
+        family_member_id: p.family_member_id,
+        feature: p.permission_type,
+        status: p.status.toLowerCase() as 'pending' | 'approved' | 'rejected',
+        created_at: p.created_at,
+        updated_at: p.updated_at
       })));
     } catch (error) {
       console.error('Error loading permissions:', error);
@@ -73,15 +78,23 @@ export const useFamilyPermissions = () => {
         throw new Error('לא נמצא רישום בן משפחה');
       }
 
-      // Check if there's already a pending request for this feature
-      const existingRequest = permissions.find(p => 
-        p.feature === feature && p.status === 'pending'
-      );
+      // Check if there's already a pending or approved request for this feature
+      const { data: existingRequests, error: existingError } = await supabase
+        .from('permissions_requests')
+        .select('status')
+        .eq('family_member_id', familyMember.id)
+        .eq('permission_type', feature)
+        .order('created_at', { ascending: false })
+        .limit(1);
 
-      if (existingRequest) {
+      if (existingError) throw existingError;
+
+      const latestRequest = existingRequests?.[0];
+      if (latestRequest && (latestRequest.status === 'PENDING' || latestRequest.status === 'APPROVED')) {
+        const statusText = latestRequest.status === 'PENDING' ? 'ממתינה לאישור' : 'מאושרת';
         toast({
           title: 'בקשה קיימת',
-          description: 'כבר נשלחה בקשה עבור פיצ\'ר זה וממתינה לאישור',
+          description: `כבר נשלחה בקשה עבור פיצ\'ר זה והיא ${statusText}`,
           variant: 'default'
         });
         return;
@@ -94,7 +107,7 @@ export const useFamilyPermissions = () => {
           primary_user_id: familyMember.main_user_id,
           family_member_id: familyMember.id,
           permission_type: feature,
-          status: 'pending'
+          status: 'PENDING'
         });
 
       if (permissionError) throw permissionError;
@@ -182,11 +195,13 @@ export const useFamilyPermissions = () => {
 
   // Get permission status for a specific feature
   const getPermissionStatus = (feature: string): 'none' | 'pending' | 'approved' | 'rejected' => {
-    const permission = permissions
-      .filter(p => p.feature === feature)
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
-
-    return permission?.status || 'none';
+    // Check from current permissions (which are only approved ones)
+    const approvedPermission = permissions.find(p => p.feature === feature);
+    if (approvedPermission) return 'approved';
+    
+    // Would need separate query to check pending/rejected status in permissions_requests
+    // For now, return 'none' if not in approved permissions
+    return 'none';
   };
 
   // Check if user has permission for a feature
@@ -206,10 +221,10 @@ export const useFamilyPermissions = () => {
           {
             event: '*',
             schema: 'public',
-            table: 'family_members_permissions'
+            table: 'permissions_requests'
           },
           (payload) => {
-            console.log('Family permission change received:', payload);
+            console.log('Permission request change received:', payload);
             loadPermissions(); // Reload when changes occur
           }
         )

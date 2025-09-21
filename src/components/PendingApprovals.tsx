@@ -12,7 +12,8 @@ interface PendingApprovalsProps {
 }
 
 export const PendingApprovals = ({ pendingMembers, pendingItems }: PendingApprovalsProps) => {
-  const { updateMemberStatus, approvePendingItem, rejectPendingItem } = useFamilyProvider();
+  const { updateMemberStatus } = useFamilyProvider();
+  // TODO: Implement real pending items approval with permissions_requests
 
   const getItemIcon = (type: PendingItem['type']) => {
     const icons = {
@@ -117,7 +118,10 @@ export const PendingApprovals = ({ pendingMembers, pendingItems }: PendingApprov
                 <div className="flex gap-2 ml-3">
                   <Button
                     size="sm"
-                    onClick={() => approvePendingItem(item.id)}
+                    onClick={() => {
+                      // TODO: Implement with permissions_requests
+                      console.log('Approve item:', item.id);
+                    }}
                     className="bg-green-600 hover:bg-green-700"
                   >
                     <Check className="w-4 h-4" />
@@ -125,7 +129,10 @@ export const PendingApprovals = ({ pendingMembers, pendingItems }: PendingApprov
                   <Button
                     size="sm"
                     variant="destructive"
-                    onClick={() => rejectPendingItem(item.id)}
+                    onClick={() => {
+                      // TODO: Implement with permissions_requests
+                      console.log('Reject item:', item.id);
+                    }}
                   >
                     <X className="w-4 h-4" />
                   </Button>

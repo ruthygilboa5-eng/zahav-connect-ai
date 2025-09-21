@@ -47,7 +47,7 @@ export interface DatabaseFamilyMember {
   main_user_id: string; // Updated from owner_user_id
   full_name: string;
   relationship_label: string;
-  gender: string;
+  gender: 'male' | 'female';
   email: string;
   phone?: string;
   status: string;
@@ -61,7 +61,7 @@ export interface FamilyMember {
   main_user_id: string;
   full_name: string;
   relationship_label: string;
-  gender: string;
+  gender: 'male' | 'female';
   email: string;
   phone?: string;
   status: 'ACTIVE' | 'INACTIVE' | 'PENDING';
