@@ -28,15 +28,19 @@ export const usePermissionRequestsAdmin = () => {
     try {
       setLoading(true);
 
-      // Use the unified admin view
-      let query = supabase
-        .from('v_permission_requests_admin')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      // If main user - show only their requests
-      if (authState.role === 'MAIN_USER') {
-        query = query.eq('primary_user_id', authState.user.id);
+      // Use appropriate view based on role
+      let query;
+      if (authState.role === 'ADMIN') {
+        query = supabase
+          .from('v_permission_requests_admin')
+          .select('*')
+          .order('created_at', { ascending: false });
+      } else {
+        // Main users use their own view
+        query = supabase
+          .from('v_permission_requests_main_user')
+          .select('*')
+          .order('created_at', { ascending: false });
       }
 
       const { data, error } = await query;

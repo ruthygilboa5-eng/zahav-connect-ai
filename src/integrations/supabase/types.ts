@@ -486,6 +486,22 @@ export type Database = {
         }
         Relationships: []
       }
+      v_permission_requests_main_user: {
+        Row: {
+          created_at: string | null
+          family_member_email: string | null
+          family_member_id: string | null
+          family_member_name: string | null
+          id: string | null
+          permission_type: string | null
+          primary_user_email: string | null
+          primary_user_id: string | null
+          primary_user_name: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_current_user_email: {
