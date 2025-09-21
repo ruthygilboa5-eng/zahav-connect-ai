@@ -54,15 +54,7 @@ const PermissionRequestsSection = () => {
   };
 
   const getPermissionLabel = (permissionType: string) => {
-    const labels: Record<string, string> = {
-      'memories': 'זיכרונות',
-      'games': 'משחקים',
-      'reminders': 'תזכורות',
-      'emergency': 'חירום',
-      'contacts': 'אנשי קשר',
-      'wakeup': 'התעוררות'
-    };
-    return labels[permissionType] || permissionType;
+    return scopeLabels[permissionType as keyof typeof scopeLabels] || permissionType;
   };
 
   if (loading) {

@@ -12,13 +12,23 @@ interface PermissionRequest {
   updated_at: string;
 }
 
+interface PermissionRequestWithStatus {
+  id: string;
+  family_member_id: string;
+  feature: string;
+  status: 'pending' | 'approved' | 'rejected';
+  created_at: string;
+  updated_at: string;
+}
+
 export const useFamilyPermissions = () => {
   const { authState } = useAuth();
   const { toast } = useToast();
-  const [permissions, setPermissions] = useState<PermissionRequest[]>([]);
+  const [permissions, setPermissions] = useState<PermissionRequestWithStatus[]>([]);
+  const [allRequests, setAllRequests] = useState<PermissionRequestWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load permissions for current family member
+  // Load all permission requests for current family member (all statuses)
   const loadPermissions = async () => {
     if (!authState.user?.id || authState.role !== 'FAMILY') return;
 
@@ -37,24 +47,29 @@ export const useFamilyPermissions = () => {
         return;
       }
 
-      // Get permissions based on approved requests in permissions_requests
-      const { data: permissionsData, error: permissionsError } = await supabase
+      // Get ALL permission requests for this family member
+      const { data: allRequestsData, error: requestsError } = await supabase
         .from('permissions_requests')
         .select('*')
         .eq('family_member_id', familyMember.id)
-        .eq('status', 'APPROVED')
         .order('created_at', { ascending: false });
 
-      if (permissionsError) throw permissionsError;
+      if (requestsError) throw requestsError;
 
-      setPermissions((permissionsData || []).map(p => ({
+      const transformedRequests = (allRequestsData || []).map(p => ({
         id: p.id,
         family_member_id: p.family_member_id,
         feature: p.permission_type,
-        status: p.status.toLowerCase() as 'pending' | 'approved' | 'rejected',
+        status: (p.status.toLowerCase() === 'declined' ? 'rejected' : p.status.toLowerCase()) as 'pending' | 'approved' | 'rejected',
         created_at: p.created_at,
         updated_at: p.updated_at
-      })));
+      }));
+
+      setAllRequests(transformedRequests);
+      
+      // Separate approved permissions for easy access
+      const approvedPermissions = transformedRequests.filter(p => p.status === 'approved');
+      setPermissions(approvedPermissions);
     } catch (error) {
       console.error('Error loading permissions:', error);
     } finally {
@@ -78,23 +93,21 @@ export const useFamilyPermissions = () => {
         throw new Error('לא נמצא רישום בן משפחה');
       }
 
-      // Check if there's already a pending or approved request for this feature
-      const { data: existingRequests, error: existingError } = await supabase
-        .from('permissions_requests')
-        .select('status')
-        .eq('family_member_id', familyMember.id)
-        .eq('permission_type', feature)
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (existingError) throw existingError;
-
-      const latestRequest = existingRequests?.[0];
-      if (latestRequest && (latestRequest.status === 'PENDING' || latestRequest.status === 'APPROVED')) {
-        const statusText = latestRequest.status === 'PENDING' ? 'ממתינה לאישור' : 'מאושרת';
+      // Check current status of this feature
+      const currentStatus = getPermissionStatus(feature);
+      if (currentStatus === 'pending') {
         toast({
           title: 'בקשה קיימת',
-          description: `כבר נשלחה בקשה עבור פיצ\'ר זה והיא ${statusText}`,
+          description: 'כבר נשלחה בקשה עבור פיצ\'ר זה והיא ממתינה לאישור',
+          variant: 'default'
+        });
+        return;
+      }
+      
+      if (currentStatus === 'rejected') {
+        toast({
+          title: 'הרשאה קיימת',
+          description: 'כבר יש לך הרשאה עבור פיצ\'ר זה',
           variant: 'default'
         });
         return;
@@ -195,14 +208,17 @@ export const useFamilyPermissions = () => {
 
   // Get permission status for a specific feature
   const getPermissionStatus = (feature: string): 'none' | 'pending' | 'approved' | 'rejected' => {
-    // Check from current permissions (which are only approved ones)
-    const approvedPermission = permissions.find(p => p.feature === feature);
-    if (approvedPermission) return 'approved';
+    // Check from all requests to get the latest status
+    const latestRequest = allRequests
+      .filter(p => p.feature === feature)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
     
-    // Would need separate query to check pending/rejected status in permissions_requests
-    // For now, return 'none' if not in approved permissions
+    if (latestRequest) return latestRequest.status;
     return 'none';
   };
+
+  // Get all requests for notifications display
+  const getMyRequests = () => allRequests;
 
   // Check if user has permission for a feature
   const hasPermission = (feature: string): boolean => {
@@ -238,11 +254,13 @@ export const useFamilyPermissions = () => {
 
   return {
     permissions,
+    allRequests,
     loading,
     requestPermission,
     requestJoin,
     getPermissionStatus,
     hasPermission,
+    getMyRequests,
     loadPermissions
   };
 };

@@ -8,6 +8,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import AccountModal from '@/components/AccountModal';
 import { AuthModal } from '@/components/AuthModal';
+import NotificationBadge from '@/components/NotificationBadge';
 
 interface NavigationHeaderProps {
   currentView: 'elderly' | 'family';
@@ -116,14 +117,20 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: Naviga
               </>
             ) : (
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setIsAccountModalOpen(true)}
-                  className="flex items-center gap-2 hover:bg-accent hover:text-accent-foreground p-2 rounded-lg transition-colors"
-                >
-                  <Badge variant="secondary" className="bg-primary text-primary-foreground">
-                    שלום {displayName || (authState.role === 'MAIN_USER' ? 'משתמש ראשי' : 'בן משפחה')} · מחובר
-                  </Badge>
-                </button>
+                  <button
+                    onClick={() => setIsAccountModalOpen(true)}
+                    className="relative flex items-center gap-2 hover:bg-accent hover:text-accent-foreground p-2 rounded-lg transition-colors"
+                  >
+                    <Badge variant="secondary" className="bg-primary text-primary-foreground">
+                      שלום {displayName || (authState.role === 'MAIN_USER' ? 'משתמש ראשי' : 'בן משפחה')} · מחובר
+                    </Badge>
+                    {/* Notification badge for main users with pending requests */}
+                    {authState.role === 'MAIN_USER' && (
+                      <div className="relative">
+                        <NotificationBadge />
+                      </div>
+                    )}
+                  </button>
                 <Button
                   variant="ghost"
                   size="sm"

@@ -191,7 +191,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
           primary_user_id: ownerData,
           family_member_id: memberData.id,
           permission_type: scope,
-          status: 'pending'
+          status: 'PENDING'
         }));
 
         const { error: permissionError } = await supabase

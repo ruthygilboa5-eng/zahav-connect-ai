@@ -10,24 +10,21 @@ import {
   Eye,
   X
 } from 'lucide-react';
-import { useFamilyProvider } from '@/providers/FamilyProvider';
-import { PendingItem } from '@/types/family';
+import { useFamilyPermissions } from '@/hooks/useFamilyPermissions';
+import { scopeLabels } from '@/types/family';
 
 const FamilyMemberNotifications = () => {
-  // TODO: Implement with real permissions_requests data
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const { allRequests, loading } = useFamilyPermissions();
   const [showNotifications, setShowNotifications] = useState(false);
 
-  // Mock empty notifications for now
-  useEffect(() => {
-    setNotifications([]);
-  }, []);
+  // Use real permission requests data
+  const notifications = allRequests;
 
   const getStatusIcon = (status?: string) => {
-    switch (status) {
-      case 'APPROVED':
+    switch (status?.toLowerCase()) {
+      case 'approved':
         return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case 'REJECTED':
+      case 'rejected':
         return <XCircle className="w-4 h-4 text-red-600" />;
       default:
         return <Clock className="w-4 h-4 text-yellow-600" />;
@@ -35,10 +32,10 @@ const FamilyMemberNotifications = () => {
   };
 
   const getStatusText = (status?: string) => {
-    switch (status) {
-      case 'APPROVED':
+    switch (status?.toLowerCase()) {
+      case 'approved':
         return 'אושר';
-      case 'REJECTED':
+      case 'rejected':
         return 'נדחה';
       default:
         return 'ממתין';
@@ -46,18 +43,22 @@ const FamilyMemberNotifications = () => {
   };
 
   const getStatusColor = (status?: string) => {
-    switch (status) {
-      case 'APPROVED':
+    switch (status?.toLowerCase()) {
+      case 'approved':
         return 'bg-green-100 text-green-800';
-      case 'REJECTED':
+      case 'rejected':
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-yellow-100 text-yellow-800';
     }
   };
 
+  const getFeatureLabel = (feature: string) => {
+    return scopeLabels[feature as keyof typeof scopeLabels] || feature;
+  };
+
   const unreadCount = notifications.filter(n => 
-    n.status && n.status !== 'PENDING' && !n.viewed
+    n.status && n.status !== 'pending'
   ).length;
 
   if (notifications.length === 0) {
@@ -113,10 +114,10 @@ const FamilyMemberNotifications = () => {
                   {getStatusIcon(notification.status)}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">
-                      {notification.title}
+                      בקשה עבור: {getFeatureLabel(notification.feature)}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {new Date(notification.submittedAt).toLocaleDateString('he-IL')}
+                      נשלח: {new Date(notification.created_at).toLocaleDateString('he-IL')}
                     </p>
                   </div>
                   <Badge 
