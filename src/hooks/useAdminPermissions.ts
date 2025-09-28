@@ -31,19 +31,13 @@ export const useAdminPermissions = () => {
     try {
       setLoading(true);
 
-      // Use appropriate view based on role
+      // Use RPC based on role (views are restricted via RPC for security)
       let baseQuery;
       if (authState.role === 'ADMIN') {
-        baseQuery = supabase
-          .from('v_permission_requests_admin')
-          .select('*')
-          .order('created_at', { ascending: false });
+        baseQuery = (supabase as any).rpc('get_permission_requests_admin');
       } else {
-        // Main users use their own view
-        baseQuery = supabase
-          .from('v_permission_requests_main_user')
-          .select('*')
-          .order('created_at', { ascending: false });
+        // Main users use their own secure RPC
+        baseQuery = (supabase as any).rpc('get_permission_requests_main_user');
       }
 
       const { data: requestsData, error: requestsError } = await baseQuery;
