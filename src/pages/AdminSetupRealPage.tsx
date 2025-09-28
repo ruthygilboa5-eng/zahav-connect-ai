@@ -96,9 +96,14 @@ const AdminSetupRealPage = () => {
   };
 
   const loadMainUsers = async () => {
+    // Get only users with primary_user role
     const { data: usersData, error: usersError } = await supabase
       .from('user_profiles')
-      .select('id, user_id, first_name, last_name, email, created_at')
+      .select(`
+        id, user_id, first_name, last_name, email, created_at,
+        user_roles!inner(role)
+      `)
+      .eq('user_roles.role', 'primary_user')
       .order('created_at', { ascending: false });
 
     if (usersError) throw usersError;
@@ -131,10 +136,13 @@ const AdminSetupRealPage = () => {
 
   const loadSystemStats = async () => {
     try {
-      // Count main users
-      const { count: mainUsersCount } = await supabase
-        .from('user_profiles')
-        .select('id', { count: 'exact' });
+      // Count main users (only primary_user role)
+      const { data: primaryUsersData } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'primary_user');
+      
+      const mainUsersCount = primaryUsersData?.length || 0;
 
       // Count family members
       const { count: familyMembersCount } = await supabase
@@ -175,11 +183,15 @@ const AdminSetupRealPage = () => {
     try {
       const results: SearchResult[] = [];
 
-      // Search main users
+      // Search main users (only primary_user role)
       if (filterType === 'all' || filterType === 'main_users') {
         const { data: mainUsersData } = await supabase
           .from('user_profiles')
-          .select('id, user_id, first_name, last_name, email')
+          .select(`
+            id, user_id, first_name, last_name, email,
+            user_roles!inner(role)
+          `)
+          .eq('user_roles.role', 'primary_user')
           .or(`first_name.ilike.%${searchQuery}%,last_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`);
 
         (mainUsersData || []).forEach(user => {
