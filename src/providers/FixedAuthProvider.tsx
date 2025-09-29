@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 
@@ -50,12 +50,24 @@ export const FixedAuthProvider = ({ children }: FixedAuthProviderProps) => {
     user: null,
     session: null
   });
+  const [isDemo, setIsDemo] = useState(false);
+  const demoRef = useRef(false);
 
   useEffect(() => {
     console.log('FixedAuthProvider useEffect mounting');
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state change:', event, 'session exists:', !!session);
+      if (event === 'SIGNED_IN') {
+        console.log('Real sign-in detected, disabling demo mode');
+        demoRef.current = false;
+        setIsDemo(false);
+      }
+      if (demoRef.current) {
+        console.log('Demo mode active - ignoring Supabase auth event:', event);
+        setLoading(false);
+        return;
+      }
       
       if (session?.user) {
         // Set basic auth state immediately (no async work here)
@@ -158,7 +170,10 @@ export const FixedAuthProvider = ({ children }: FixedAuthProviderProps) => {
   }, []);
 
   const loginAsMainUser = (firstName: string = 'משתמש ראשי') => {
-    // For demo purposes, set local state
+    // Ensure no real Supabase session interferes
+    supabase.auth.signOut().catch(() => {});
+    demoRef.current = true;
+    setIsDemo(true);
     setAuthState({
       isAuthenticated: true,
       role: 'MAIN_USER',
@@ -168,10 +183,14 @@ export const FixedAuthProvider = ({ children }: FixedAuthProviderProps) => {
       user: null,
       session: null
     });
+    setLoading(false);
   };
 
   const loginAsFamily = (firstName: string = 'בן משפחה') => {
     const defaultScopes = ['POST_MEDIA', 'SUGGEST_REMINDER', 'INVITE_GAME', 'CHAT'];
+    supabase.auth.signOut().catch(() => {});
+    demoRef.current = true;
+    setIsDemo(true);
     setAuthState({
       isAuthenticated: true,
       role: 'FAMILY',
@@ -181,6 +200,7 @@ export const FixedAuthProvider = ({ children }: FixedAuthProviderProps) => {
       user: null,
       session: null
     });
+    setLoading(false);
   };
 
   const login = (role: Role, memberId?: string, scopes?: string[]) => {
@@ -198,6 +218,8 @@ export const FixedAuthProvider = ({ children }: FixedAuthProviderProps) => {
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (!error) {
+      demoRef.current = false;
+      setIsDemo(false);
       setAuthState({
         isAuthenticated: false,
         role: null,
@@ -213,6 +235,8 @@ export const FixedAuthProvider = ({ children }: FixedAuthProviderProps) => {
 
   const logout = () => {
     // For demo purposes, just clear local state
+    demoRef.current = false;
+    setIsDemo(false);
     setAuthState({
       isAuthenticated: false,
       role: null,
