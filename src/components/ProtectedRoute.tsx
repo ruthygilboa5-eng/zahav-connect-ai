@@ -11,7 +11,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
-  const { authState } = useAuth();
+  const { authState, loading } = useAuth();
   const location = useLocation();
   const { toast } = useToast();
 
@@ -37,6 +37,10 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   // Allow landing page and admin paths for everyone
   if (location.pathname === '/' || location.pathname === '/admin-login' || location.pathname === '/admin-setup') {
     return <>{children}</>;
+  }
+
+  if (loading) {
+    return <div className="p-8 text-center">טוען...</div>;
   }
 
   if (!authState.isAuthenticated) {
