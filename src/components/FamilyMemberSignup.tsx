@@ -164,13 +164,12 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
 
       console.log('✅ User created successfully with ID:', newUserId);
 
-      // Step 3: Save to user_profiles
+      // Step 3: Save to user_profiles (full_name is a generated column, don't insert it)
       const { error: profileError } = await supabase
         .from('user_profiles')
         .insert({
           user_id: newUserId,
           email: formData.email,
-          full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
           first_name: formData.firstName.trim(),
           last_name: formData.lastName.trim(),
           phone: formData.phone,
@@ -200,7 +199,9 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
       // Ensure selectedScopes is an array
       const scopesToSave = Array.isArray(selectedScopes) && selectedScopes.length > 0 
         ? selectedScopes 
-        : ['VIEW_ONLY'];
+        : [];
+      
+      console.log('Scopes to save:', scopesToSave);
 
       console.log('=== PREPARING TO SAVE TO FAMILY_LINKS ===');
       console.log('User created successfully, now saving to family_links...');
@@ -254,6 +255,8 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
       }
 
       console.log('✅ Family link created successfully:', familyLinkData);
+      console.log('Saved to family_links with relation:', finalRelationship);
+      console.log('Saved to family_links with scopes:', scopesToSave);
 
       // Step 6: Also save to family_members for backward compatibility
       const { data: memberData, error: memberError } = await supabase
@@ -361,7 +364,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         }
       }
       
-      toast.success('הבקשה נשלחה בהצלחה!');
+      toast.success('הבקשה נשלחה בהצלחה! המשתמש הראשי יראה אותה בבקשות הממתינות לאישור.');
       toast.info(`המשתמש הראשי (${formData.ownerEmail}) יקבל התראה ויוכל לאשר אותך`);
       toast.info('תקבל הודעה כשהבקשה תאושר');
       
@@ -622,24 +625,26 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
                       <SelectValue placeholder="בחר קשר משפחתי" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="אבא">אבא</SelectItem>
-                      <SelectItem value="אמא">אמא</SelectItem>
-                      <SelectItem value="סבא">סבא</SelectItem>
-                      <SelectItem value="סבתא">סבתא</SelectItem>
-                      <SelectItem value="דוד / דודה">דוד / דודה</SelectItem>
-                      <SelectItem value="מטופל / מטופלת">מטופל / מטופלת</SelectItem>
-                      <SelectItem value="אחר">אחר</SelectItem>
+                      <SelectItem value="בן">בן</SelectItem>
+                      <SelectItem value="בת">בת</SelectItem>
+                      <SelectItem value="נכד">נכד</SelectItem>
+                      <SelectItem value="נכדה">נכדה</SelectItem>
+                      <SelectItem value="אח">אח</SelectItem>
+                      <SelectItem value="אחות">אחות</SelectItem>
+                      <SelectItem value="דוד">דוד</SelectItem>
+                      <SelectItem value="דודה">דודה</SelectItem>
+                      <SelectItem value="אחר">אחר - מלא באופן חופשי</SelectItem>
                     </SelectContent>
                   </Select>
                   
                   {formData.relationshipToPrimary === 'אחר' && (
                     <div className="space-y-2 mt-2">
-                      <Label htmlFor="customRelationship">פרט את הקשר המשפחתי *</Label>
+                      <Label htmlFor="customRelationship">פרט את סוג הקרבה המשפחתית *</Label>
                       <Input
                         id="customRelationship"
                         value={formData.customRelationship || ''}
                         onChange={(e) => setFormData(prev => ({ ...prev, customRelationship: e.target.value }))}
-                        placeholder="הזן קשר משפחתי מותאם"
+                        placeholder="למשל: חבר קרוב, שכן, מטפל..."
                         required
                         disabled={isLoading}
                       />
