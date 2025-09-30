@@ -14,6 +14,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const { authState, loading } = useAuth();
   const location = useLocation();
   const { toast } = useToast();
+  console.log('ProtectedRoute check', { path: location.pathname, requiredRole, isAuthenticated: authState.isAuthenticated, role: authState.role, loading });
 
   // Handle unauthorized access toasts in useEffect to avoid render-phase state updates
   useEffect(() => {

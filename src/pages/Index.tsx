@@ -24,12 +24,13 @@ const Index = () => {
     setIsSignupModalOpen(true);
   };
 
-  // If already authenticated, go to appropriate page
-  if (authState.isAuthenticated) {
-    const targetPath = authState.role === 'MAIN_USER' ? '/home' : '/family';
-    navigate(targetPath, { replace: true });
-    return null;
-  }
+// If already authenticated, go to appropriate page
+if (authState.isAuthenticated) {
+  const targetPath = authState.role === 'MAIN_USER' ? '/home' : '/family';
+  console.log('Index redirecting authenticated user', { role: authState.role, targetPath });
+  navigate(targetPath, { replace: true });
+  return null;
+}
 
 
 

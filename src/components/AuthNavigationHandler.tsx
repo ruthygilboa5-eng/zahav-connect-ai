@@ -20,6 +20,7 @@ export const AuthNavigationHandler = () => {
       // Not authenticated - redirect to root from protected paths only
       const publicPaths = ['/', '/admin-login', '/admin-setup', '/family-auth', '/register-family-member'] as const;
       if (!publicPaths.includes(currentPath as typeof publicPaths[number])) {
+        console.log('AuthNavigationHandler redirecting unauthenticated user from', currentPath, 'to /');
         navigate('/', { replace: true });
       }
     }
