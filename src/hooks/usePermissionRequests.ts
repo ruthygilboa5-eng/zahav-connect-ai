@@ -67,8 +67,10 @@ export const usePermissionRequests = () => {
   };
 
   useEffect(() => {
-    loadRequests();
-  }, []);
+    if (authState.isAuthenticated && authState.role === 'MAIN_USER') {
+      loadRequests();
+    }
+  }, [authState.isAuthenticated, authState.role, authState.user?.id]);
 
   const requestPermission = async (scope: FamilyScope) => {
     if (!authState.memberId || !authState.user) return;

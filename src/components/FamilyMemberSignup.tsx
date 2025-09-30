@@ -164,7 +164,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         console.error('Error finding owner user:', ownerError);
       }
 
-      // Create family member record in the unified table
+      // Create family member record first
       const { data: memberData, error: memberError } = await supabase
         .from('family_members')
         .insert({
@@ -185,18 +185,45 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         throw new Error(`שגיאה ביצירת בן משפחה: ${memberError.message}`);
       }
 
+      // Create family link (required for permissions system)
+      const { data: familyLinkData, error: familyLinkError } = await supabase
+        .from('family_links')
+        .insert({
+          owner_user_id: ownerData,
+          member_user_id: memberUserId,
+          full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+          relation: finalRelationship,
+          email: formData.email,
+          phone: formData.phone,
+          owner_email: formData.ownerEmail,
+          relationship_to_primary_user: finalRelationship,
+          gender: formData.gender,
+          status: 'PENDING',
+          scopes: []
+        })
+        .select('id')
+        .single();
+
+      if (familyLinkError) {
+        console.error('Error creating family link:', familyLinkError);
+        // Continue anyway - we can still create permission requests with family_members.id
+      }
+
+      // Use family_link.id if available, otherwise use family_member.id
+      const linkId = familyLinkData?.id || memberData.id;
+
       // Create permission requests for the selected scopes
       console.log('Attempting to create permission requests:', {
         selectedScopes,
         ownerData,
-        memberDataId: memberData?.id,
-        shouldCreate: selectedScopes.length > 0 && ownerData && memberData?.id
+        linkId,
+        shouldCreate: selectedScopes.length > 0 && ownerData && linkId
       });
 
-      if (selectedScopes.length > 0 && ownerData && memberData?.id) {
+      if (selectedScopes.length > 0 && ownerData && linkId) {
         const permissionRequests = selectedScopes.map(scope => ({
           primary_user_id: ownerData,
-          family_member_id: memberData.id,
+          family_member_id: linkId,
           permission_type: scope,
           status: 'PENDING'
         }));
@@ -218,7 +245,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         console.log('Skipping permission requests creation:', {
           scopesLength: selectedScopes.length,
           hasOwnerData: !!ownerData,
-          hasMemberData: !!memberData?.id
+          hasLinkId: !!linkId
         });
       }
 

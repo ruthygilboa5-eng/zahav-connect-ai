@@ -57,16 +57,19 @@ export const FixedAuthProvider = ({ children }: FixedAuthProviderProps) => {
     console.log('FixedAuthProvider useEffect mounting');
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state change:', event, 'session exists:', !!session);
-      if (event === 'SIGNED_IN') {
-        console.log('Real sign-in detected, disabling demo mode');
-        demoRef.current = false;
-        setIsDemo(false);
-      }
+      console.log('Auth state change:', event, 'session exists:', !!session, 'demo mode:', demoRef.current);
+      
+      // If in demo mode, ignore ALL auth events except SIGNED_IN
       if (demoRef.current) {
-        console.log('Demo mode active - ignoring Supabase auth event:', event);
-        setLoading(false);
-        return;
+        if (event === 'SIGNED_IN') {
+          console.log('Real sign-in detected, disabling demo mode');
+          demoRef.current = false;
+          setIsDemo(false);
+          // Continue processing this event
+        } else {
+          console.log('Demo mode active - ignoring Supabase auth event:', event);
+          return;
+        }
       }
       
       if (session?.user) {
@@ -170,8 +173,8 @@ export const FixedAuthProvider = ({ children }: FixedAuthProviderProps) => {
   }, []);
 
   const loginAsMainUser = (firstName: string = 'משתמש ראשי') => {
-    // Ensure no real Supabase session interferes
-    supabase.auth.signOut().catch(() => {});
+    console.log('loginAsMainUser called');
+    // Set demo mode FIRST before signOut
     demoRef.current = true;
     setIsDemo(true);
     setAuthState({
@@ -184,11 +187,14 @@ export const FixedAuthProvider = ({ children }: FixedAuthProviderProps) => {
       session: null
     });
     setLoading(false);
+    // Sign out AFTER setting demo state
+    supabase.auth.signOut().catch(() => {});
   };
 
   const loginAsFamily = (firstName: string = 'בן משפחה') => {
+    console.log('loginAsFamily called');
     const defaultScopes = ['POST_MEDIA', 'SUGGEST_REMINDER', 'INVITE_GAME', 'CHAT'];
-    supabase.auth.signOut().catch(() => {});
+    // Set demo mode FIRST before signOut
     demoRef.current = true;
     setIsDemo(true);
     setAuthState({
@@ -201,6 +207,8 @@ export const FixedAuthProvider = ({ children }: FixedAuthProviderProps) => {
       session: null
     });
     setLoading(false);
+    // Sign out AFTER setting demo state
+    supabase.auth.signOut().catch(() => {});
   };
 
   const login = (role: Role, memberId?: string, scopes?: string[]) => {
