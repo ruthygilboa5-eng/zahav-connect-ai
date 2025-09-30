@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Shield } from 'lucide-react';
-import { useAuth } from '@/providers/FixedAuthProvider';
+import { useAuth } from '@/providers/AuthProvider';
 import AppLayout from '@/components/AppLayout';
 import PermissionRequestsSection from '@/components/PermissionRequestsSection';
 

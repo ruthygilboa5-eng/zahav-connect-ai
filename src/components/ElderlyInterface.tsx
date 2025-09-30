@@ -20,7 +20,7 @@ import {
   LogOut,
   Shield
 } from 'lucide-react';
-import { useAuth } from '@/providers/FixedAuthProvider';
+import { useAuth } from '@/providers/AuthProvider';
 import { useProfile } from '@/hooks/useProfile';
 import { useDataProvider } from '@/providers/DataProvider';
 import { useAuthDisplayName } from '@/hooks/useDisplayName';

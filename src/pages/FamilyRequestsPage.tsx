@@ -6,7 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CheckCircle, XCircle, Clock, Users, ArrowLeft } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/providers/FixedAuthProvider';
+import { useAuth } from '@/providers/AuthProvider';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
