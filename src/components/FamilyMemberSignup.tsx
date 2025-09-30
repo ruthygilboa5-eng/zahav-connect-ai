@@ -4,11 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { ArrowRight, CheckCircle, Clock } from "lucide-react";
+import { ArrowRight, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
-import { relationOptions, FamilyScope, scopeLabels } from "@/types/family";
-import { relationshipOptions, genderLabels } from "@/types/database";
+import { FamilyScope } from "@/types/family";
 import { ScopeSelector } from '@/components/ScopeSelector';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -37,7 +35,6 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
 
-  // Helper function to create full birth date
   const getBirthDate = () => {
     if (formData.birthDay && formData.birthMonth && formData.birthYear) {
       return new Date(parseInt(formData.birthYear), parseInt(formData.birthMonth) - 1, parseInt(formData.birthDay));
@@ -45,7 +42,6 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
     return null;
   };
 
-  // Generate arrays for dropdowns
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
   const months = [
     'ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
@@ -72,7 +68,6 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
       return;
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       toast.error('כתובת האימייל אינה תקינה');
@@ -82,7 +77,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
     setCurrentStep(2);
   };
 
-  const handleStep2Submit = async (e: React.FormEvent) => {
+  const handleStep2Submit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.phone.trim() || !formData.ownerEmail.trim() || !formData.relationshipToPrimary || !formData.gender) {
@@ -95,29 +90,32 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
       return;
     }
 
-    if (selectedScopes.length === 0) {
-      toast.error('יש לבחור לפחות הרשאה אחת');
-      return;
-    }
-
-    // Basic phone validation
     const phoneRegex = /^[\d\-\s\+\(\)]+$/;
     if (!phoneRegex.test(formData.phone)) {
       toast.error('מספר הטלפון אינו תקין');
       return;
     }
 
-    // Basic email validation for owner
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.ownerEmail)) {
       toast.error('כתובת אימייל המשתמש הראשי אינה תקינה');
       return;
     }
 
+    setCurrentStep(3);
+  };
+
+  const handleStep3Submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!Array.isArray(selectedScopes) || selectedScopes.length === 0) {
+      toast.error('יש לבחור לפחות הרשאה אחת');
+      return;
+    }
+
     setIsLoading(true);
     
     try {
-      // If the user is already authenticated, use their id. Otherwise, sign them up.
       const { data: authResult } = await supabase.auth.getUser();
       let memberUserId = authResult.user?.id as string | undefined;
 
@@ -130,8 +128,8 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
             data: {
               full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
               phone: formData.phone,
-              birth_date: getBirthDate()?.toISOString().split('T')[0], // YYYY-MM-DD format
-              is_family: true // Ensure role assignment via trigger
+              birth_date: getBirthDate()?.toISOString().split('T')[0],
+              is_family: true
             }
           }
         });
@@ -142,7 +140,6 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
 
         memberUserId = signUpData.user?.id;
 
-        // If email confirmation is required, there will be no active session yet → avoid RLS violation
         const { data: afterSignUpAuth } = await supabase.auth.getUser();
         if (!afterSignUpAuth.user) {
           toast.success('ההרשמה בוצעה. נא לאשר את המייל ואז להתחבר כדי להשלים את הקישור למשתמש הראשי.');
@@ -151,12 +148,10 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         }
       }
 
-      // Create family link request
       const finalRelationship = formData.relationshipToPrimary === 'אחר' 
         ? formData.customRelationship 
         : formData.relationshipToPrimary;
 
-      // Get owner user ID by email using the database function
       const { data: ownerData, error: ownerError } = await supabase
         .rpc('get_user_id_by_email', { email_address: formData.ownerEmail });
 
@@ -164,7 +159,6 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         console.error('Error finding owner user:', ownerError);
       }
 
-      // Create family member record first
       const { data: memberData, error: memberError } = await supabase
         .from('family_members')
         .insert({
@@ -185,7 +179,6 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         throw new Error(`שגיאה ביצירת בן משפחה: ${memberError.message}`);
       }
 
-      // Create family link (required for permissions system)
       const { data: familyLinkData, error: familyLinkError } = await supabase
         .from('family_links')
         .insert({
@@ -206,10 +199,8 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
 
       if (familyLinkError) {
         console.error('Error creating family link:', familyLinkError);
-        // Continue anyway - we can still create permission requests with family_members.id
       }
 
-      // CRITICAL: Use family_link.id for permission requests system
       const linkId = familyLinkData?.id;
 
       console.log('Family link creation result:', {
@@ -219,7 +210,6 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         willCreatePermissions: !!linkId && !!ownerData && selectedScopes.length > 0
       });
 
-      // Create permission requests ONLY if family_link was created successfully
       if (!linkId) {
         console.error('❌ CRITICAL: family_link.id is missing - cannot create permission requests');
         toast.error('שגיאה: לא ניתן ליצור בקשות הרשאות ללא קישור משפחתי');
@@ -250,7 +240,6 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         }
       }
 
-      // Get owner details for welcome email
       const { data: ownerProfile } = await supabase
         .from('user_profiles')
         .select('first_name, last_name, display_name')
@@ -261,7 +250,6 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
                        `${ownerProfile?.first_name || ''} ${ownerProfile?.last_name || ''}`.trim() ||
                        'המשתמש הראשי';
 
-      // Get welcome message template
       const { data: template } = await supabase
         .from('message_templates')
         .select('subject, body')
@@ -274,7 +262,6 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
           .replace(/\[first_name\]/g, formData.firstName)
           .replace(/\[main_user_name\]/g, ownerName);
 
-        // Send welcome email to family member
         try {
           const { error: emailError } = await supabase.functions.invoke('send-notification', {
             body: {
@@ -300,9 +287,9 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         }
       }
       
-      toast.success(`הרשמה הושלמה בהצלחה!`);
-      toast.success(`בקשת הצטרפות נשלחה בהצלחה ל${formData.ownerEmail} ונשלחה לך הודעה למייל`);
-      toast.info('תקבל הודעה כאשר המשתמש הראשי יאשר את הבקשה');
+      toast.success('הבקשה נשלחה בהצלחה!');
+      toast.info(`המשתמש הראשי (${formData.ownerEmail}) יקבל התראה ויוכל לאשר אותך`);
+      toast.info('תקבל הודעה כשהבקשה תאושר');
       
       onComplete();
       
@@ -323,19 +310,26 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
             הגש בקשה להצטרפות לחשבון משתמש ראשי קיים
           </CardDescription>
           <div className="flex justify-center mt-4">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <div className={`flex items-center gap-2 ${currentStep >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${currentStep >= 1 ? 'border-primary bg-primary text-white' : 'border-muted-foreground'}`}>
                   {currentStep > 1 ? <CheckCircle className="w-4 h-4" /> : '1'}
                 </div>
                 <span className="text-sm font-medium">פרטי החשבון</span>
               </div>
-              <div className={`w-8 h-0.5 ${currentStep >= 2 ? 'bg-primary' : 'bg-muted-foreground'}`}></div>
+              <div className={`w-6 h-0.5 ${currentStep >= 2 ? 'bg-primary' : 'bg-muted-foreground'}`}></div>
               <div className={`flex items-center gap-2 ${currentStep >= 2 ? 'text-primary' : 'text-muted-foreground'}`}>
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${currentStep >= 2 ? 'border-primary bg-primary text-white' : 'border-muted-foreground'}`}>
                   {currentStep > 2 ? <CheckCircle className="w-4 h-4" /> : '2'}
                 </div>
                 <span className="text-sm font-medium">פרטים אישיים</span>
+              </div>
+              <div className={`w-6 h-0.5 ${currentStep >= 3 ? 'bg-primary' : 'bg-muted-foreground'}`}></div>
+              <div className={`flex items-center gap-2 ${currentStep >= 3 ? 'text-primary' : 'text-muted-foreground'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${currentStep >= 3 ? 'border-primary bg-yellow-500 text-white' : 'border-muted-foreground'}`}>
+                  {currentStep > 3 ? <CheckCircle className="w-4 h-4" /> : '3'}
+                </div>
+                <span className="text-sm font-medium">הרשאות</span>
               </div>
             </div>
           </div>
@@ -402,7 +396,6 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
 
           {currentStep === 2 && (
             <form onSubmit={handleStep2Submit} className="space-y-6">
-              {/* Personal Information */}
               <div className="grid gap-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -444,7 +437,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="ownerEmail">אימייל משתמש ראשי *</Label>
+                  <Label htmlFor="ownerEmail">אימייל המשתמש הראשי שאליו אתה רוצה להתחבר *</Label>
                   <Input
                     id="ownerEmail"
                     type="email"
@@ -455,77 +448,78 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
                     disabled={isLoading}
                   />
                   <p className="text-xs text-muted-foreground">
-                    הזן את כתובת האימייל של המשתמש הראשי אליו תרצה להתחבר
+                    הזן את כתובת האימייל של בן המשפחה שאליו אתה רוצה להצטרף
                   </p>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>תאריך לידה (אופציונלי)</Label>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">יום</Label>
-                      <Select 
-                        value={formData.birthDay} 
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, birthDay: value }))}
-                        disabled={isLoading}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="בחר/י יום" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {days.map((day) => (
-                            <SelectItem key={day} value={day.toString()}>
-                              {day}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                  <div className="space-y-2">
+                    <Label>תאריך לידה (אופציונלי)</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">יום</Label>
+                        <Select 
+                          value={formData.birthDay} 
+                          onValueChange={(value) => setFormData(prev => ({ ...prev, birthDay: value }))}
+                          disabled={isLoading}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="יום" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {days.map((day) => (
+                              <SelectItem key={day} value={day.toString()}>
+                                {day}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">חודש</Label>
+                        <Select 
+                          value={formData.birthMonth} 
+                          onValueChange={(value) => setFormData(prev => ({ ...prev, birthMonth: value }))}
+                          disabled={isLoading}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="חודש" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {months.map((month, index) => (
+                              <SelectItem key={index + 1} value={(index + 1).toString()}>
+                                {month}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">שנה</Label>
+                        <Select 
+                          value={formData.birthYear} 
+                          onValueChange={(value) => setFormData(prev => ({ ...prev, birthYear: value }))}
+                          disabled={isLoading}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="שנה" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {years.map((year) => (
+                              <SelectItem key={year} value={year.toString()}>
+                                {year}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                    
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">חודש</Label>
-                      <Select 
-                        value={formData.birthMonth} 
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, birthMonth: value }))}
-                        disabled={isLoading}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="בחר/י חודש" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {months.map((month, index) => (
-                            <SelectItem key={index + 1} value={(index + 1).toString()}>
-                              {month}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">שנה</Label>
-                      <Select 
-                        value={formData.birthYear} 
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, birthYear: value }))}
-                        disabled={isLoading}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="בחר/י שנה" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {years.map((year) => (
-                            <SelectItem key={year} value={year.toString()}>
-                              {year}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="gender">בחר מגדר *</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="gender">מגדר *</Label>
                     <Select 
                       value={formData.gender || ''} 
                       onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value as 'male' | 'female' }))}
@@ -544,7 +538,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="relationshipToPrimary">מיהו בן המשפחה הזה עבורך? (קשר משפחתי) *</Label>
+                  <Label htmlFor="relationshipToPrimary">קשר משפחתי *</Label>
                   <Select 
                     value={formData.relationshipToPrimary} 
                     onValueChange={(value) => setFormData(prev => ({ ...prev, relationshipToPrimary: value }))}
@@ -565,7 +559,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
                   </Select>
                   
                   {formData.relationshipToPrimary === 'אחר' && (
-                    <div className="space-y-2">
+                    <div className="space-y-2 mt-2">
                       <Label htmlFor="customRelationship">פרט את הקשר המשפחתי *</Label>
                       <Input
                         id="customRelationship"
@@ -584,35 +578,6 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
                 </div>
               </div>
 
-              {/* Scopes Selection */}
-              <div className="border-t pt-6">
-                <ScopeSelector 
-                  selectedScopes={selectedScopes}
-                  onScopesChange={setSelectedScopes}
-                  disabled={isLoading}
-                />
-              </div>
-
-              {/* Status Display */}
-              <div className="space-y-2 p-4 bg-muted rounded-lg">
-                <Label>מה יקרה לאחר השליחה?</Label>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                    <span className="text-sm">הבקשה תישלח למשתמש הראשי</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                    <span className="text-sm">תקבל הודעה כאשר הבקשה תאושר או תידחה</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                    <span className="text-sm">לאחר אישור תוכל להתחיל להשתמש במערכת</span>
-                  </div>
-                </div>
-                </div>
-              </div>
-
               <div className="flex gap-2 pt-4">
                 <Button 
                   type="button" 
@@ -628,7 +593,62 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
                   disabled={isLoading}
                   className="flex-1"
                 >
-                  {isLoading ? 'שולח בקשה...' : 'שלח בקשת הצטרפות'}
+                  המשך להרשאות
+                  <ArrowRight className="mr-2 h-4 w-4" />
+                </Button>
+              </div>
+            </form>
+          )}
+
+          {currentStep === 3 && (
+            <form onSubmit={handleStep3Submit} className="space-y-6">
+              <div className="space-y-6">
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold mb-2">בחר הרשאות עבור בן המשפחה</h3>
+                  <p className="text-sm text-muted-foreground">לפחות הרשאה אחת חובה</p>
+                </div>
+                
+                <ScopeSelector 
+                  selectedScopes={selectedScopes}
+                  onScopesChange={setSelectedScopes}
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="space-y-3 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <h4 className="font-semibold text-blue-900 dark:text-blue-100">מה יקרה לאחר השליחה?</h4>
+                <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
+                  <li className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-1.5"></div>
+                    <span>הבקשה תישלח למשתמש הראשי</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-1.5"></div>
+                    <span>המקבל יקבל הודעה בחשבון המאושר או בהודעה</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-1.5"></div>
+                    <span>לאחר אישור תוכל להתחבר למשפחה בעזרת החשבון שנוצר</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setCurrentStep(2)}
+                  disabled={isLoading}
+                  className="flex-1"
+                >
+                  חזור
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={isLoading}
+                  className="flex-1"
+                >
+                  {isLoading ? 'שולח בקשה...' : 'שלח בקשה להצטרפות'}
                 </Button>
               </div>
             </form>
