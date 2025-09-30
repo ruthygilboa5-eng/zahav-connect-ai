@@ -116,6 +116,18 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
     setIsLoading(true);
     
     try {
+      console.log('=== FORM DATA BEFORE SIGNUP ===');
+      console.log('Email from form:', formData.email);
+      console.log('Password from form:', formData.password);
+      console.log('First name from form:', formData.firstName);
+      console.log('Last name from form:', formData.lastName);
+      console.log('Phone from form:', formData.phone);
+      console.log('Owner email from form:', formData.ownerEmail);
+      console.log('Relationship from form:', formData.relationshipToPrimary);
+      console.log('Gender from form:', formData.gender);
+      console.log('Selected scopes:', selectedScopes);
+      console.log('Full formData object:', JSON.stringify(formData, null, 2));
+
       // Step 1: Create user in auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
@@ -130,6 +142,10 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
           }
         }
       });
+
+      console.log('=== SIGNUP RESULT ===');
+      console.log('Auth data:', authData);
+      console.log('Auth error:', authError);
 
       if (authError) {
         console.error('Auth error:', authError);
