@@ -116,42 +116,63 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
     setIsLoading(true);
     
     try {
-      const { data: authResult } = await supabase.auth.getUser();
-      let memberUserId = authResult.user?.id as string | undefined;
-
-      if (!memberUserId) {
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
-              phone: formData.phone,
-              birth_date: getBirthDate()?.toISOString().split('T')[0],
-              is_family: true
-            }
+      // Step 1: Create user in auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+            phone: formData.phone,
+            birth_date: getBirthDate()?.toISOString().split('T')[0],
+            is_family: true
           }
+        }
+      });
+
+      if (authError) {
+        console.error('Auth error:', authError);
+        toast.error('שגיאה ביצירת חשבון: ' + authError.message);
+        return;
+      }
+
+      // Step 2: Get the new user ID
+      const newUserId = authData.user?.id;
+
+      if (!newUserId) {
+        toast.error('שגיאה: לא התקבל מזהה משתמש');
+        return;
+      }
+
+      console.log('✅ User created successfully with ID:', newUserId);
+
+      // Step 3: Save to user_profiles
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .insert({
+          user_id: newUserId,
+          email: formData.email,
+          full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+          first_name: formData.firstName.trim(),
+          last_name: formData.lastName.trim(),
+          phone: formData.phone,
+          role: 'family_member',
+          gender: formData.gender
         });
 
-        if (signUpError) {
-          throw signUpError;
-        }
-
-        memberUserId = signUpData.user?.id;
-
-        const { data: afterSignUpAuth } = await supabase.auth.getUser();
-        if (!afterSignUpAuth.user) {
-          toast.success('ההרשמה בוצעה. נא לאשר את המייל ואז להתחבר כדי להשלים את הקישור למשתמש הראשי.');
-          onComplete();
-          return;
-        }
+      if (profileError) {
+        console.error('Profile error:', profileError);
+        toast.error('שגיאה בשמירת פרופיל: ' + profileError.message);
+      } else {
+        console.log('✅ User profile saved successfully');
       }
 
       const finalRelationship = formData.relationshipToPrimary === 'אחר' 
         ? formData.customRelationship 
         : formData.relationshipToPrimary;
 
+      // Step 4: Find owner user by email
       const { data: ownerData, error: ownerError } = await supabase
         .rpc('get_user_id_by_email', { email_address: formData.ownerEmail });
 
@@ -159,11 +180,41 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         console.error('Error finding owner user:', ownerError);
       }
 
+      // Step 5: Save to family_links with selected permissions
+      const { data: familyLinkData, error: familyLinkError } = await supabase
+        .from('family_links')
+        .insert({
+          owner_user_id: ownerData,
+          member_user_id: newUserId,
+          full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+          relation: finalRelationship,
+          email: formData.email,
+          phone: formData.phone,
+          owner_email: formData.ownerEmail,
+          relationship_to_primary_user: finalRelationship,
+          gender: formData.gender,
+          status: 'PENDING',
+          scopes: selectedScopes  // ✅ Now saving selected permissions!
+        })
+        .select()
+        .single();
+
+      if (familyLinkError) {
+        console.error('Family link error:', familyLinkError);
+        console.error('Error details:', familyLinkError.details);
+        console.error('Error hint:', familyLinkError.hint);
+        toast.error('שגיאה בשמירת בקשת ההצטרפות: ' + familyLinkError.message);
+        return;
+      }
+
+      console.log('✅ Family link created successfully:', familyLinkData);
+
+      // Step 6: Also save to family_members for backward compatibility
       const { data: memberData, error: memberError } = await supabase
         .from('family_members')
         .insert({
           main_user_id: ownerData || null,
-          user_id: memberUserId,
+          user_id: newUserId,
           email: formData.email,
           full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
           relationship_label: finalRelationship,
@@ -176,29 +227,6 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
 
       if (memberError) {
         console.error('Error creating family member:', memberError);
-        throw new Error(`שגיאה ביצירת בן משפחה: ${memberError.message}`);
-      }
-
-      const { data: familyLinkData, error: familyLinkError } = await supabase
-        .from('family_links')
-        .insert({
-          owner_user_id: ownerData,
-          member_user_id: memberUserId,
-          full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
-          relation: finalRelationship,
-          email: formData.email,
-          phone: formData.phone,
-          owner_email: formData.ownerEmail,
-          relationship_to_primary_user: finalRelationship,
-          gender: formData.gender,
-          status: 'PENDING',
-          scopes: []
-        })
-        .select('id')
-        .single();
-
-      if (familyLinkError) {
-        console.error('Error creating family link:', familyLinkError);
       }
 
       const linkId = familyLinkData?.id;
