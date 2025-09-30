@@ -365,7 +365,7 @@ interface FamilyMemberScopeCardProps {
 }
 
 function FamilyMemberScopeCard({ member, onApprove, onRevoke, onScopesUpdate }: FamilyMemberScopeCardProps) {
-  const [localScopes, setLocalScopes] = useState(member.scopes);
+  const [localScopes, setLocalScopes] = useState(member.scopes || []);
 
   const getStatusBadge = () => {
     switch (member.status) {
@@ -394,7 +394,7 @@ function FamilyMemberScopeCard({ member, onApprove, onRevoke, onScopesUpdate }: 
     onScopesUpdate(localScopes);
   };
 
-  const hasUnsavedChanges = JSON.stringify(localScopes.sort()) !== JSON.stringify(member.scopes.sort());
+  const hasUnsavedChanges = JSON.stringify(localScopes.sort()) !== JSON.stringify((member.scopes || []).sort());
 
   return (
     <div className="p-4 border rounded-lg bg-card">
@@ -438,7 +438,7 @@ function FamilyMemberScopeCard({ member, onApprove, onRevoke, onScopesUpdate }: 
                 <div className="text-sm font-medium">{scopeLabels[scope]}</div>
               </div>
               <Switch
-                checked={localScopes.includes(scope)}
+                checked={Array.isArray(localScopes) && localScopes.includes(scope)}
                 onCheckedChange={(checked) => handleScopeToggle(scope, checked)}
                 disabled={member.status !== 'ACTIVE'}
               />

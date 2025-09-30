@@ -20,12 +20,16 @@ export const ScopeSelector = ({
   const handleScopeChange = (scope: FamilyScope, checked: boolean) => {
     if (checked) {
       // Add scope if not already present
-      if (!selectedScopes.includes(scope)) {
+      if (Array.isArray(selectedScopes) && !selectedScopes.includes(scope)) {
         onScopesChange([...selectedScopes, scope]);
+      } else if (!Array.isArray(selectedScopes)) {
+        onScopesChange([scope]);
       }
     } else {
       // Remove scope
-      onScopesChange(selectedScopes.filter(s => s !== scope));
+      if (Array.isArray(selectedScopes)) {
+        onScopesChange(selectedScopes.filter(s => s !== scope));
+      }
     }
   };
 
@@ -51,7 +55,7 @@ export const ScopeSelector = ({
               <div className="flex items-start space-x-3 space-x-reverse">
                 <Checkbox
                   id={scope}
-                  checked={selectedScopes.includes(scope)}
+                  checked={Array.isArray(selectedScopes) && selectedScopes.includes(scope)}
                   onCheckedChange={(checked) => handleScopeChange(scope, checked as boolean)}
                   disabled={disabled}
                   className="mt-1"
@@ -73,7 +77,7 @@ export const ScopeSelector = ({
         ))}
       </div>
 
-      {selectedScopes.length === 0 && (
+      {(!Array.isArray(selectedScopes) || selectedScopes.length === 0) && (
         <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
           <p className="text-orange-700 text-sm">
             יש לבחור לפחות הרשאה אחת כדי שבן המשפחה יוכל להשתמש במערכת.

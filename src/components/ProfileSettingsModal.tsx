@@ -378,7 +378,7 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
                                     <div key={scope} className="flex items-center justify-between p-2 rounded border bg-muted/20">
                                       <span className="text-sm">{scopeLabels[scope]}</span>
                                       <Switch
-                                        checked={member.scopes.includes(scope)}
+                                        checked={member.scopes && Array.isArray(member.scopes) && member.scopes.includes(scope)}
                                         onCheckedChange={(checked) => handleScopeToggle(member.id, scope, checked)}
                                       />
                                     </div>
