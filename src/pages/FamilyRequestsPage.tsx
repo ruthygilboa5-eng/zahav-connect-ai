@@ -234,6 +234,7 @@ const FamilyRequestsPage = () => {
                       <TableHead>אימייל</TableHead>
                       <TableHead>קרבה משפחתית</TableHead>
                       <TableHead>טלפון</TableHead>
+                      <TableHead>הרשאות מבוקשות</TableHead>
                       <TableHead>תאריך בקשה</TableHead>
                       <TableHead>פעולות</TableHead>
                     </TableRow>
@@ -245,6 +246,30 @@ const FamilyRequestsPage = () => {
                         <TableCell>{request.email}</TableCell>
                         <TableCell>{request.relation}</TableCell>
                         <TableCell>{request.phone}</TableCell>
+                        <TableCell>
+                          {request.scopes && request.scopes.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {request.scopes.map((scope, index) => {
+                                const scopeLabels = {
+                                  'POST_MEDIA': 'העלאת תמונות',
+                                  'SUGGEST_REMINDER': 'הצעת תזכורות',
+                                  'INVITE_GAME': 'הזמנת משחקים',
+                                  'CHAT': 'ציוץ משפחה',
+                                  'EMERGENCY_ONLY': 'התראות חירום',
+                                  'VIEW_ONLY': 'צפייה בלבד'
+                                };
+                                
+                                return (
+                                  <Badge key={index} variant="secondary" className="text-xs">
+                                    {scopeLabels[scope as keyof typeof scopeLabels] || scope}
+                                  </Badge>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">לא נבחרו הרשאות</span>
+                          )}
+                        </TableCell>
                         <TableCell>{formatDate(request.created_at)}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
@@ -295,6 +320,7 @@ const FamilyRequestsPage = () => {
                       <TableHead>שם מלא</TableHead>
                       <TableHead>אימייל</TableHead>
                       <TableHead>קרבה משפחתית</TableHead>
+                      <TableHead>הרשאות מבוקשות</TableHead>
                       <TableHead>סטטוס</TableHead>
                       <TableHead>תאריך בקשה</TableHead>
                     </TableRow>
@@ -305,6 +331,30 @@ const FamilyRequestsPage = () => {
                         <TableCell className="font-medium">{request.full_name}</TableCell>
                         <TableCell>{request.email}</TableCell>
                         <TableCell>{request.relation}</TableCell>
+                        <TableCell>
+                          {request.scopes && request.scopes.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {request.scopes.map((scope, index) => {
+                                const scopeLabels = {
+                                  'POST_MEDIA': 'העלאת תמונות',
+                                  'SUGGEST_REMINDER': 'הצעת תזכורות',
+                                  'INVITE_GAME': 'הזמנת משחקים',
+                                  'CHAT': 'ציוץ משפחה',
+                                  'EMERGENCY_ONLY': 'התראות חירום',
+                                  'VIEW_ONLY': 'צפייה בלבד'
+                                };
+                                
+                                return (
+                                  <Badge key={index} variant="secondary" className="text-xs">
+                                    {scopeLabels[scope as keyof typeof scopeLabels] || scope}
+                                  </Badge>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">לא נבחרו הרשאות</span>
+                          )}
+                        </TableCell>
                         <TableCell>{getStatusBadge(request.status)}</TableCell>
                         <TableCell>{formatDate(request.created_at)}</TableCell>
                       </TableRow>
