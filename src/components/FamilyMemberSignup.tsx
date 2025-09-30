@@ -209,18 +209,24 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         // Continue anyway - we can still create permission requests with family_members.id
       }
 
-      // Use family_link.id if available, otherwise use family_member.id
-      const linkId = familyLinkData?.id || memberData.id;
+      // CRITICAL: Use family_link.id for permission requests system
+      const linkId = familyLinkData?.id;
 
-      // Create permission requests for the selected scopes
-      console.log('Attempting to create permission requests:', {
-        selectedScopes,
-        ownerData,
-        linkId,
-        shouldCreate: selectedScopes.length > 0 && ownerData && linkId
+      console.log('Family link creation result:', {
+        familyLinkId: familyLinkData?.id,
+        familyMemberId: memberData.id,
+        ownerUserId: ownerData,
+        willCreatePermissions: !!linkId && !!ownerData && selectedScopes.length > 0
       });
 
-      if (selectedScopes.length > 0 && ownerData && linkId) {
+      // Create permission requests ONLY if family_link was created successfully
+      if (!linkId) {
+        console.error('❌ CRITICAL: family_link.id is missing - cannot create permission requests');
+        toast.error('שגיאה: לא ניתן ליצור בקשות הרשאות ללא קישור משפחתי');
+      } else if (!ownerData) {
+        console.error('❌ CRITICAL: owner user not found by email:', formData.ownerEmail);
+        toast.error(`המשתמש הראשי עם אימייל ${formData.ownerEmail} לא נמצא במערכת`);
+      } else if (selectedScopes.length > 0) {
         const permissionRequests = selectedScopes.map(scope => ({
           primary_user_id: ownerData,
           family_member_id: linkId,
@@ -228,25 +234,20 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
           status: 'PENDING'
         }));
 
-        console.log('Creating permission requests:', permissionRequests);
+        console.log('✅ Creating permission requests:', permissionRequests);
 
-        const { error: permissionError } = await supabase
+        const { data: insertedPerms, error: permissionError } = await supabase
           .from('permissions_requests')
-          .insert(permissionRequests);
+          .insert(permissionRequests)
+          .select();
         
         if (permissionError) {
-          console.error('Error creating permission requests:', permissionError);
+          console.error('❌ Error creating permission requests:', permissionError);
           toast.error(`שגיאה ביצירת בקשות הרשאות: ${permissionError.message}`);
         } else {
-          console.log('Permission requests created successfully');
-          toast.success('בקשות ההרשאות נוצרו בהצלחה');
+          console.log('✅ Permission requests created successfully:', insertedPerms);
+          toast.success(`${insertedPerms?.length || 0} בקשות הרשאות נוצרו בהצלחה`);
         }
-      } else {
-        console.log('Skipping permission requests creation:', {
-          scopesLength: selectedScopes.length,
-          hasOwnerData: !!ownerData,
-          hasLinkId: !!linkId
-        });
       }
 
       // Get owner details for welcome email
