@@ -144,22 +144,23 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
       });
 
       console.log('=== SIGNUP RESULT ===');
-      console.log('Auth data:', authData);
-      console.log('Auth error:', authError);
+      console.log('SignUp completed - authData:', authData);
+      console.log('SignUp completed - authError:', authError);
 
       if (authError) {
-        console.error('Auth error:', authError);
+        console.error('🔴 Auth error:', authError);
         toast.error('שגיאה ביצירת חשבון: ' + authError.message);
         return;
       }
 
-      // Step 2: Get the new user ID
-      const newUserId = authData.user?.id;
-
-      if (!newUserId) {
-        toast.error('שגיאה: לא התקבל מזהה משתמש');
+      if (!authData || !authData.user || !authData.user.id) {
+        console.error('🔴 No user returned from signUp. authData:', authData);
+        toast.error('שגיאה: לא התקבל מזהה משתמש. ייתכן שהאימייל כבר קיים.');
         return;
       }
+
+      const newUserId = authData.user.id;
+      console.log('✅ User created successfully with ID:', newUserId);
 
       console.log('✅ User created successfully with ID:', newUserId);
 
