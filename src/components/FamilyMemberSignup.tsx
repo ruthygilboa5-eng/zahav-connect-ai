@@ -196,6 +196,27 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         console.error('Error finding owner user:', ownerError);
       }
 
+      // Ensure selectedScopes is an array
+      const scopesToSave = Array.isArray(selectedScopes) && selectedScopes.length > 0 
+        ? selectedScopes 
+        : ['VIEW_ONLY'];
+
+      console.log('=== PREPARING TO SAVE TO FAMILY_LINKS ===');
+      console.log('User created successfully, now saving to family_links...');
+      console.log('Data to save:', {
+        email: formData.email,
+        owner_email: formData.ownerEmail,
+        full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+        phone: formData.phone,
+        relation: finalRelationship,
+        relationship_to_primary_user: finalRelationship,
+        gender: formData.gender,
+        status: 'PENDING',
+        scopes: scopesToSave,
+        member_user_id: newUserId,
+        owner_user_id: ownerData
+      });
+
       // Step 5: Save to family_links with selected permissions
       const { data: familyLinkData, error: familyLinkError } = await supabase
         .from('family_links')
@@ -210,16 +231,24 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
           relationship_to_primary_user: finalRelationship,
           gender: formData.gender,
           status: 'PENDING',
-          scopes: selectedScopes  // ✅ Now saving selected permissions!
+          scopes: scopesToSave
         })
         .select()
         .single();
 
+      console.log('=== FAMILY_LINKS INSERT RESULT ===');
+      console.log('Insert result - data:', familyLinkData);
+      console.log('Insert result - error:', familyLinkError);
+
       if (familyLinkError) {
-        console.error('Family link error:', familyLinkError);
+        console.error('🔴 CRITICAL ERROR saving to family_links:', familyLinkError);
+        console.error('Error code:', familyLinkError.code);
+        console.error('Error message:', familyLinkError.message);
         console.error('Error details:', familyLinkError.details);
         console.error('Error hint:', familyLinkError.hint);
-        toast.error('שגיאה בשמירת בקשת ההצטרפות: ' + familyLinkError.message);
+        
+        toast.error('שגיאה קריטית: המשתמש נוצר אבל לא נשמר בקשר משפחתי. אנא פנה לתמיכה.');
+        toast.error(`פרטי השגיאה: ${familyLinkError.message}`);
         return;
       }
 
