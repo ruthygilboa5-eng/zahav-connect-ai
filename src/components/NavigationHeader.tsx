@@ -26,7 +26,10 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: Naviga
   const { toast } = useToast();
 
   // Helper function to check active route
-  const isActive = (path: string) => location.pathname.startsWith(path);
+  const isActive = (path: string) => {
+    if (!location || !location.pathname) return false;
+    return location.pathname.startsWith(path);
+  };
 
   const handleAuthClick = () => {
     setIsAuthModalOpen(true);
