@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -82,7 +82,7 @@ const FamilyDashboard = () => {
   const [greetingName, setGreetingName] = useState<string>('');
 
   // Derive first name from family_links if available (avoid demo fallback)
-  React.useEffect(() => {
+  useEffect(() => {
     const loadName = async () => {
       try {
         if (!authState.user?.id) return;
@@ -99,7 +99,6 @@ const FamilyDashboard = () => {
     };
     loadName();
   }, [authState.user?.id]);
-  const { hasPermission } = useFamilyPermissions();
 
   const handleContentSubmit = (type: ContentType) => {
     setUploadType(type);
