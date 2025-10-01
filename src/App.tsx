@@ -93,12 +93,8 @@ const App = () => {
                              </ProtectedRoute>
                            } />
                            
-                           {/* Demo Family Page */}
-                           <Route path="/family" element={
-                             <ProtectedRoute requiredRole="FAMILY">
-                               <FamilyPage />
-                             </ProtectedRoute>
-                           } />
+                           {/* Demo Family Page - redirect to real */}
+                           <Route path="/family" element={<Navigate to="/family-real" replace />} />
                            
                            {/* Real Family Page */}
                            <Route path="/family-real" element={

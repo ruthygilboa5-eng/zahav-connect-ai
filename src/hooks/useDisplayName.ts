@@ -9,19 +9,45 @@ export const useAuthDisplayName = () => {
   const { authState } = useAuth();
   const { profile } = useProfile();
   const { userProfile } = useDataProvider();
+  const [name, setName] = useState<string>('');
 
-  // Priority: profile firstName -> auth firstName -> userProfile -> role fallback
+  // Initial synchronous guess
   const firstName = (profile?.first_name && profile.first_name.trim()) ||
                    (authState.firstName && authState.firstName.trim()) ||
                    (userProfile?.firstName && userProfile.firstName.trim()) ||
-                   (userProfile?.displayName && userProfile.displayName.trim());
+                   (userProfile?.displayName && userProfile.displayName.trim()) ||
+                   (authState.user?.user_metadata?.full_name?.split(' ')[0]);
 
-  // Only use role-based fallback if no real name is available
-  if (!firstName) {
-    return authState.role === 'FAMILY' ? 'בן משפחה' : 'משתמש';
-  }
+  useEffect(() => {
+    if (firstName) {
+      setName(firstName);
+      return;
+    }
 
-  return firstName;
+    // For family members, try to load from family_links where member_user_id = auth.uid()
+    const fetchFamilyName = async () => {
+      try {
+        if (authState.role === 'FAMILY' && authState.user?.id) {
+          const { data } = await import('@/integrations/supabase/client').then(m => m.supabase
+            .from('family_links')
+            .select('full_name')
+            .eq('member_user_id', authState.user!.id)
+            .maybeSingle()
+          );
+          if ((data as any)?.full_name) {
+            setName(((data as any).full_name as string).split(' ')[0]);
+          }
+        }
+      } catch (_) {
+        // ignore
+      }
+    };
+
+    fetchFamilyName();
+  }, [authState.role, authState.user?.id, firstName]);
+
+  // Final fallback – generic
+  return name || 'משתמש';
 };
 
 // Returns the main user's display name (for context when logged in as family)

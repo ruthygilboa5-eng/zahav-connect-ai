@@ -29,6 +29,7 @@ export const FamilyMemberAuth = ({ isOpen, onClose }: FamilyMemberAuthProps) => 
   // Sign In Form
   const [signInEmail, setSignInEmail] = useState('');
   const [signInPassword, setSignInPassword] = useState('');
+  const [showSignInPassword, setShowSignInPassword] = useState(false);
   const [mainUserEmail, setMainUserEmail] = useState('');
 
   // OTP Form
@@ -240,21 +241,29 @@ export const FamilyMemberAuth = ({ isOpen, onClose }: FamilyMemberAuthProps) => 
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-password" className="text-right block">סיסמה *</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="signin-password"
-                        type="password"
-                        value={signInPassword}
-                        onChange={(e) => setSignInPassword(e.target.value)}
-                        placeholder="הסיסמה שלך"
-                        className="pl-10 text-right"
-                        required
-                      />
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-password" className="text-right block">סיסמה *</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="signin-password"
+                          type={showSignInPassword ? 'text' : 'password'}
+                          value={signInPassword}
+                          onChange={(e) => setSignInPassword(e.target.value)}
+                          placeholder="הסיסמה שלך"
+                          className="pl-10 text-right"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowSignInPassword(v => !v)}
+                          className="absolute right-3 top-2.5 h-6 w-6 text-muted-foreground"
+                          aria-label={showSignInPassword ? 'הסתר סיסמה' : 'הצג סיסמה'}
+                        >
+                          {showSignInPassword ? <span>👁️‍🗨️</span> : <span>👁️</span>}
+                        </button>
+                      </div>
                     </div>
-                  </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="main-user-email" className="text-right block">אימייל המשתמש הראשי *</Label>

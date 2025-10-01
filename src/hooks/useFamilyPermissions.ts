@@ -28,50 +28,49 @@ export const useFamilyPermissions = () => {
   const [allRequests, setAllRequests] = useState<PermissionRequestWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load all permission requests for current family member (all statuses)
+  // Load all permission requests or approved permissions for current user (role-aware)
   const loadPermissions = async () => {
     if (!authState.user?.id || authState.role !== 'FAMILY') return;
 
     try {
       setLoading(true);
 
-      // Get family member record for current user
-      const { data: familyMember, error: memberError } = await supabase
-        .from('family_members')
+      // Get family link record for current user (RLS allows member to view)
+      const { data: link, error: linkError } = await supabase
+        .from('family_links')
         .select('id')
-        .eq('user_id', authState.user.id)
+        .eq('member_user_id', authState.user.id)
         .maybeSingle();
 
-      if (memberError || !familyMember) {
-        console.error('Error finding family member:', memberError);
+      if (linkError || !link) {
+        console.warn('loadPermissions: family link not found for user');
+        setAllRequests([]);
+        setPermissions([]);
         return;
       }
 
-      // Get ALL permission requests for this family member
-      const { data: allRequestsData, error: requestsError } = await supabase
-        .from('permissions_requests')
-        .select('*')
-        .eq('family_member_id', familyMember.id)
+      // Family members can view their own permissions via family_members_permissions
+      const { data: fmp, error: fmpError } = await supabase
+        .from('family_members_permissions')
+        .select('id, family_member_id, feature, status, created_at, updated_at')
+        .eq('family_member_id', link.id)
         .order('created_at', { ascending: false });
 
-      if (requestsError) throw requestsError;
+      if (fmpError) throw fmpError;
 
-      const transformedRequests = (allRequestsData || []).map(p => ({
+      const transformed = (fmp || []).map(p => ({
         id: p.id,
         family_member_id: p.family_member_id,
-        feature: p.permission_type,
-        status: (p.status.toLowerCase() === 'declined' ? 'rejected' : p.status.toLowerCase()) as 'pending' | 'approved' | 'rejected',
+        feature: p.feature,
+        status: (p.status === 'declined' ? 'rejected' : p.status) as 'pending' | 'approved' | 'rejected',
         created_at: p.created_at,
         updated_at: p.updated_at
       }));
 
-      setAllRequests(transformedRequests);
-      
-      // Separate approved permissions for easy access
-      const approvedPermissions = transformedRequests.filter(p => p.status === 'approved');
-      setPermissions(approvedPermissions);
+      setAllRequests(transformed);
+      setPermissions(transformed.filter(p => p.status === 'approved'));
     } catch (error) {
-      console.error('Error loading permissions:', error);
+      console.error('Error loading permissions (family_members_permissions):', error);
     } finally {
       setLoading(false);
     }
@@ -82,55 +81,41 @@ export const useFamilyPermissions = () => {
     if (!authState.user?.id) return;
 
     try {
-      // Get family member record
-      const { data: familyMember, error: memberError } = await supabase
-        .from('family_members')
-        .select('id, main_user_id')
-        .eq('user_id', authState.user.id)
+      // Get family link record and owner for permission request creation
+      const { data: link, error: linkError } = await supabase
+        .from('family_links')
+        .select('id, owner_user_id')
+        .eq('member_user_id', authState.user.id)
         .maybeSingle();
 
-      if (memberError || !familyMember) {
-        throw new Error('לא נמצא רישום בן משפחה');
+      if (linkError || !link) {
+        throw new Error('לא נמצא קישור משפחתי למשתמש');
       }
 
       // Check current status of this feature
       const currentStatus = getPermissionStatus(feature);
       if (currentStatus === 'pending') {
-        toast({
-          title: 'בקשה קיימת',
-          description: 'כבר נשלחה בקשה עבור פיצ\'ר זה והיא ממתינה לאישור',
-          variant: 'default'
-        });
+        toast({ title: 'בקשה קיימת', description: 'כבר נשלחה בקשה לפיצ׳ר זה', variant: 'default' });
         return;
       }
-      
-      if (currentStatus === 'rejected') {
-        toast({
-          title: 'הרשאה קיימת',
-          description: 'כבר יש לך הרשאה עבור פיצ\'ר זה',
-          variant: 'default'
-        });
+      if (currentStatus === 'approved') {
+        toast({ title: 'הרשאה קיימת', description: 'כבר אושרה הרשאה לפיצ׳ר זה', variant: 'default' });
         return;
       }
 
-      // Create entry in permissions_requests (main table)
+      // Create entry in permissions_requests (INSERT is allowed for authenticated users)
       const { error: permissionError } = await supabase
         .from('permissions_requests')
         .insert({
-          primary_user_id: familyMember.main_user_id,
-          family_member_id: familyMember.id,
+          primary_user_id: link.owner_user_id,
+          family_member_id: link.id,
           permission_type: feature,
           status: 'PENDING'
         });
 
       if (permissionError) throw permissionError;
 
-      toast({
-        title: 'בקשה נשלחה',
-        description: 'בקשתך נשלחה למשתמש הראשי לבדיקה',
-      });
-
-      // Reload permissions
+      toast({ title: 'בקשה נשלחה', description: 'בקשתך נשלחה למשתמש הראשי' });
       await loadPermissions();
     } catch (error: any) {
       console.error('Error requesting permission:', error);
