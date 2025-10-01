@@ -20,6 +20,9 @@ import {
   LogOut,
   Shield
 } from 'lucide-react';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { supabase } from '@/integrations/supabase/client';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/providers/AuthProvider';
 import { useProfile } from '@/hooks/useProfile';
 import { useDataProvider } from '@/providers/DataProvider';
@@ -36,11 +39,38 @@ interface ElderlyInterfaceProps {
 const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
   const [lastAction, setLastAction] = useState<string>("");
   const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
   const navigate = useNavigate();
   const { profile } = useProfile();
   const { userProfile } = useDataProvider();
   const displayName = useAuthDisplayName();
-  const { logout } = useAuth();
+  const { logout, authState } = useAuth();
+
+  useEffect(() => {
+    const checkPendingRequests = async () => {
+      if (authState.role !== 'MAIN_USER' || !authState.user?.id) return;
+      
+      const { data: userProfileData } = await supabase
+        .from('user_profiles')
+        .select('email')
+        .eq('user_id', authState.user.id)
+        .single();
+
+      const { data: pendingRequests } = await supabase
+        .from('family_links')
+        .select('*')
+        .eq('owner_email', userProfileData?.email || authState.user.email)
+        .eq('status', 'PENDING');
+
+      setPendingCount(pendingRequests?.length || 0);
+    };
+
+    checkPendingRequests();
+    
+    // רענון כל 30 שניות
+    const interval = setInterval(checkPendingRequests, 30000);
+    return () => clearInterval(interval);
+  }, [authState]);
 
   const handleLogout = () => {
     logout();
@@ -173,6 +203,20 @@ const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
         </Button>
       </div>
 
+
+      {/* Pending Requests Alert */}
+      {pendingCount > 0 && (
+        <Alert className="bg-yellow-50 border-yellow-200 mb-6 max-w-2xl mx-auto">
+          <AlertTitle className="text-yellow-800 font-bold">
+            יש לך {pendingCount} בקשות הצטרפות ממתינות!
+          </AlertTitle>
+          <AlertDescription>
+            <Link to="/family-requests" className="underline text-yellow-700 hover:text-yellow-900">
+              לחץ כאן לאישור או דחייה
+            </Link>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Header */}
       <div className="text-center mb-8">

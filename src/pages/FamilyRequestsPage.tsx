@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckCircle, XCircle, Clock, Users, ArrowLeft } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { CheckCircle, XCircle, Clock, Users, ArrowLeft, Edit } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/providers/AuthProvider';
 import { useNavigate } from 'react-router-dom';
@@ -28,6 +30,8 @@ const FamilyRequestsPage = () => {
   const [requests, setRequests] = useState<FamilyRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [editingRequest, setEditingRequest] = useState<string | null>(null);
+  const [selectedScopes, setSelectedScopes] = useState<string[]>([]);
 
   useEffect(() => {
     if (authState.role !== 'MAIN_USER') {
@@ -72,16 +76,23 @@ const FamilyRequestsPage = () => {
     }
   };
 
-  const handleApprove = async (requestId: string) => {
+  const handleApprove = async (requestId: string, customScopes?: string[]) => {
     setActionLoading(requestId);
     try {
       // Approve the link and claim ownership
+      const updateData: any = { 
+        status: 'APPROVED',
+        owner_user_id: authState.user?.id 
+      };
+      
+      // If custom scopes are provided, use them
+      if (customScopes) {
+        updateData.scopes = customScopes;
+      }
+      
       const { data: updated, error } = await supabase
         .from('family_links')
-        .update({ 
-          status: 'APPROVED',
-          owner_user_id: authState.user?.id 
-        })
+        .update(updateData)
         .eq('id', requestId)
         .select('member_user_id')
         .maybeSingle();
@@ -106,6 +117,7 @@ const FamilyRequestsPage = () => {
       }
 
       toast.success('הבקשה אושרה בהצלחה');
+      setEditingRequest(null);
       fetchRequests(); // Refresh the list
     } catch (error) {
       console.error('Error in handleApprove:', error);
@@ -113,6 +125,16 @@ const FamilyRequestsPage = () => {
     } finally {
       setActionLoading(null);
     }
+  };
+  
+  const handleEditAndApprove = (request: FamilyRequest) => {
+    setEditingRequest(request.id);
+    setSelectedScopes(request.scopes || []);
+  };
+  
+  const handleConfirmApproval = async () => {
+    if (!editingRequest) return;
+    await handleApprove(editingRequest, selectedScopes);
   };
   const handleDecline = async (requestId: string) => {
     setActionLoading(requestId);
@@ -276,12 +298,21 @@ const FamilyRequestsPage = () => {
                           <div className="flex gap-2">
                             <Button
                               size="sm"
+                              onClick={() => handleEditAndApprove(request)}
+                              disabled={actionLoading === request.id}
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
+                              <Edit className="w-3 h-3 ml-1" />
+                              ערוך ואשר
+                            </Button>
+                            <Button
+                              size="sm"
                               onClick={() => handleApprove(request.id)}
                               disabled={actionLoading === request.id}
                               className="bg-green-600 hover:bg-green-700"
                             >
                               <CheckCircle className="w-3 h-3 ml-1" />
-                              {actionLoading === request.id ? 'מאשר...' : 'אשר'}
+                              {actionLoading === request.id ? 'מאשר...' : 'אשר כמו שהוא'}
                             </Button>
                             <Button
                               size="sm"
@@ -391,6 +422,55 @@ const FamilyRequestsPage = () => {
               </div>
             </CardContent>
           </Card>
+        )}
+        
+        {/* Edit Permissions Dialog */}
+        {editingRequest && (
+          <Dialog open={!!editingRequest} onOpenChange={() => setEditingRequest(null)}>
+            <DialogContent className="max-w-2xl" dir="rtl">
+              <DialogTitle>בחר הרשאות לאישור</DialogTitle>
+              <DialogDescription>
+                סמן את ההרשאות שברצונך לאשר לבן המשפחה
+              </DialogDescription>
+              <div className="space-y-3 mt-4">
+                {[
+                  { key: 'POST_MEDIA', label: 'העלאת תמונות וסרטונים' },
+                  { key: 'SUGGEST_REMINDER', label: 'הצעת תזכורות' },
+                  { key: 'INVITE_GAME', label: 'הזמנת משחקים' },
+                  { key: 'CHAT', label: 'השתתפות בצ\'אט משפחתי' },
+                  { key: 'WAKE_UP_NOTIFICATION', label: 'התראות על התעוררות המשתמש הראשי' },
+                  { key: 'EMERGENCY_ONLY', label: 'התראות חירום בלבד' }
+                ].map(scope => (
+                  <label key={scope.key} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted cursor-pointer">
+                    <Checkbox
+                      checked={selectedScopes.includes(scope.key)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedScopes([...selectedScopes, scope.key]);
+                        } else {
+                          setSelectedScopes(selectedScopes.filter(s => s !== scope.key));
+                        }
+                      }}
+                    />
+                    <span className="text-sm font-medium">{scope.label}</span>
+                  </label>
+                ))}
+              </div>
+              <div className="flex gap-2 justify-end mt-6">
+                <Button variant="outline" onClick={() => setEditingRequest(null)}>
+                  ביטול
+                </Button>
+                <Button 
+                  onClick={handleConfirmApproval}
+                  disabled={selectedScopes.length === 0}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <CheckCircle className="w-4 h-4 ml-2" />
+                  אשר עם ההרשאות שנבחרו
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         )}
       </div>
     </div>

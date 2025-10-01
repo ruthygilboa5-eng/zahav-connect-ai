@@ -302,15 +302,6 @@ const FamilyRealDashboard = () => {
 
   return (
     <>
-      {/* Real Mode Banner */}
-      <div className="w-full bg-green-50 border-b border-green-200 py-2">
-        <div className="container mx-auto px-4">
-          <p className="text-center text-sm text-green-800 font-medium">
-            🟢 מצב אמיתי – נתונים מחוברים לחשבון שלך
-          </p>
-        </div>
-      </div>
-
       <div className="container mx-auto py-6 space-y-6" dir="rtl">
         {/* Header */}
         <div className="flex justify-between items-center">
