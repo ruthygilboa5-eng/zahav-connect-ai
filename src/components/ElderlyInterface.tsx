@@ -56,10 +56,12 @@ const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
         .eq('user_id', authState.user.id)
         .single();
 
+      const ownerEmail = userProfileData?.email || authState.user.email;
+      const ownerId = authState.user.id;
       const { data: pendingRequests } = await supabase
         .from('family_links')
         .select('*')
-        .eq('owner_email', userProfileData?.email || authState.user.email)
+        .or(`owner_user_id.eq.${ownerId},owner_email.eq.${ownerEmail}`)
         .eq('status', 'PENDING');
 
       setPendingCount(pendingRequests?.length || 0);
@@ -187,7 +189,7 @@ const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
       <div className="absolute top-4 right-4 flex gap-2">
         <Button 
           variant="outline" 
-          onClick={() => setIsProfileSettingsOpen(true)}
+          onClick={() => navigate(authState.role === 'MAIN_USER' ? '/main-user-profile' : '/family-member-profile')}
           className="flex items-center gap-2"
         >
           <User className="w-4 h-4" />

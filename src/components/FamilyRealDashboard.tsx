@@ -307,7 +307,7 @@ const FamilyRealDashboard = () => {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">
-              שלום {familyLink.full_name || 'בן משפחה'}
+              שלום {(familyLink.full_name || 'בן משפחה').split(' ')[0]}
             </h1>
             <p className="text-muted-foreground">
               מחובר/ת לחשבון של {mainUserProfile ? 

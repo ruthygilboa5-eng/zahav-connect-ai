@@ -31,6 +31,8 @@ import { FAMILY_ACTIONS } from '@/types/family';
 import ContentUploadModal from '@/components/ContentUploadModal';
 import ActionCard from '@/components/ActionCard';
 import ProfileSettingsModal from '@/components/ProfileSettingsModal';
+import { useFamilyPermissions } from '@/hooks/useFamilyPermissions';
+import { supabase } from '@/integrations/supabase/client';
 
 type ContentType = 'MEDIA' | 'STORY' | 'REMINDER' | 'GAME_INVITE';
 
@@ -76,6 +78,28 @@ const FamilyDashboard = () => {
   const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState(false);
   const { ownerUserId, isApproved, loading: ownerLoading } = useOwnerContext();
   const { authState } = useAuth();
+  const { hasPermission } = useFamilyPermissions();
+  const [greetingName, setGreetingName] = useState<string>('');
+
+  // Derive first name from family_links if available (avoid demo fallback)
+  React.useEffect(() => {
+    const loadName = async () => {
+      try {
+        if (!authState.user?.id) return;
+        const { data } = await supabase
+          .from('family_links')
+          .select('full_name')
+          .eq('member_user_id', authState.user.id)
+          .maybeSingle();
+        const first = data?.full_name?.split(' ')[0];
+        if (first) setGreetingName(first);
+      } catch (e) {
+        // ignore
+      }
+    };
+    loadName();
+  }, [authState.user?.id]);
+  const { hasPermission } = useFamilyPermissions();
 
   const handleContentSubmit = (type: ContentType) => {
     setUploadType(type);
@@ -245,24 +269,7 @@ const FamilyDashboard = () => {
   return (
     <div className="p-6 rtl-text">
       <div className="max-w-6xl mx-auto">
-        {/* Demo Notice */}
-        <div className="mb-6">
-          <Card className="border-l-4 border-l-amber-500 bg-amber-50/50">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-amber-800">
-                    זהו דף דמו – הנתונים כאן אינם אמיתיים
-                  </p>
-                  <p className="text-xs text-amber-600 mt-1">
-                    דף זה משמש להדגמת המערכת בלבד
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Demo Notice removed - showing real features only */}
 
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -352,7 +359,7 @@ const FamilyDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Quick Actions - Always Show All 5 Cards */}
+          {/* Quick Actions - Only show approved features */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -360,25 +367,26 @@ const FamilyDashboard = () => {
                 פעולות משפחה
               </CardTitle>
               <CardDescription>
-                כל הפעולות הזמינות במערכת
+                פעולות זמינות לפי ההרשאות שאושרו לך
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {FAMILY_ACTIONS.map((action) => {
-                  const IconComponent = getActionIcon(action.icon);
-                  return (
-                    <ActionCard
-                      key={action.key}
-                      scope={action.scope}
-                      title={action.title}
-                      description={getActionDescription(action.key)}
-                      icon={IconComponent}
-                      onAction={getActionHandler(action.key)}
-                      primaryLabel={getPrimaryLabel(action.key)}
-                    />
-                  );
-                })}
+                {FAMILY_ACTIONS.filter((action) => hasPermission(action.scope))
+                  .map((action) => {
+                    const IconComponent = getActionIcon(action.icon);
+                    return (
+                      <ActionCard
+                        key={action.key}
+                        scope={action.scope}
+                        title={action.title}
+                        description={getActionDescription(action.key)}
+                        icon={IconComponent}
+                        onAction={getActionHandler(action.key)}
+                        primaryLabel={getPrimaryLabel(action.key)}
+                      />
+                    );
+                  })}
               </div>
             </CardContent>
           </Card>
