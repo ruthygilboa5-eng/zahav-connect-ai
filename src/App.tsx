@@ -24,6 +24,7 @@ import FamilyPage from "./pages/FamilyPage";
 import FamilyRealPage from "./pages/FamilyRealPage";
 import FamilyProfileRealPage from "./pages/FamilyProfileRealPage";
 import FamilyMemberProfile from "./pages/FamilyMemberProfile";
+import MainUserProfile from "./pages/MainUserProfile";
 import NotFound from "./pages/NotFound";
 import { FamilyAuthChoiceWrapper, FamilyMemberSignupWrapper } from "./components/FamilyRouteWrappers";
 import FamilyRequestsPage from "./pages/FamilyRequestsPage";
@@ -114,11 +115,16 @@ const App = () => {
                            } />
                            
                            {/* Family Member Profile - Self Management */}
-                           <Route path="/family-member-profile" element={
-                             <ProtectedRoute requiredRole="FAMILY">
-                               <FamilyMemberProfile />
-                             </ProtectedRoute>
-                           } />
+                          <Route path="/family-member-profile" element={
+                            <ProtectedRoute requiredRole="FAMILY">
+                              <FamilyMemberProfile />
+                            </ProtectedRoute>
+                          } />
+                          <Route path="/main-user-profile" element={
+                            <ProtectedRoute requiredRole="MAIN_USER">
+                              <MainUserProfile />
+                            </ProtectedRoute>
+                          } />
                           
                           {/* Shared Routes */}
                           <Route path="/memories" element={<MemoriesPage />} />

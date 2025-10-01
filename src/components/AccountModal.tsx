@@ -80,13 +80,25 @@ const AccountModal = ({ isOpen, onClose }: AccountModalProps) => {
           </div>
 
           {/* Actions */}
-          <div className="flex gap-2 pt-4">
-            <Button variant="outline" onClick={onClose} className="flex-1">
-              סגירה
+          <div className="flex flex-col gap-2 pt-4">
+            <Button 
+              variant="default" 
+              onClick={() => {
+                onClose();
+                navigate(authState.role === 'MAIN_USER' ? '/main-user-profile' : '/family-member-profile');
+              }}
+              className="w-full"
+            >
+              עבור לפרופיל
             </Button>
-            <Button variant="destructive" onClick={handleLogout} className="flex-1">
-              התנתק
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={onClose} className="flex-1">
+                סגירה
+              </Button>
+              <Button variant="destructive" onClick={handleLogout} className="flex-1">
+                התנתק
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>
