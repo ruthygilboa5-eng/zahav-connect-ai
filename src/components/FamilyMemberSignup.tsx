@@ -166,30 +166,10 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
 
       console.log('✅ User created successfully with ID:', newUserId);
 
-      // Step 3: Save to user_profiles (full_name is a generated column, don't insert it)
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .insert({
-          user_id: newUserId,
-          email: formData.email,
-          first_name: formData.firstName.trim(),
-          last_name: formData.lastName.trim(),
-          phone: formData.phone,
-          role: 'family_member',
-          gender: formData.gender
-        });
-
-      if (profileError) {
-        console.warn('Profile save warning (ignored if RLS/Unauthorized):', profileError);
-        // Ignore RLS (42501) or Unauthorized (401) during signup flow
-        const code = (profileError as any).code;
-        const status = (profileError as any).status || (profileError as any).response?.status;
-        if (code !== '42501' && status !== 401) {
-          toast.error('שגיאה בשמירת פרופיל: ' + profileError.message);
-        }
-      } else {
-        console.log('✅ User profile saved successfully');
-      }
+      // Step 3: Skip explicit user_profiles insert
+      // Profiles are created/updated by the DB trigger handle_new_user()
+      // This avoids RLS/401 errors before the new session is fully established
+      console.log('ℹ️ Skipping explicit user_profiles insert (handled by trigger)');
 
       const finalRelationship = formData.relationshipToPrimary === 'אחר' 
         ? formData.customRelationship 
@@ -267,31 +247,15 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
       console.log('Saved to family_links with relation:', finalRelationship);
       console.log('Saved to family_links with scopes:', scopesToSave);
 
-      // Step 6: Also save to family_members for backward compatibility
-      const { data: memberData, error: memberError } = await supabase
-        .from('family_members')
-        .insert({
-          main_user_id: ownerData || null,
-          user_id: newUserId,
-          email: formData.email,
-          full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
-          relationship_label: finalRelationship,
-          gender: formData.gender,
-          phone: formData.phone,
-          status: 'PENDING'
-        })
-        .select('id')
-        .single();
-
-      if (memberError) {
-        console.warn('Non-blocking error creating family member (ignored if RLS/Unauthorized):', memberError);
-      }
+      // Step 6: Skip direct insert into family_members.
+      // A DB trigger (sync_family_links_to_members) keeps family_members in sync securely.
+      console.log('ℹ️ Skipping explicit family_members insert (handled by trigger)');
 
       const linkId = familyLinkData?.id;
 
       console.log('Family link creation result:', {
         familyLinkId: familyLinkData?.id,
-        familyMemberId: memberData?.id,
+        familyMemberId: linkId,
         ownerUserId: ownerData,
         willCreatePermissions: !!linkId && !!ownerData && selectedScopes.length > 0
       });
@@ -354,12 +318,12 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
               type: 'family_registration',
               message: personalizedMessage,
               recipients: [formData.email],
-              metadata: {
-                subject: template.subject,
-                first_name: formData.firstName,
-                main_user_name: ownerName,
-                family_member_id: memberData?.id
-              }
+                metadata: {
+                  subject: template.subject,
+                  first_name: formData.firstName,
+                  main_user_name: ownerName,
+                  family_member_id: linkId
+                }
             }
           });
 

@@ -51,7 +51,7 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: Naviga
 
   const handleFamilyViewClick = () => {
     if (authState.isAuthenticated && authState.role === 'FAMILY') {
-      navigate('/family');
+      navigate('/family-real');
     } else {
       onViewChange('family');
     }
@@ -92,7 +92,7 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: Naviga
               <span className="hidden sm:inline">ממשק משתמש</span>
             </Button>
             <Button
-              variant={authState.role === 'FAMILY' && isActive('/family') ? 'default' : 'ghost'}
+              variant={authState.role === 'FAMILY' && (isActive('/family') || isActive('/family-real')) ? 'default' : 'ghost'}
               size="sm"
               onClick={handleFamilyViewClick}
               className="flex items-center gap-2"
@@ -125,7 +125,7 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: Naviga
                     className="relative flex items-center gap-2 hover:bg-accent hover:text-accent-foreground p-2 rounded-lg transition-colors"
                   >
                     <Badge variant="secondary" className="bg-primary text-primary-foreground">
-                      שלום {displayName || (authState.role === 'MAIN_USER' ? 'משתמש ראשי' : 'בן משפחה')} · מחובר
+                      שלום {displayName || 'משתמש'} · מחובר
                     </Badge>
                     {/* Notification badge for main users with pending requests */}
                     {authState.role === 'MAIN_USER' && (
