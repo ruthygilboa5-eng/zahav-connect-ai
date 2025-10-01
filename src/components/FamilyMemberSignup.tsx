@@ -366,11 +366,12 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         }
       }
       
-      toast.success('הבקשה נשלחה בהצלחה! המשתמש הראשי יראה אותה בבקשות הממתינות לאישור.');
+      toast.success('ההרשמה הושלמה בהצלחה!');
       toast.info(`המשתמש הראשי (${formData.ownerEmail}) יקבל התראה ויוכל לאשר אותך`);
       toast.info('תקבל הודעה כשהבקשה תאושר');
       
-      onComplete();
+      // Navigate to waiting for approval page
+      window.location.href = '/waiting-approval';
       
     } catch (error) {
       toast.error('שגיאה בשליחת הבקשה');

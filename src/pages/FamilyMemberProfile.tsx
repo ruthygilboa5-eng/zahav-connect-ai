@@ -104,24 +104,35 @@ export default function FamilyMemberProfile() {
       return;
     }
 
+    if (selectedScopes.length === 0) {
+      toast.error('יש לבחור לפחות הרשאה אחת');
+      return;
+    }
+
     setIsSaving(true);
     try {
-      const { error } = await supabase
+      // שמור את ההרשאות החדשות ב-family_links
+      const { error: updateError } = await supabase
         .from('family_links')
-        .update({
+        .update({ 
           email: formData.email,
           phone: formData.phone,
-          scopes: selectedScopes
+          scopes: selectedScopes,
+          status: 'PENDING' // אם שינה הרשאות, חזור לממתין
         })
         .eq('id', familyLink.id);
 
-      if (error) throw error;
+      if (updateError) {
+        console.error('Error updating permissions:', updateError);
+        toast.error('שגיאה בעדכון ההרשאות');
+        return;
+      }
 
-      toast.success('הפרופיל עודכן בהצלחה');
+      toast.success('ההרשאות עודכנו ונשלחו לאישור');
       loadFamilyLink(); // Reload to get updated data
     } catch (error: any) {
-      console.error('Error updating profile:', error);
-      toast.error('שגיאה בעדכון הפרופיל: ' + error.message);
+      console.error('Error:', error);
+      toast.error('שגיאה לא צפויה');
     } finally {
       setIsSaving(false);
     }
