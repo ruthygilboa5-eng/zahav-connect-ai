@@ -256,7 +256,8 @@ const FamilyRequestsPage = () => {
                                   'INVITE_GAME': 'הזמנת משחקים',
                                   'CHAT': 'ציוץ משפחה',
                                   'EMERGENCY_ONLY': 'התראות חירום',
-                                  'VIEW_ONLY': 'צפייה בלבד'
+                                  'VIEW_ONLY': 'צפייה בלבד',
+                                  'WAKE_UP_NOTIFICATION': 'התראות על התעוררות'
                                 };
                                 
                                 return (
@@ -341,7 +342,8 @@ const FamilyRequestsPage = () => {
                                   'INVITE_GAME': 'הזמנת משחקים',
                                   'CHAT': 'ציוץ משפחה',
                                   'EMERGENCY_ONLY': 'התראות חירום',
-                                  'VIEW_ONLY': 'צפייה בלבד'
+                                  'VIEW_ONLY': 'צפייה בלבד',
+                                  'WAKE_UP_NOTIFICATION': 'התראות על התעוררות'
                                 };
                                 
                                 return (

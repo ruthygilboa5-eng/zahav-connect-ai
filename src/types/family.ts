@@ -8,7 +8,8 @@ export type FamilyScope =
   | 'SUGGEST_REMINDER'     // הצעת תזכורות (נכנס לאישור)
   | 'INVITE_GAME'         // הזמנת משחק משותף
   | 'CHAT'                // גישה לצ'אט המשפחה
-  | 'EMERGENCY_ONLY';     // קבלת התראות SOS (ללא גישה לדשבורד)
+  | 'EMERGENCY_ONLY'      // קבלת התראות SOS (ללא גישה לדשבורד)
+  | 'WAKE_UP_NOTIFICATION'; // קבלת התראות על התעוררות המשתמש הראשי
 
 // Family action keys for UI consistency
 export type FamilyActionKey = 'POST_MEDIA' | 'POST_STORY' | 'SUGGEST_REMINDER' | 'INVITE_GAME' | 'CHAT';
@@ -137,7 +138,8 @@ export const scopeLabels: Record<FamilyScope, string> = {
   SUGGEST_REMINDER: 'הצעת תזכורות',
   INVITE_GAME: 'הזמנת משחקים',
   CHAT: 'צ\'אט משפחה',
-  EMERGENCY_ONLY: 'התראות חירום בלבד'
+  EMERGENCY_ONLY: 'התראות חירום בלבד',
+  WAKE_UP_NOTIFICATION: 'התראות על התעוררות'
 };
 
 // Scope status types

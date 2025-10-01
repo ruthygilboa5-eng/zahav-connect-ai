@@ -23,6 +23,7 @@ import FamilyManagementPage from "./pages/FamilyManagementPage";
 import FamilyPage from "./pages/FamilyPage";
 import FamilyRealPage from "./pages/FamilyRealPage";
 import FamilyProfileRealPage from "./pages/FamilyProfileRealPage";
+import FamilyMemberProfile from "./pages/FamilyMemberProfile";
 import NotFound from "./pages/NotFound";
 import { FamilyAuthChoiceWrapper, FamilyMemberSignupWrapper } from "./components/FamilyRouteWrappers";
 import FamilyRequestsPage from "./pages/FamilyRequestsPage";
@@ -109,6 +110,13 @@ const App = () => {
                            <Route path="/family-profile-real" element={
                              <ProtectedRoute requiredRole="FAMILY">
                                <FamilyProfileRealPage />
+                             </ProtectedRoute>
+                           } />
+                           
+                           {/* Family Member Profile - Self Management */}
+                           <Route path="/family-member-profile" element={
+                             <ProtectedRoute requiredRole="FAMILY">
+                               <FamilyMemberProfile />
                              </ProtectedRoute>
                            } />
                           
