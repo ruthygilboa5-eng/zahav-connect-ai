@@ -284,7 +284,7 @@ const FamilyDashboard = () => {
             <User className="w-8 h-8 text-primary" />
             <div>
               <h1 className="text-3xl font-bold text-foreground">
-                שלום {familyName}
+                שלום {greetingName || familyName}
               </h1>
               <p className="text-muted-foreground">
                 מחובר/ת לחשבון של {mainUserName}
