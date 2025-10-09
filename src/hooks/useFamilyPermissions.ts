@@ -214,18 +214,18 @@ export const useFamilyPermissions = () => {
     if (authState.user?.id && authState.role === 'FAMILY') {
       loadPermissions();
 
-      // Set up real-time subscription for permission updates
+      // Set up real-time subscription for family_members_permissions updates
       const channel = supabase
-        .channel('family-permissions-changes')
+        .channel('family-permissions-realtime')
         .on(
           'postgres_changes',
           {
             event: '*',
             schema: 'public',
-            table: 'permissions_requests'
+            table: 'family_members_permissions'
           },
           (payload) => {
-            console.log('Permission request change received:', payload);
+            console.log('Permission change received in real-time:', payload);
             loadPermissions(); // Reload when changes occur
           }
         )

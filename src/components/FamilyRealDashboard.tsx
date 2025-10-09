@@ -71,8 +71,8 @@ const FamilyRealDashboard = () => {
   useEffect(() => {
     loadFamilyData();
 
-    // Set up real-time subscription for family link updates
-    const channel = supabase
+    // Set up real-time subscriptions for both family links and permissions
+    const linksChannel = supabase
       .channel('family-link-changes')
       .on(
         'postgres_changes',
@@ -83,13 +83,30 @@ const FamilyRealDashboard = () => {
         },
         (payload) => {
           console.log('Family link change received:', payload);
-          loadFamilyData(); // Reload when changes occur
+          loadFamilyData();
+        }
+      )
+      .subscribe();
+
+    const permissionsChannel = supabase
+      .channel('family-permissions-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'family_members_permissions'
+        },
+        (payload) => {
+          console.log('Permissions change received:', payload);
+          loadFamilyData();
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(linksChannel);
+      supabase.removeChannel(permissionsChannel);
     };
   }, [authState.user?.id]);
 

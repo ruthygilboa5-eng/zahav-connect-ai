@@ -6,8 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowRight, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
-import { FamilyScope } from "@/types/family";
-import { ScopeSelector } from '@/components/ScopeSelector';
 import { supabase } from '@/integrations/supabase/client';
 
 interface FamilyMemberSignupProps {
@@ -31,7 +29,6 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
     relationshipToPrimary: '',
     customRelationship: ''
   });
-  const [selectedScopes, setSelectedScopes] = useState<FamilyScope[]>(['POST_MEDIA']);
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
@@ -79,7 +76,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
     setCurrentStep(2);
   };
 
-  const handleStep2Submit = (e: React.FormEvent) => {
+  const handleStep2Submit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.phone.trim() || !formData.ownerEmail.trim() || !formData.relationshipToPrimary || !formData.gender) {
@@ -104,33 +101,15 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
       return;
     }
 
-    setCurrentStep(3);
-  };
-
-  const handleStep3Submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!Array.isArray(selectedScopes) || selectedScopes.length === 0) {
-      toast.error('יש לבחור לפחות הרשאה אחת');
-      return;
-    }
-
+    // Complete signup here
     setIsLoading(true);
     
     try {
       console.log('=== FORM DATA BEFORE SIGNUP ===');
       console.log('Email from form:', formData.email);
-      console.log('Password from form:', formData.password);
-      console.log('First name from form:', formData.firstName);
-      console.log('Last name from form:', formData.lastName);
-      console.log('Phone from form:', formData.phone);
-      console.log('Owner email from form:', formData.ownerEmail);
-      console.log('Relationship from form:', formData.relationshipToPrimary);
-      console.log('Gender from form:', formData.gender);
-      console.log('Selected scopes:', selectedScopes);
       console.log('Full formData object:', JSON.stringify(formData, null, 2));
 
-      // Step 1: Create user in auth
+      // Create user in auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -164,22 +143,17 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
       const newUserId = authData.user.id;
       console.log('✅ User created successfully with ID:', newUserId);
 
-      console.log('✅ User created successfully with ID:', newUserId);
-
-      // Step 3: Skip explicit user_profiles insert
-      // Profiles are created/updated by the DB trigger handle_new_user()
-      // This avoids RLS/401 errors before the new session is fully established
+      // Skip DB writes to prevent RLS errors
       console.log('ℹ️ Skipping explicit user_profiles insert (handled by trigger)');
-
-      // Step 4-6: Skip any DB writes that can trigger RLS/401 during fresh signup
-      // We avoid: owner lookup, family_links insert, permissions_requests insert, templates fetch, emails
       console.log('Skipping post-signup DB writes to prevent RLS/401 during registration');
 
-      // Show success and redirect to waiting page
-      toast.success('ההרשמה הושלמה! בקשתך מחכה לאישור המשתמש הראשי.');
+      console.log('✅ Signup completed successfully - redirecting to family dashboard');
+      toast.success('ההרשמה הושלמה בהצלחה! ברוך הבא!');
+      
+      // Redirect to family dashboard
       setTimeout(() => {
-        window.location.href = '/waiting-approval';
-      }, 800);
+        window.location.href = '/family-real';
+      }, 1500);
       
     } catch (error) {
       toast.error('שגיאה בשליחת הבקשה');
@@ -188,6 +162,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -211,13 +186,6 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
                   {currentStep > 2 ? <CheckCircle className="w-4 h-4" /> : '2'}
                 </div>
                 <span className="text-sm font-medium">פרטים אישיים</span>
-              </div>
-              <div className={`w-6 h-0.5 ${currentStep >= 3 ? 'bg-primary' : 'bg-muted-foreground'}`}></div>
-              <div className={`flex items-center gap-2 ${currentStep >= 3 ? 'text-primary' : 'text-muted-foreground'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${currentStep >= 3 ? 'border-primary bg-yellow-500 text-white' : 'border-muted-foreground'}`}>
-                  {currentStep > 3 ? <CheckCircle className="w-4 h-4" /> : '3'}
-                </div>
-                <span className="text-sm font-medium">הרשאות</span>
               </div>
             </div>
           </div>
@@ -507,66 +475,12 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
                   disabled={isLoading}
                   className="flex-1"
                 >
-                  המשך להרשאות
-                  <ArrowRight className="mr-2 h-4 w-4" />
+                  {isLoading ? 'שולח בקשה...' : 'השלם הרשמה'}
                 </Button>
               </div>
             </form>
           )}
 
-          {currentStep === 3 && (
-            <form onSubmit={handleStep3Submit} className="space-y-6">
-              <div className="space-y-6">
-                <div className="text-center">
-                  <h3 className="text-lg font-semibold mb-2">בחר הרשאות עבור בן המשפחה</h3>
-                  <p className="text-sm text-muted-foreground">לפחות הרשאה אחת חובה</p>
-                </div>
-                
-                <ScopeSelector 
-                  selectedScopes={selectedScopes}
-                  onScopesChange={setSelectedScopes}
-                  disabled={isLoading}
-                />
-              </div>
-
-              <div className="space-y-3 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                <h4 className="font-semibold text-blue-900 dark:text-blue-100">מה יקרה לאחר השליחה?</h4>
-                <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
-                  <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-1.5"></div>
-                    <span>הבקשה תישלח למשתמש הראשי</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-1.5"></div>
-                    <span>המקבל יקבל הודעה בחשבון המאושר או בהודעה</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-1.5"></div>
-                    <span>לאחר אישור תוכל להתחבר למשפחה בעזרת החשבון שנוצר</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setCurrentStep(2)}
-                  disabled={isLoading}
-                  className="flex-1"
-                >
-                  חזור
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={isLoading}
-                  className="flex-1"
-                >
-                  {isLoading ? 'שולח בקשה...' : 'שלח בקשה להצטרפות'}
-                </Button>
-              </div>
-            </form>
-          )}
         </CardContent>
       </Card>
     </div>
