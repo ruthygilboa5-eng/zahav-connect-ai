@@ -271,6 +271,21 @@ const MainUserDashboard = () => {
         ))}
       </div>
 
+      {/* Family Permission Requests */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            ניהול הרשאות בני המשפחה
+          </CardTitle>
+          <CardDescription>
+            בקשות הרשאות ממתינות לאישור מבני המשפחה
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <PermissionRequestsSection />
+        </CardContent>
+      </Card>
     </div>
   );
 };
