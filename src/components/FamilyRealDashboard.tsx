@@ -300,6 +300,58 @@ const FamilyRealDashboard = () => {
     );
   }
 
+  // Feature buttons configuration with icons and actions
+  const featureButtons = [
+    {
+      id: 'memories',
+      name: 'זכרונות',
+      description: 'תמונות וסיפורים',
+      icon: Heart,
+      feature: 'memories',
+      action: () => navigate('/memories')
+    },
+    {
+      id: 'games',
+      name: 'משחקים',
+      description: 'משחקים עם המשפחה',
+      icon: Gamepad2,
+      feature: 'games',
+      action: () => navigate('/games')
+    },
+    {
+      id: 'reminders',
+      name: 'תזכורות',
+      description: 'תרופות ופגישות',
+      icon: Calendar,
+      feature: 'reminders',
+      action: () => navigate('/reminders')
+    },
+    {
+      id: 'emergency',
+      name: 'חירום',
+      description: 'עזרה מיידית',
+      icon: Shield,
+      feature: 'emergency',
+      action: () => navigate('/emergency')
+    },
+    {
+      id: 'contacts',
+      name: 'אנשי קשר',
+      description: 'אנשי קשר חשובים',
+      icon: User,
+      feature: 'contacts',
+      action: () => navigate('/emergency-contacts')
+    },
+    {
+      id: 'wakeup',
+      name: 'התעוררתי',
+      description: 'דיווח יומי',
+      icon: Heart,
+      feature: 'wakeup',
+      action: () => navigate('/wakeup')
+    }
+  ];
+
   return (
     <>
       <div className="container mx-auto py-6 space-y-6" dir="rtl">
@@ -307,7 +359,7 @@ const FamilyRealDashboard = () => {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">
-              שלום {(familyLink.full_name || authState.user?.user_metadata?.full_name || '').split(' ')[0]}
+              שלום {(familyLink.full_name || '').split(' ')[0] || 'בן משפחה'}
             </h1>
             <p className="text-muted-foreground">
               מחובר/ת לחשבון של {mainUserProfile ? 
@@ -344,28 +396,52 @@ const FamilyRealDashboard = () => {
 
         {familyLink.status === 'APPROVED' ? (
           <>
-            {/* Permissions Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle>הרשאות גישה</CardTitle>
-                <CardDescription>
-                  נהל את ההרשאות שלך לפיצ'רים שונים במערכת
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {['memories', 'games', 'reminders', 'emergency', 'contacts', 'wakeup'].map((feature) => (
-                    <PermissionCard
-                      key={feature}
-                      feature={feature}
-                      status={getPermissionStatus(feature)}
-                      onRequestPermission={() => requestPermission(feature)}
-                      disabled={permissionsLoading}
-                    />
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Feature Buttons in Circle Layout */}
+            <div className="flex items-center justify-center my-8">
+              <div className="relative" style={{ width: '500px', height: '500px' }}>
+                {featureButtons.map((button, index) => {
+                  const angle = (index * 360) / featureButtons.length;
+                  const radius = 180;
+                  const x = radius * Math.cos((angle - 90) * (Math.PI / 180));
+                  const y = radius * Math.sin((angle - 90) * (Math.PI / 180));
+                  const permissionStatus = getPermissionStatus(button.feature);
+                  const isApproved = permissionStatus === 'approved';
+                  
+                  return (
+                    <div
+                      key={button.id}
+                      className="absolute"
+                      style={{
+                        left: `calc(50% + ${x}px)`,
+                        top: `calc(50% + ${y}px)`,
+                        transform: 'translate(-50%, -50%)'
+                      }}
+                    >
+                      <Button
+                        onClick={() => {
+                          if (isApproved) {
+                            button.action();
+                          } else {
+                            requestPermission(button.feature);
+                          }
+                        }}
+                        disabled={permissionsLoading}
+                        className={`w-28 h-28 rounded-full flex flex-col items-center justify-center gap-2 ${
+                          isApproved 
+                            ? 'bg-primary hover:bg-primary/90' 
+                            : 'bg-muted hover:bg-muted/80'
+                        }`}
+                      >
+                        <button.icon className="h-8 w-8" />
+                        <span className="text-xs font-medium text-center">
+                          {isApproved ? button.name : 'לחץ לבקשה'}
+                        </span>
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
             
             {/* Activity Section - Only show if user has approved permissions */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

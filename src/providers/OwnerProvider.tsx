@@ -61,21 +61,24 @@ export const OwnerProvider = ({ children }: OwnerProviderProps) => {
             return;
           }
           
-          console.log('Real user - looking for approved link');
-          // For real family members, find their approved link
-          const { data: familyLinks } = await supabase
+          console.log('Real user - looking for any link (not just approved)');
+          // For real family members, find their link (any status)
+          const { data: familyLinks, error: linkError } = await supabase
             .from('family_links')
             .select('owner_user_id, status')
             .eq('member_user_id', authState.user.id)
-            .eq('status', 'APPROVED')
             .limit(1);
 
+          if (linkError) {
+            console.error('Error fetching family link:', linkError);
+          }
+
           if (familyLinks && familyLinks.length > 0 && familyLinks[0].owner_user_id) {
-            console.log('Found approved link:', familyLinks[0].owner_user_id);
+            console.log('Found link with status:', familyLinks[0].status);
             setOwnerUserId(familyLinks[0].owner_user_id);
-            setIsApproved(true);
+            setIsApproved(familyLinks[0].status === 'APPROVED');
           } else {
-            console.log('No approved link found');
+            console.log('No link found');
             setOwnerUserId(null);
             setIsApproved(false);
           }
