@@ -87,10 +87,7 @@ const PermissionRequestsSection = () => {
                 <User className="w-5 h-5 text-muted-foreground" />
                  <div>
                    <div className="font-medium">
-                     {request.familyLinkId ? 
-                       (familyMembers.find(m => m.id === request.familyLinkId)?.full_name || 'בן משפחה לא ידוע') :
-                       'בן משפחה לא ידוע'
-                     }
+                     {(request as any).familyMemberName || 'בן משפחה לא ידוע'}
                    </div>
                    <div className="text-sm text-muted-foreground">
                      מבקש הרשאה עבור: {getPermissionLabel(request.scope)}

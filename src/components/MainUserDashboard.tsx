@@ -18,7 +18,8 @@ import {
   Phone,
   Bell,
   Camera,
-  Shield
+  Shield,
+  User
 } from 'lucide-react';
 import PermissionRequestsSection from './PermissionRequestsSection';
 
@@ -176,16 +177,25 @@ const MainUserDashboard = () => {
       action: 'games',
       position: 'petal'
     },
-    {
-      id: 'family',
-      name: 'המשפחה',
-      description: 'הודעות ועדכונים',
-      icon: MessageSquare,
-      className: 'zahav-button zahav-button-orange',
-      action: 'family-board',
-      position: 'petal'
-    }
-  ];
+      {
+        id: 'family',
+        name: 'המשפחה',
+        description: 'הודעות ועדכונים',
+        icon: MessageSquare,
+        className: 'zahav-button zahav-button-orange',
+        action: 'family-board',
+        position: 'petal'
+      },
+      {
+        id: 'profile',
+        name: 'פרופיל',
+        description: 'צפה ועדכן פרטים',
+        icon: User,
+        className: 'zahav-button zahav-button-blue',
+        action: 'main-user-profile',
+        position: 'petal'
+      }
+    ];
 
   const centerButton = buttons.find(b => b.position === 'center');
   const petalButtons = buttons.filter(b => b.position === 'petal');
@@ -215,6 +225,9 @@ const MainUserDashboard = () => {
         break;
       case 'family-board':
         navigate('/family-board');
+        break;
+      case 'main-user-profile':
+        navigate('/main-user-profile');
         break;
       case 'permission-requests':
         navigate('/permission-requests');

@@ -25,13 +25,9 @@ export const usePermissionRequests = () => {
 
       // Main user sees all requests for their family. Family members don't have SELECT on this table.
       if (authState.role === 'MAIN_USER') {
-        const { data, error } = await supabase
-          .from('permissions_requests')
-          .select('*')
-          .eq('primary_user_id', authState.user.id)
-          .order('created_at', { ascending: false });
+        const { data, error } = await supabase.rpc('get_permission_requests_main_user');
 
-        console.log('loadRequests result:', { data, error });
+        console.log('loadRequests result (RPC):', { data, error });
 
         if (error) {
           console.error('Error loading permission requests:', error);
@@ -43,18 +39,20 @@ export const usePermissionRequests = () => {
           return;
         }
 
-        // Transform database format to internal format
-        const transformedRequests: FamilyPermissionRequest[] = (data || []).map(item => ({
+        // Transform RPC view format to internal format (+name for UI)
+        const transformedRequests: FamilyPermissionRequest[] = (data as any[] || []).map((item: any) => ({
           id: item.id,
           ownerUserId: item.primary_user_id,
           familyLinkId: item.family_member_id,
           scope: item.permission_type as FamilyScope,
-          status: item.status.toUpperCase() as 'PENDING' | 'APPROVED' | 'DECLINED',
+          status: String(item.status).toUpperCase() as 'PENDING' | 'APPROVED' | 'DECLINED',
           createdAt: item.created_at,
-          updatedAt: item.updated_at
+          updatedAt: item.updated_at,
+          // @ts-expect-error extend shape for UI convenience
+          familyMemberName: item.family_member_name || null
         }));
 
-        console.log('loadRequests: Transformed requests:', transformedRequests);
+        console.log('loadRequests (RPC): Transformed requests:', transformedRequests);
         setRequests(transformedRequests);
       } else {
         // Family members cannot select from permissions_requests due to RLS; keep empty array.

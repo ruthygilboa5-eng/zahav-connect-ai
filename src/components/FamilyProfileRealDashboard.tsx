@@ -109,32 +109,14 @@ const FamilyProfileRealDashboard = () => {
 
       setMemberData(familyLink);
       
-      // Get main user profile with proper name handling
+      // Get main user name via secure RPC (bypasses RLS)
       if (familyLink.owner_user_id) {
-        const { data: profileData, error: profileError } = await supabase
-          .from('user_profiles')
-          .select('first_name, last_name, display_name, email')
-          .eq('user_id', familyLink.owner_user_id)
-          .maybeSingle();
-
-        if (profileError) {
-          console.error('Error loading main user profile:', profileError);
-        } else if (profileData) {
-          setMainUserProfile({
-            first_name: profileData.first_name,
-            last_name: profileData.last_name,
-            display_name: profileData.display_name || `${profileData.first_name} ${profileData.last_name}`.trim(),
-            email: profileData.email
-          });
-        } else {
-          // No profile found - create a fallback
-          setMainUserProfile({
-            first_name: 'משתמש',
-            last_name: 'ראשי',
-            display_name: 'משתמש ראשי',
-            email: undefined
-          });
+        const { data: ownerName, error: ownerErr } = await supabase.rpc('get_owner_display_name');
+        if (ownerErr) {
+          console.error('Error loading owner display name via RPC:', ownerErr);
         }
+        const name = typeof ownerName === 'string' && ownerName.trim() ? ownerName.trim() : 'המשתמש הראשי';
+        setMainUserProfile({ first_name: name, last_name: '', display_name: name, email: undefined });
       }
 
       setFormData({
@@ -440,7 +422,7 @@ const FamilyProfileRealDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {['memories', 'reminders', 'games', 'chat', 'emergency', 'wakeup'].map((feature) => {
+              {['memories', 'reminders', 'games', 'chat', 'wakeup'].map((feature) => {
                 const status = getPermissionStatus(feature);
                 return (
                   <div key={feature} className="flex items-center justify-between p-4 border rounded-lg">
