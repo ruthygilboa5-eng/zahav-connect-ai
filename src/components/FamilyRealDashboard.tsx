@@ -412,16 +412,30 @@ const FamilyRealDashboard = () => {
 
         {familyLink.status === 'APPROVED' ? (
           <>
+            {/* Info Banner */}
+            <Card className="bg-primary/5 border-primary/20">
+              <CardContent className="p-6">
+                <div className="text-center">
+                  <Shield className="w-10 h-10 mx-auto mb-3 text-primary" />
+                  <h2 className="text-xl font-bold mb-2">סטטוס חיבור</h2>
+                  <Badge className="bg-green-100 text-green-800 border-green-200">מחובר למערכת</Badge>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Feature Buttons in Circle Layout */}
-            <div className="flex items-center justify-center my-8">
-              <div className="relative" style={{ width: '500px', height: '500px' }}>
+            <div className="flex items-center justify-center my-12">
+              <div className="relative" style={{ width: '550px', height: '550px' }}>
                 {featureButtons.map((button, index) => {
                   const angle = (index * 360) / featureButtons.length;
-                  const radius = 180;
+                  const radius = 200;
                   const x = radius * Math.cos((angle - 90) * (Math.PI / 180));
                   const y = radius * Math.sin((angle - 90) * (Math.PI / 180));
                   const permissionStatus = getPermissionStatus(button.feature);
                   const isApproved = isDemo || permissionStatus === 'approved';
+                  const isPending = permissionStatus === 'pending';
+                  
+                  const IconComponent = button.icon;
                   
                   return (
                     <div
@@ -433,107 +447,67 @@ const FamilyRealDashboard = () => {
                         transform: 'translate(-50%, -50%)'
                       }}
                     >
-                      <Button
+                      <button
                         onClick={() => {
                           if (isApproved) {
                             button.action();
-                          } else {
+                          } else if (!isPending) {
                             requestPermission(button.feature);
                           }
                         }}
-                        disabled={permissionsLoading}
-                        className={`w-28 h-28 rounded-full flex flex-col items-center justify-center gap-2 ${
+                        disabled={permissionsLoading || isPending}
+                        className={`w-32 h-32 rounded-full flex flex-col items-center justify-center gap-1 transition-all ${
                           isApproved 
-                            ? 'bg-primary hover:bg-primary/90' 
-                            : 'bg-muted hover:bg-muted/80'
+                            ? 'bg-gradient-to-br from-yellow-300 to-yellow-400 hover:from-yellow-400 hover:to-yellow-500 shadow-lg text-gray-800' 
+                            : isPending
+                            ? 'bg-gray-200 text-gray-500 cursor-wait'
+                            : 'bg-gray-100 hover:bg-gray-200 text-gray-600 border-2 border-dashed border-gray-300'
                         }`}
                       >
-                        <button.icon className="h-8 w-8" />
-                        <span className="text-xs font-medium text-center">
-                          {isApproved ? button.name : 'לחץ לבקשה'}
+                        <IconComponent className="h-10 w-10" />
+                        <span className="text-sm font-bold text-center px-2">
+                          {isApproved ? button.name : isPending ? 'ממתין...' : 'לחץ לבקשה'}
                         </span>
-                      </Button>
+                        {isApproved && <CheckCircle className="h-5 w-5 text-green-600 absolute -top-1 -right-1" />}
+                        {isPending && <Clock className="h-5 w-5 text-orange-500 absolute -top-1 -right-1" />}
+                      </button>
                     </div>
                   );
                 })}
               </div>
             </div>
             
-            {/* Activity Section - Only show if user has approved permissions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Today's Activity */}
-              <Card className="md:col-span-2">
-                <CardHeader>
-                  <CardTitle>פעילות אחרונה</CardTitle>
-                  <CardDescription>
-                    עדכונים מהמשפחה
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {activities.length > 0 ? (
-                      activities.map((activity) => (
-                        <div key={activity.id} className="flex items-start space-x-3 space-x-reverse">
-                          <div className="flex-shrink-0">
-                            {activity.type === 'memory' && <Heart className="h-5 w-5 text-pink-500" />}
-                            {activity.type === 'reminder' && <Calendar className="h-5 w-5 text-blue-500" />}
-                            {activity.type === 'message' && <MessageSquare className="h-5 w-5 text-green-500" />}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium">{activity.title}</p>
-                            <p className="text-sm text-muted-foreground truncate">
-                              {activity.description}
-                            </p>
-                          </div>
-                        </div>
-                      ))
-                     ) : (
-                       <p className="text-muted-foreground text-sm">
-                         אין פעילויות משותפות עבורך להיום
-                       </p>
-                     )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Family Actions - Only show approved ones */}
-              {familyActions
-                .filter(action => hasPermission(action.scope.toLowerCase().replace('post_', '').replace('suggest_', '')))
-                .map((action, index) => (
-                <ActionCard
-                  key={index}
-                  scope={action.scope}
-                  title={action.title}
-                  description={action.description}
-                  icon={action.icon}
-                  onAction={action.onAction}
-                  primaryLabel={action.primaryLabel}
-                />
-              ))}
-            </div>
-
-            {/* System Status */}
+            {/* Activity Section */}
             <Card>
               <CardHeader>
-                <CardTitle>סטטוס המערכת</CardTitle>
+                <CardTitle>פעילות אחרונה</CardTitle>
+                <CardDescription>
+                  עדכונים מהמשפחה
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">✓</div>
-                    <p className="text-sm font-medium">מחובר</p>
-                    <p className="text-xs text-muted-foreground">חיבור יציב</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{familyLink.scopes?.length || 0}</div>
-                    <p className="text-sm font-medium">הרשאות</p>
-                    <p className="text-xs text-muted-foreground">הרשאות פעילות</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">0</div>
-                    <p className="text-sm font-medium">התראות</p>
-                    <p className="text-xs text-muted-foreground">אין התראות חדשות</p>
-                  </div>
+                <div className="space-y-4">
+                  {activities.length > 0 ? (
+                    activities.map((activity) => (
+                      <div key={activity.id} className="flex items-start space-x-3 space-x-reverse p-3 rounded-lg bg-muted/30">
+                        <div className="flex-shrink-0">
+                          {activity.type === 'memory' && <Heart className="h-5 w-5 text-pink-500" />}
+                          {activity.type === 'reminder' && <Calendar className="h-5 w-5 text-blue-500" />}
+                          {activity.type === 'message' && <MessageSquare className="h-5 w-5 text-green-500" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium">{activity.title}</p>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {activity.description}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground text-sm text-center py-4">
+                      אין פעילויות משותפות עבורך להיום
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
