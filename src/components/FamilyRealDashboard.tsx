@@ -465,8 +465,11 @@ const FamilyRealDashboard = () => {
                         }`}
                       >
                         <IconComponent className="h-10 w-10" />
+                        <span className="text-xs text-muted-foreground text-center leading-tight px-2">
+                          {button.name}
+                        </span>
                         <span className="text-sm font-bold text-center px-2">
-                          {isApproved ? button.name : isPending ? 'ממתין...' : 'לחץ לבקשה'}
+                          {isApproved ? '' : isPending ? 'ממתין...' : 'לחץ לבקשה'}
                         </span>
                         {isApproved && <CheckCircle className="h-5 w-5 text-green-600 absolute -top-1 -right-1" />}
                         {isPending && <Clock className="h-5 w-5 text-orange-500 absolute -top-1 -right-1" />}

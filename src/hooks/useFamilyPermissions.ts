@@ -106,7 +106,7 @@ export const useFamilyPermissions = () => {
       // Check if there's already a request for this feature (any status)
       const { data: existingRequest } = await supabase
         .from('permissions_requests')
-        .select('id, status')
+        .select('id, status, permission_type')
         .eq('primary_user_id', link.owner_user_id)
         .eq('family_member_id', link.id)
         .eq('permission_type', feature)
@@ -121,17 +121,34 @@ export const useFamilyPermissions = () => {
 
         if (updateError) throw updateError;
       } else {
-        // Create new entry in permissions_requests
-        const { error: permissionError } = await supabase
+        // Due to DB unique constraint on (primary_user_id, family_member_id),
+        // check if any request exists for this pair and reuse it for this feature
+        const { data: pairRequest } = await supabase
           .from('permissions_requests')
-          .insert({
-            primary_user_id: link.owner_user_id,
-            family_member_id: link.id,
-            permission_type: feature,
-            status: 'PENDING'
-          });
+          .select('id')
+          .eq('primary_user_id', link.owner_user_id)
+          .eq('family_member_id', link.id)
+          .maybeSingle();
 
-        if (permissionError) throw permissionError;
+        if (pairRequest) {
+          const { error: reuseError } = await supabase
+            .from('permissions_requests')
+            .update({ permission_type: feature, status: 'PENDING', updated_at: new Date().toISOString() })
+            .eq('id', pairRequest.id);
+          if (reuseError) throw reuseError;
+        } else {
+          // Create new entry in permissions_requests
+          const { error: permissionError } = await supabase
+            .from('permissions_requests')
+            .insert({
+              primary_user_id: link.owner_user_id,
+              family_member_id: link.id,
+              permission_type: feature,
+              status: 'PENDING'
+            });
+
+          if (permissionError) throw permissionError;
+        }
       }
 
       toast({ title: 'בקשה נשלחה', description: 'בקשתך נשלחה למשתמש הראשי' });
