@@ -73,15 +73,15 @@ export const usePermissionRequests = () => {
     if (!authState.memberId || !authState.user) return;
 
     try {
-      // Get the owner user ID from family_members table
-      const { data: memberData, error: memberError } = await supabase
-        .from('family_members')
-        .select('main_user_id, id')
-        .eq('user_id', authState.user.id)
-        .single();
+      // Get family_link (owner + link id) for this family member
+      const { data: linkData, error: linkError } = await supabase
+        .from('family_links')
+        .select('owner_user_id, id')
+        .eq('member_user_id', authState.user.id)
+        .maybeSingle();
 
-      if (memberError || !memberData) {
-        throw new Error('לא ניתן למצוא את הקשר למשתמש הראשי');
+      if (linkError || !linkData) {
+        throw new Error('לא ניתן למצוא קישור משפחה למשתמש הראשי');
       }
 
       // Fetch family member name + email for saving in permissions_requests
@@ -96,16 +96,16 @@ export const usePermissionRequests = () => {
       const familyMemberEmail = profile?.email || '';
 
       console.info('Creating permissions_requests row', {
-        primary_user_id: memberData.main_user_id,
-        family_member_id: memberData.id,
+        primary_user_id: linkData.owner_user_id,
+        family_member_id: linkData.id,
         permission_type: scope
       });
 
       const { data, error } = await supabase
         .from('permissions_requests')
         .insert({
-          primary_user_id: memberData.main_user_id,
-          family_member_id: memberData.id,
+          primary_user_id: linkData.owner_user_id,
+          family_member_id: linkData.id,
           permission_type: scope,
           status: 'PENDING'
         })

@@ -18,6 +18,7 @@ const PermissionRequestsSection = () => {
   const { familyMembers } = useFamilyProvider();
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
   const [linkNameMap, setLinkNameMap] = useState<Record<string, string>>({});
+  const [memberNameMap, setMemberNameMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setPendingRequests(requests.filter(req => req.status === 'PENDING'));
@@ -36,6 +37,21 @@ const PermissionRequestsSection = () => {
       setLinkNameMap(map);
     };
     loadLinks();
+  }, [authState.role, authState.user?.id]);
+
+  // Additional fallback: map family_members.id -> full_name for main user
+  useEffect(() => {
+    const loadFamilyMembers = async () => {
+      if (authState.role !== 'MAIN_USER' || !authState.user?.id) return;
+      const { data } = await supabase
+        .from('family_members')
+        .select('id, full_name')
+        .eq('main_user_id', authState.user.id);
+      const map: Record<string, string> = {};
+      (data || []).forEach((m: any) => { map[m.id] = m.full_name; });
+      setMemberNameMap(map);
+    };
+    loadFamilyMembers();
   }, [authState.role, authState.user?.id]);
 
   const handleApprove = async (requestId: string) => {
@@ -106,7 +122,7 @@ const PermissionRequestsSection = () => {
                 <User className="w-5 h-5 text-muted-foreground" />
                  <div>
                    <div className="font-medium">
-                     {(request as any).familyMemberName || linkNameMap[request.familyLinkId] || 'בן משפחה לא ידוע'}
+                     {(request as any).familyMemberName || linkNameMap[request.familyLinkId] || memberNameMap[request.familyLinkId] || 'בן משפחה לא ידוע'}
                    </div>
                    <div className="text-sm text-muted-foreground">
                      מבקש הרשאה עבור: {getPermissionLabel(request.scope)}
