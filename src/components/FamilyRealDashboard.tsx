@@ -137,7 +137,6 @@ const FamilyRealDashboard = () => {
         }
         const name = typeof ownerName === 'string' && ownerName.trim() ? ownerName.trim() : 'משתמש ראשי';
         setMainUserProfile({ first_name: name, last_name: '', display_name: name });
-      }
 
         // Load shared activities - for now, load all activities from the main user
         const { data: memoriesData } = await supabase
@@ -173,6 +172,7 @@ const FamilyRealDashboard = () => {
 
         setActivities(combinedActivities);
       }
+
 
     } catch (error) {
       console.error('Error loading family data:', error);
