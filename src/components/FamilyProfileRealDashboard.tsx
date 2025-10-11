@@ -63,7 +63,30 @@ const FamilyProfileRealDashboard = () => {
   }, [authState.user?.id]);
 
   const loadMemberData = async () => {
-    if (!authState.user?.id) return;
+    if (!authState.user?.id) {
+      // Demo/unauthenticated fallback so the page doesn't hang on loading
+      const demoLink: FamilyMemberData = {
+        id: 'demo',
+        full_name: 'בן משפחה',
+        relationship_to_primary_user: 'בן',
+        gender: 'male',
+        email: 'family@example.com',
+        phone: '',
+        owner_user_id: 'demo-owner'
+      };
+
+      setMemberData(demoLink);
+      setFormData({
+        full_name: demoLink.full_name,
+        relationship_to_primary_user: demoLink.relationship_to_primary_user,
+        gender: demoLink.gender,
+        email: demoLink.email,
+        phone: demoLink.phone || ''
+      });
+      setMainUserProfile({ first_name: 'משתמש', last_name: 'ראשי', display_name: 'משתמש ראשי' });
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
