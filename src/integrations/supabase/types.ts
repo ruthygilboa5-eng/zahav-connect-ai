@@ -335,7 +335,7 @@ export type Database = {
           created_at: string
           family_member_id: string
           id: string
-          permission_type: string | null
+          permission_type: string
           primary_user_id: string
           status: string
           updated_at: string
@@ -344,7 +344,7 @@ export type Database = {
           created_at?: string
           family_member_id: string
           id?: string
-          permission_type?: string | null
+          permission_type: string
           primary_user_id: string
           status?: string
           updated_at?: string
@@ -353,7 +353,7 @@ export type Database = {
           created_at?: string
           family_member_id?: string
           id?: string
-          permission_type?: string | null
+          permission_type?: string
           primary_user_id?: string
           status?: string
           updated_at?: string
@@ -514,6 +514,10 @@ export type Database = {
           body: string
           subject: string
         }[]
+      }
+      get_owner_display_name: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       get_permission_requests_admin: {
         Args: Record<PropertyKey, never>

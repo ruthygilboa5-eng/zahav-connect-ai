@@ -58,19 +58,22 @@ export const useMainUserDisplayName = () => {
 
   useEffect(() => {
     const fetchOwnerName = async () => {
-      if (ownerUserId) {
-        const ownerProfile = await loadUserProfile(ownerUserId);
-        setOwnerName(
-          (ownerProfile?.first_name && ownerProfile.first_name.trim()) ||
-          'המשתמש הראשי'
-        );
-      } else {
+      try {
+        // Use RPC with SECURITY DEFINER to bypass RLS safely
+        const { data } = await import('@/integrations/supabase/client').then(m => m.supabase.rpc('get_owner_display_name'));
+        if (typeof data === 'string' && data.trim()) {
+          setOwnerName(data.trim());
+        } else if (ownerUserId) {
+          // Fallback to generic if RPC returned empty
+          setOwnerName('המשתמש הראשי');
+        }
+      } catch (_) {
         setOwnerName('המשתמש הראשי');
       }
     };
 
     fetchOwnerName();
-  }, [ownerUserId, loadUserProfile]);
+  }, [ownerUserId]);
 
   return ownerName;
 };

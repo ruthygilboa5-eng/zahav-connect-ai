@@ -103,51 +103,24 @@ export const useFamilyPermissions = () => {
         return;
       }
 
-      // Check if there's already a request for this feature (any status)
-      const { data: existingRequest } = await supabase
+      // Insert a new request for this specific feature.
+      // Note: Family members cannot SELECT/UPDATE permissions_requests due to RLS,
+      // so we avoid pre-checks and rely on the DB unique constraint per (primary_user_id, family_member_id, permission_type).
+      const { error: insertError } = await supabase
         .from('permissions_requests')
-        .select('id, status, permission_type')
-        .eq('primary_user_id', link.owner_user_id)
-        .eq('family_member_id', link.id)
-        .eq('permission_type', feature)
-        .maybeSingle();
+        .insert({
+          primary_user_id: link.owner_user_id,
+          family_member_id: link.id,
+          permission_type: feature,
+          status: 'PENDING'
+        });
 
-      if (existingRequest) {
-        // Update existing request to PENDING
-        const { error: updateError } = await supabase
-          .from('permissions_requests')
-          .update({ status: 'PENDING', updated_at: new Date().toISOString() })
-          .eq('id', existingRequest.id);
-
-        if (updateError) throw updateError;
-      } else {
-        // Due to DB unique constraint on (primary_user_id, family_member_id),
-        // check if any request exists for this pair and reuse it for this feature
-        const { data: pairRequest } = await supabase
-          .from('permissions_requests')
-          .select('id')
-          .eq('primary_user_id', link.owner_user_id)
-          .eq('family_member_id', link.id)
-          .maybeSingle();
-
-        if (pairRequest) {
-          const { error: reuseError } = await supabase
-            .from('permissions_requests')
-            .update({ permission_type: feature, status: 'PENDING', updated_at: new Date().toISOString() })
-            .eq('id', pairRequest.id);
-          if (reuseError) throw reuseError;
+      if (insertError) {
+        // If already exists, show friendly message
+        if ((insertError as any).code === '23505') {
+          toast({ title: 'בקשה קיימת', description: 'כבר נשלחה בקשה לפיצ׳ר זה', variant: 'default' });
         } else {
-          // Create new entry in permissions_requests
-          const { error: permissionError } = await supabase
-            .from('permissions_requests')
-            .insert({
-              primary_user_id: link.owner_user_id,
-              family_member_id: link.id,
-              permission_type: feature,
-              status: 'PENDING'
-            });
-
-          if (permissionError) throw permissionError;
+          throw insertError;
         }
       }
 
