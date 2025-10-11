@@ -321,10 +321,18 @@ const FamilyRealDashboard = () => {
     {
       id: 'memories',
       name: 'זכרונות',
-      description: 'תמונות וסיפורים',
+      description: 'תמונות וידאו וסיפורים',
       icon: Heart,
       feature: 'memories',
       action: () => navigate('/memories')
+    },
+    {
+      id: 'reminders',
+      name: 'תזכורות',
+      description: 'תזכורות למשתמש הראשי',
+      icon: Calendar,
+      feature: 'reminders',
+      action: () => navigate('/reminders')
     },
     {
       id: 'games',
@@ -335,34 +343,26 @@ const FamilyRealDashboard = () => {
       action: () => navigate('/games')
     },
     {
-      id: 'reminders',
-      name: 'תזכורות',
-      description: 'תרופות ופגישות',
-      icon: Calendar,
-      feature: 'reminders',
-      action: () => navigate('/reminders')
+      id: 'chat',
+      name: 'צ\'ט משפחתי',
+      description: 'שיחה עם בני המשפחה',
+      icon: MessageSquare,
+      feature: 'chat',
+      action: () => toast({ title: 'הודעה', description: 'תכונת הצ\'ט תהיה זמינה בקרוב' })
     },
     {
       id: 'emergency',
-      name: 'חירום',
-      description: 'עזרה מיידית',
+      name: 'התראות חירום',
+      description: 'התראות חירום',
       icon: Shield,
       feature: 'emergency',
       action: () => navigate('/emergency')
     },
     {
-      id: 'contacts',
-      name: 'אנשי קשר',
-      description: 'אנשי קשר חשובים',
-      icon: User,
-      feature: 'contacts',
-      action: () => navigate('/emergency-contacts')
-    },
-    {
       id: 'wakeup',
-      name: 'התעוררתי',
-      description: 'דיווח יומי',
-      icon: Heart,
+      name: 'התעוררות',
+      description: 'דיווח התעוררות יומי',
+      icon: Clock,
       feature: 'wakeup',
       action: () => navigate('/wakeup')
     }
