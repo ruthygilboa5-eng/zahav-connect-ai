@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { User, Users, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
-import { useAuthDisplayName } from '@/hooks/useDisplayName';
+import { useAuthDisplayName, useMainUserDisplayName } from '@/hooks/useDisplayName';
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -23,6 +23,7 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: Naviga
   const navigate = useNavigate();
   const location = useLocation();
   const displayName = useAuthDisplayName();
+  const mainUserName = useMainUserDisplayName();
   const { toast } = useToast();
 
   // Helper function to check active route
@@ -122,14 +123,19 @@ const NavigationHeader = ({ currentView, onViewChange, onSettingsClick }: Naviga
               <div className="flex items-center gap-2">
                   <button
                     onClick={() => setIsAccountModalOpen(true)}
-                    className="relative flex items-center gap-2 hover:bg-accent hover:text-accent-foreground p-2 rounded-lg transition-colors"
+                    className="relative flex flex-col items-end gap-1 hover:bg-accent hover:text-accent-foreground p-2 rounded-lg transition-colors"
                   >
                     <Badge variant="secondary" className="bg-primary text-primary-foreground">
                       שלום {displayName || 'משתמש'} · מחובר
                     </Badge>
+                    {authState.role === 'FAMILY' && mainUserName && (
+                      <span className="text-xs text-muted-foreground">
+                        מחובר/ת לחשבון של {mainUserName}
+                      </span>
+                    )}
                     {/* Notification badge for main users with pending requests */}
                     {authState.role === 'MAIN_USER' && (
-                      <div className="relative">
+                      <div className="absolute -top-1 -right-1">
                         <NotificationBadge />
                       </div>
                     )}

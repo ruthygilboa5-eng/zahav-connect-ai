@@ -103,17 +103,36 @@ export const useFamilyPermissions = () => {
         return;
       }
 
-      // Create entry in permissions_requests (INSERT is allowed for authenticated users)
-      const { error: permissionError } = await supabase
+      // Check if there's already a request for this feature (any status)
+      const { data: existingRequest } = await supabase
         .from('permissions_requests')
-        .insert({
-          primary_user_id: link.owner_user_id,
-          family_member_id: link.id,
-          permission_type: feature,
-          status: 'PENDING'
-        });
+        .select('id, status')
+        .eq('primary_user_id', link.owner_user_id)
+        .eq('family_member_id', link.id)
+        .eq('permission_type', feature)
+        .maybeSingle();
 
-      if (permissionError) throw permissionError;
+      if (existingRequest) {
+        // Update existing request to PENDING
+        const { error: updateError } = await supabase
+          .from('permissions_requests')
+          .update({ status: 'PENDING', updated_at: new Date().toISOString() })
+          .eq('id', existingRequest.id);
+
+        if (updateError) throw updateError;
+      } else {
+        // Create new entry in permissions_requests
+        const { error: permissionError } = await supabase
+          .from('permissions_requests')
+          .insert({
+            primary_user_id: link.owner_user_id,
+            family_member_id: link.id,
+            permission_type: feature,
+            status: 'PENDING'
+          });
+
+        if (permissionError) throw permissionError;
+      }
 
       toast({ title: 'בקשה נשלחה', description: 'בקשתך נשלחה למשתמש הראשי' });
       await loadPermissions();
