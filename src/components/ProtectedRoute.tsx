@@ -48,11 +48,16 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     return <Navigate to="/" replace />;
   }
 
+  // If the user is authenticated but role hasn't been resolved yet, avoid redirect loops
+  if (requiredRole && authState.isAuthenticated && authState.role === null) {
+    return <div className="p-8 text-center">טוען הרשאות...</div>;
+  }
+
   if (requiredRole && authState.role !== requiredRole) {
     // Redirect to appropriate route based on role
     const redirectPath = authState.role === 'ADMIN' ? '/admin-dashboard' :
                         authState.role === 'MAIN_USER' ? '/home' : 
-                        '/family';
+                        '/family-real';
     return <Navigate to={redirectPath} replace />;
   }
 
