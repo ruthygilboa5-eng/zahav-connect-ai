@@ -129,26 +129,15 @@ const FamilyRealDashboard = () => {
 
       setFamilyLink(linkData);
 
-      // Get main user profile
+      // Get main user name via secure RPC (bypasses RLS)
       if (linkData.owner_user_id) {
-        const { data: profileData, error: profileError } = await supabase
-          .from('user_profiles')
-          .select('first_name, last_name, display_name')
-          .eq('user_id', linkData.owner_user_id)
-          .maybeSingle();
-
-        if (profileError) {
-          console.error('Error loading main user profile:', profileError);
-        } else if (profileData) {
-          setMainUserProfile(profileData);
-        } else {
-          // No profile found - create a fallback
-          setMainUserProfile({
-            first_name: 'משתמש',
-            last_name: 'ראשי',
-            display_name: 'משתמש ראשי'
-          });
+        const { data: ownerName, error: ownerErr } = await supabase.rpc('get_owner_display_name');
+        if (ownerErr) {
+          console.error('Error loading owner display name via RPC:', ownerErr);
         }
+        const name = typeof ownerName === 'string' && ownerName.trim() ? ownerName.trim() : 'משתמש ראשי';
+        setMainUserProfile({ first_name: name, last_name: '', display_name: name });
+      }
 
         // Load shared activities - for now, load all activities from the main user
         const { data: memoriesData } = await supabase

@@ -8,16 +8,35 @@ import { CheckCircle, XCircle, Clock, User } from 'lucide-react';
 import { usePermissionRequests } from '@/hooks/usePermissionRequests';
 import { useFamilyProvider } from '@/providers/FamilyProvider';
 import { scopeLabels } from '@/types/family';
+import { useAuth } from '@/providers/AuthProvider';
+import { supabase } from '@/integrations/supabase/client';
 
 const PermissionRequestsSection = () => {
   const { toast } = useToast();
+  const { authState } = useAuth();
   const { requests, loading, approveRequest, declineRequest, refresh } = usePermissionRequests();
   const { familyMembers } = useFamilyProvider();
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+  const [linkNameMap, setLinkNameMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setPendingRequests(requests.filter(req => req.status === 'PENDING'));
   }, [requests]);
+
+  // Fallback: map family_link.id -> full_name for main user
+  useEffect(() => {
+    const loadLinks = async () => {
+      if (authState.role !== 'MAIN_USER' || !authState.user?.id) return;
+      const { data } = await supabase
+        .from('family_links')
+        .select('id, full_name')
+        .eq('owner_user_id', authState.user.id);
+      const map: Record<string, string> = {};
+      (data || []).forEach((l: any) => { map[l.id] = l.full_name; });
+      setLinkNameMap(map);
+    };
+    loadLinks();
+  }, [authState.role, authState.user?.id]);
 
   const handleApprove = async (requestId: string) => {
     try {
@@ -83,11 +102,11 @@ const PermissionRequestsSection = () => {
         <Card key={request.id} className="border-l-4 border-l-orange-500">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+               <div className="flex items-center gap-3">
                 <User className="w-5 h-5 text-muted-foreground" />
                  <div>
                    <div className="font-medium">
-                     {(request as any).familyMemberName || 'בן משפחה לא ידוע'}
+                     {(request as any).familyMemberName || linkNameMap[request.familyLinkId] || 'בן משפחה לא ידוע'}
                    </div>
                    <div className="text-sm text-muted-foreground">
                      מבקש הרשאה עבור: {getPermissionLabel(request.scope)}
@@ -96,7 +115,7 @@ const PermissionRequestsSection = () => {
                      נשלח: {new Date(request.createdAt).toLocaleDateString('he-IL')}
                    </div>
                  </div>
-              </div>
+               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
                   <Clock className="w-3 h-3 ml-1" />

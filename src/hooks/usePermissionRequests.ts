@@ -48,7 +48,6 @@ export const usePermissionRequests = () => {
           status: String(item.status).toUpperCase() as 'PENDING' | 'APPROVED' | 'DECLINED',
           createdAt: item.created_at,
           updatedAt: item.updated_at,
-          // @ts-expect-error extend shape for UI convenience
           familyMemberName: item.family_member_name || null
         }));
 
