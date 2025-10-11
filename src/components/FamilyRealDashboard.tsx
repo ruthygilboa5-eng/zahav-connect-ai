@@ -66,6 +66,9 @@ const FamilyRealDashboard = () => {
   const [uploadType, setUploadType] = useState<'MEDIA' | 'STORY' | 'REMINDER' | 'GAME_INVITE'>('MEDIA');
   const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState(false);
   
+  // Demo mode flag: when no authenticated user exists
+  const isDemo = !authState.user?.id;
+  
   // Remove the old permission states and functions since we're using the hook now
 
   useEffect(() => {
@@ -94,7 +97,20 @@ const FamilyRealDashboard = () => {
   }, [authState.user?.id]);
 
   const loadFamilyData = async () => {
-    if (!authState.user?.id) return;
+    // Demo mode fallback: no authenticated user
+    if (!authState.user?.id) {
+      setFamilyLink({
+        id: 'demo',
+        full_name: 'בן משפחה',
+        owner_user_id: 'demo-main-user',
+        status: 'APPROVED',
+        scopes: ['memories','games','reminders','emergency','contacts','wakeup']
+      });
+      setMainUserProfile({ first_name: 'משתמש', last_name: 'ראשי', display_name: 'משתמש ראשי' });
+      setActivities([]);
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
@@ -405,7 +421,7 @@ const FamilyRealDashboard = () => {
                   const x = radius * Math.cos((angle - 90) * (Math.PI / 180));
                   const y = radius * Math.sin((angle - 90) * (Math.PI / 180));
                   const permissionStatus = getPermissionStatus(button.feature);
-                  const isApproved = permissionStatus === 'approved';
+                  const isApproved = isDemo || permissionStatus === 'approved';
                   
                   return (
                     <div
