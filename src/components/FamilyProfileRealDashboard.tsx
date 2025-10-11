@@ -72,7 +72,7 @@ const FamilyProfileRealDashboard = () => {
         .from('family_links')
         .select('*')
         .eq('member_user_id', authState.user.id)
-        .single();
+        .maybeSingle();
 
       if (linkError) {
         console.error('Error loading family link:', linkError);
@@ -184,11 +184,11 @@ const FamilyProfileRealDashboard = () => {
 
   const getFeatureDisplayName = (feature: string) => {
     const names: Record<string, string> = {
-      'memories': 'זיכרונות',
-      'games': 'משחקים',
+      'memories': 'זכרונות',
       'reminders': 'תזכורות',
-      'emergency': 'חירום',
-      'contacts': 'אנשי קשר',
+      'games': 'משחקים',
+      'chat': 'צ\'ט משפחתי',
+      'emergency': 'התראות חירום',
       'wakeup': 'התעוררות'
     };
     return names[feature] || feature;
@@ -417,7 +417,7 @@ const FamilyProfileRealDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {['memories', 'games', 'reminders', 'emergency', 'contacts', 'wakeup'].map((feature) => {
+              {['memories', 'reminders', 'games', 'chat', 'emergency', 'wakeup'].map((feature) => {
                 const status = getPermissionStatus(feature);
                 return (
                   <div key={feature} className="flex items-center justify-between p-4 border rounded-lg">
