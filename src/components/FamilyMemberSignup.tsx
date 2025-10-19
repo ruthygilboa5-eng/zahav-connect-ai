@@ -116,21 +116,9 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
     }
 
     setIsLoading(true);
-    
-    try {
-      console.log('=== FORM DATA BEFORE SIGNUP ===');
-      console.log('Email from form:', formData.email);
-      console.log('Password from form:', formData.password);
-      console.log('First name from form:', formData.firstName);
-      console.log('Last name from form:', formData.lastName);
-      console.log('Phone from form:', formData.phone);
-      console.log('Owner email from form:', formData.ownerEmail);
-      console.log('Relationship from form:', formData.relationshipToPrimary);
-      console.log('Gender from form:', formData.gender);
-      console.log('Selected scopes:', selectedScopes);
-      console.log('Full formData object:', JSON.stringify(formData, null, 2));
 
-      // Step 1: Create user in auth
+    try {
+      // 1) יצירת משתמש ב-Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -141,59 +129,81 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
             phone: formData.phone,
             birth_date: getBirthDate()?.toISOString().split('T')[0],
             is_family: true,
-            // Linkage to primary user and context for DB triggers
+            // עדיין שומרים מטא-דאטה עבור טריגרים אחרים (כגון יצירת בקשות הרשאה אחרי אימות מייל)
             owner_email: formData.ownerEmail,
             ownerEmail: formData.ownerEmail,
             relation: (formData.relationshipToPrimary === 'אחר' ? formData.customRelationship : formData.relationshipToPrimary),
             relationship_to_primary_user: (formData.relationshipToPrimary === 'אחר' ? formData.customRelationship : formData.relationshipToPrimary),
             gender: formData.gender || '',
-            // Selected feature scopes to create permission requests post email verification
             selected_scopes: selectedScopes
           }
         }
       });
 
-      console.log('=== SIGNUP RESULT ===');
-      console.log('SignUp completed - authData:', authData);
-      console.log('SignUp completed - authError:', authError);
-
       if (authError) {
-        console.error('🔴 Auth error:', authError);
-        toast.error('שגיאה ביצירת חשבון: ' + authError.message);
+        toast.error(`שגיאה ביצירת חשבון: ${authError.message}`);
         return;
       }
 
-      if (!authData || !authData.user || !authData.user.id) {
-        console.error('🔴 No user returned from signUp. authData:', authData);
-        toast.error('שגיאה: לא התקבל מזהה משתמש. ייתכן שהאימייל כבר קיים.');
+      const newUserId = authData?.user?.id;
+      if (!newUserId) {
+        toast.error('שגיאה: לא התקבל מזהה משתמש חדש מהמערכת');
         return;
       }
 
-      const newUserId = authData.user.id;
-      console.log('✅ User created successfully with ID:', newUserId);
+      // 2) שליפת מזהה המשתמש הראשי לפי האימייל שהוזן
+      const { data: ownerId, error: ownerLookupError } = await supabase.rpc('get_user_id_by_email', {
+        email_address: formData.ownerEmail
+      });
 
-      console.log('✅ User created successfully with ID:', newUserId);
+      if (ownerLookupError) {
+        // ניסיון ניקוי משתמש במידה ונכשל חיפוש הבעלים
+        await supabase.functions.invoke('cleanup-auth-user', { body: { user_id: newUserId } }).catch(() => {});
+        toast.error('שגיאה בשליפת משתמש ראשי לפי אימייל. נסו שוב מאוחר יותר.');
+        return;
+      }
 
-      // Step 3: Skip explicit user_profiles insert
-      // Profiles are created/updated by the DB trigger handle_new_user()
-      // This avoids RLS/401 errors before the new session is fully established
-      console.log('ℹ️ Skipping explicit user_profiles insert (handled by trigger)');
+      if (!ownerId) {
+        // בעלים לא נמצא – נבטל את המשתמש שנוצר
+        await supabase.functions.invoke('cleanup-auth-user', { body: { user_id: newUserId } }).catch(() => {});
+        toast.error('לא נמצא משתמש ראשי עם כתובת האימייל שסופקה. ההרשמה בוטלה.');
+        return;
+      }
 
-      // Step 4-6: Skip any DB writes that can trigger RLS/401 during fresh signup
-      // We avoid: owner lookup, family_links insert, permissions_requests insert, templates fetch, emails
-      console.log('Skipping post-signup DB writes to prevent RLS/401 during registration');
+      // 3) יצירת רשומת family_links ישירות מהקליינט
+      const fullName = `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim();
+      const relationValue = (formData.relationshipToPrimary === 'אחר' ? formData.customRelationship : formData.relationshipToPrimary);
 
-      // Show success immediately with toast
-      toast.success('ההרשמה הושלמה בהצלחה! בקשתך נשלחה למשתמש הראשי.');
-      
-      // Redirect using onComplete callback
-      setTimeout(() => {
-        onComplete();
-      }, 1500);
-      
-    } catch (error) {
-      toast.error('שגיאה בשליחת הבקשה');
-      console.error('Error creating family member:', error);
+      const { error: linkError } = await supabase
+        .from('family_links')
+        .insert([
+          {
+            owner_user_id: ownerId,
+            member_user_id: newUserId,
+            full_name: fullName,
+            email: formData.email,
+            phone: formData.phone,
+            relation: relationValue,
+            status: 'PENDING',
+            scopes: selectedScopes,
+            owner_email: formData.ownerEmail
+          }
+        ]);
+
+      if (linkError) {
+        // אם הוספת הקישור נכשלה – נמחק את המשתמש שנוצר כדי שלא יישאר יתום
+        await supabase.functions.invoke('cleanup-auth-user', { body: { user_id: newUserId } }).catch(() => {});
+        toast.error(`נכשלה יצירת הקישור למשתמש הראשי: ${linkError.message}`);
+        return;
+      }
+
+      // 4) הצלחה – הודעה וניווט
+      toast.success('נרשמת בהצלחה! אשר/י את המייל שלך ואז המשתמש הראשי יוכל לאשר את הבקשות שלך');
+      setTimeout(() => onComplete(), 1500);
+
+    } catch (error: any) {
+      toast.error('אירעה שגיאה במהלך ההרשמה. נסו שוב.');
+      console.error('Family member signup error:', error?.message || error);
     } finally {
       setIsLoading(false);
     }
