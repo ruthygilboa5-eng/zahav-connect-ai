@@ -18,28 +18,34 @@ const PermissionRequestsSection = () => {
   const { familyMembers } = useFamilyProvider();
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
   const [linkNameMap, setLinkNameMap] = useState<Record<string, string>>({});
+  const [linkRelationMap, setLinkRelationMap] = useState<Record<string, string>>({});
   const [memberNameMap, setMemberNameMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setPendingRequests(requests.filter(req => req.status === 'PENDING'));
   }, [requests]);
 
-  // Fallback: map family_link.id -> full_name for main user
+  // Load family_links: id -> {full_name, relationship_to_primary_user}
   useEffect(() => {
     const loadLinks = async () => {
       if (authState.role !== 'MAIN_USER' || !authState.user?.id) return;
       const { data } = await supabase
         .from('family_links')
-        .select('id, full_name')
+        .select('id, full_name, relationship_to_primary_user, relation')
         .eq('owner_user_id', authState.user.id);
-      const map: Record<string, string> = {};
-      (data || []).forEach((l: any) => { map[l.id] = l.full_name; });
-      setLinkNameMap(map);
+      const nameMap: Record<string, string> = {};
+      const relationMap: Record<string, string> = {};
+      (data || []).forEach((l: any) => { 
+        nameMap[l.id] = l.full_name; 
+        relationMap[l.id] = l.relationship_to_primary_user || l.relation || '';
+      });
+      setLinkNameMap(nameMap);
+      setLinkRelationMap(relationMap);
     };
     loadLinks();
   }, [authState.role, authState.user?.id]);
 
-  // Additional fallback: map family_members.id -> full_name for main user
+  // Additional fallback: map family_members.id -> full_name
   useEffect(() => {
     const loadFamilyMembers = async () => {
       if (authState.role !== 'MAIN_USER' || !authState.user?.id) return;
@@ -123,6 +129,11 @@ const PermissionRequestsSection = () => {
                  <div>
                    <div className="font-medium">
                      {(request as any).familyMemberName || linkNameMap[request.familyLinkId] || memberNameMap[request.familyLinkId] || 'בן משפחה לא ידוע'}
+                     {linkRelationMap[request.familyLinkId] && (
+                       <span className="text-sm font-normal text-muted-foreground mr-2">
+                         ({linkRelationMap[request.familyLinkId]})
+                       </span>
+                     )}
                    </div>
                    <div className="text-sm text-muted-foreground">
                      מבקש הרשאה עבור: {getPermissionLabel(request.scope)}

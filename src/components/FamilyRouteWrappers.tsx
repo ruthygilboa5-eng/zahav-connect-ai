@@ -19,7 +19,10 @@ export const FamilyMemberSignupWrapper = () => {
   
   return (
     <FamilyMemberSignup 
-      onComplete={() => navigate('/')}
+      onComplete={() => {
+        // After successful registration, navigate to home
+        navigate('/', { replace: true });
+      }}
       onBack={() => navigate('/family-auth')}
     />
   );

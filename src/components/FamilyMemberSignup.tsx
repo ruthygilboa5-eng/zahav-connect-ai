@@ -175,11 +175,13 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
       // We avoid: owner lookup, family_links insert, permissions_requests insert, templates fetch, emails
       console.log('Skipping post-signup DB writes to prevent RLS/401 during registration');
 
-      // Show success and redirect to waiting page
-      toast.success('ההרשמה הושלמה! בקשתך מחכה לאישור המשתמש הראשי.');
+      // Show success immediately with toast
+      toast.success('ההרשמה הושלמה בהצלחה! בקשתך נשלחה למשתמש הראשי.');
+      
+      // Redirect using onComplete callback
       setTimeout(() => {
-        window.location.href = '/waiting-approval';
-      }, 800);
+        onComplete();
+      }, 1500);
       
     } catch (error) {
       toast.error('שגיאה בשליחת הבקשה');

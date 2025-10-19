@@ -229,6 +229,13 @@ export type Database = {
             referencedRelation: "family_links"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_family_members_permissions_family_member"
+            columns: ["family_member_id"]
+            isOneToOne: false
+            referencedRelation: "family_links"
+            referencedColumns: ["id"]
+          },
         ]
       }
       memories: {
@@ -358,7 +365,15 @@ export type Database = {
           status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_permissions_requests_family_member"
+            columns: ["family_member_id"]
+            isOneToOne: false
+            referencedRelation: "family_links"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reminders: {
         Row: {
@@ -484,7 +499,15 @@ export type Database = {
           status: string | null
           updated_at: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_permissions_requests_family_member"
+            columns: ["family_member_id"]
+            isOneToOne: false
+            referencedRelation: "family_links"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       v_permission_requests_main_user: {
         Row: {
@@ -500,7 +523,15 @@ export type Database = {
           status: string | null
           updated_at: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_permissions_requests_family_member"
+            columns: ["family_member_id"]
+            isOneToOne: false
+            referencedRelation: "family_links"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
