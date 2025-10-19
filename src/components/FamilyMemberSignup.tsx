@@ -184,6 +184,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
             email: formData.email,
             phone: formData.phone,
             relation: relationValue,
+            gender: formData.gender,
             status: 'PENDING',
             scopes: selectedScopes,
             owner_email: formData.ownerEmail
