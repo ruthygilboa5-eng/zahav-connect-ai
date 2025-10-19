@@ -63,12 +63,16 @@ const PermissionRequestsSection = () => {
   const handleApprove = async (requestId: string) => {
     try {
       await approveRequest(requestId);
-      refresh();
+      // Remove from pending list immediately
+      setPendingRequests(prev => prev.filter(req => req.id !== requestId));
       toast({
         title: 'בקשה אושרה',
         description: 'הבקשה להרשאה אושרה בהצלחה'
       });
+      // Refresh to sync with DB
+      await refresh();
     } catch (error) {
+      console.error('Error approving request:', error);
       toast({
         title: 'שגיאה',
         description: 'לא ניתן לאשר את הבקשה',
@@ -80,12 +84,16 @@ const PermissionRequestsSection = () => {
   const handleDecline = async (requestId: string) => {
     try {
       await declineRequest(requestId);
-      refresh();
+      // Remove from pending list immediately
+      setPendingRequests(prev => prev.filter(req => req.id !== requestId));
       toast({
         title: 'בקשה נדחתה',
         description: 'הבקשה להרשאה נדחתה'
       });
+      // Refresh to sync with DB
+      await refresh();
     } catch (error) {
+      console.error('Error declining request:', error);
       toast({
         title: 'שגיאה',
         description: 'לא ניתן לדחות את הבקשה',
