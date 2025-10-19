@@ -123,7 +123,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/family-auth`,
           data: {
             full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
             phone: formData.phone,

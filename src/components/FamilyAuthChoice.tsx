@@ -4,17 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { UserPlus, LogIn, ArrowRight, ArrowLeft } from 'lucide-react';
+import { UserPlus, LogIn, ArrowRight, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface FamilyAuthChoiceProps {
   onBack: () => void;
 }
 
 const FamilyAuthChoice: React.FC<FamilyAuthChoiceProps> = ({ onBack }) => {
-  const [mode, setMode] = useState<'choice' | 'login' | 'register'>('choice');
+  const [mode, setMode] = useState<'choice' | 'login' | 'register' | 'verified'>('choice');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [email, setEmail] = useState('');
@@ -22,7 +23,25 @@ const FamilyAuthChoice: React.FC<FamilyAuthChoiceProps> = ({ onBack }) => {
   const navigate = useNavigate();
   const { authState } = useAuth();
 
-  // Remove automatic redirection - let users access family-auth page even if authenticated
+  // Check for email verification on mount
+  useEffect(() => {
+    const checkEmailVerification = async () => {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const type = hashParams.get('type');
+
+      if (type === 'signup' && accessToken) {
+        // Email was verified successfully
+        setMode('verified');
+        toast.success('המייל אומת בהצלחה!');
+        
+        // Clear the hash from URL
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    };
+
+    checkEmailVerification();
+  }, []);
 
   useEffect(() => {
     if (mode === 'register') {
@@ -145,6 +164,51 @@ const FamilyAuthChoice: React.FC<FamilyAuthChoiceProps> = ({ onBack }) => {
               חזור לדף הראשי
             </Button>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === 'verified') {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6" style={{
+        background: 'radial-gradient(125% 125% at 50% 90%, #ffffff 40%, #f59e0b 100%)'
+      }}>
+        <div className="max-w-md w-full">
+          <Card>
+            <CardHeader>
+              <div className="text-center">
+                <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                  <CheckCircle2 className="w-6 h-6 text-green-600" />
+                </div>
+                <CardTitle className="text-2xl">המייל אומת בהצלחה!</CardTitle>
+                <CardDescription className="mt-2">
+                  כעת תוכל להתחבר למערכת
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Alert>
+                <AlertDescription>
+                  המשתמש הראשי צריך לאשר את בקשתך לפני שתוכל לגשת למערכת
+                </AlertDescription>
+              </Alert>
+              
+              <Button 
+                className="w-full" 
+                onClick={() => setMode('login')}
+              >
+                עבור להתחברות
+              </Button>
+              
+              <div className="text-center">
+                <Button variant="ghost" onClick={onBack}>
+                  <ArrowLeft className="w-4 h-4 ml-2" />
+                  חזור לדף הראשי
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
