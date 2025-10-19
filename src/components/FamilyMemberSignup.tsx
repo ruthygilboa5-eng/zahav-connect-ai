@@ -140,7 +140,15 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
             full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
             phone: formData.phone,
             birth_date: getBirthDate()?.toISOString().split('T')[0],
-            is_family: true
+            is_family: true,
+            // Linkage to primary user and context for DB triggers
+            owner_email: formData.ownerEmail,
+            ownerEmail: formData.ownerEmail,
+            relation: (formData.relationshipToPrimary === 'אחר' ? formData.customRelationship : formData.relationshipToPrimary),
+            relationship_to_primary_user: (formData.relationshipToPrimary === 'אחר' ? formData.customRelationship : formData.relationshipToPrimary),
+            gender: formData.gender || '',
+            // Selected feature scopes to create permission requests post email verification
+            selected_scopes: selectedScopes
           }
         }
       });
