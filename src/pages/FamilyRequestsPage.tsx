@@ -427,7 +427,7 @@ const FamilyRequestsPage = () => {
         {/* Edit Permissions Dialog */}
         {editingRequest && (
           <Dialog open={!!editingRequest} onOpenChange={() => setEditingRequest(null)}>
-            <DialogContent className="max-w-2xl" dir="rtl">
+            <DialogContent className="max-w-3xl" dir="rtl">
               <DialogTitle>בחר הרשאות לאישור</DialogTitle>
               <DialogDescription>
                 סמן את ההרשאות שברצונך לאשר לבן המשפחה
@@ -441,7 +441,7 @@ const FamilyRequestsPage = () => {
                   { key: 'WAKE_UP_NOTIFICATION', label: 'התראות על התעוררות המשתמש הראשי' },
                   { key: 'EMERGENCY_ONLY', label: 'התראות חירום בלבד' }
                 ].map(scope => (
-                  <label key={scope.key} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted cursor-pointer">
+                  <label key={scope.key} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted cursor-pointer">
                     <Checkbox
                       checked={selectedScopes.includes(scope.key)}
                       onCheckedChange={(checked) => {
@@ -451,8 +451,9 @@ const FamilyRequestsPage = () => {
                           setSelectedScopes(selectedScopes.filter(s => s !== scope.key));
                         }
                       }}
+                      className="mt-0.5"
                     />
-                    <span className="text-sm font-medium">{scope.label}</span>
+                    <span className="text-sm font-medium break-words flex-1">{scope.label}</span>
                   </label>
                 ))}
               </div>

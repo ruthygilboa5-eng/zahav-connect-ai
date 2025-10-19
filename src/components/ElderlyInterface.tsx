@@ -277,61 +277,6 @@ const ElderlyInterface = ({ userName }: ElderlyInterfaceProps) => {
         </Card>
       )}
 
-      {/* Management Buttons */}
-      <div className="mt-8 flex flex-col gap-3">
-        <Button
-          variant="outline"
-          size="lg"
-          onClick={() => navigate('/family-requests')}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-        >
-          <Users className="w-5 h-5" />
-          בקשות הצטרפות משפחה
-        </Button>
-        
-        <Button
-          variant="outline"
-          size="lg"
-          onClick={() => navigate('/review')}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground relative"
-        >
-          <Clock className="w-5 h-5" />
-          אישור תוכן משפחתי
-          <NotificationBadge />
-        </Button>
-
-        <Button
-          variant="outline"
-          size="lg"
-          onClick={() => navigate('/permission-requests')}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-        >
-          <Shield className="w-5 h-5" />
-          בקשות הרשאות משפחה
-        </Button>
-      </div>
-
-      {/* Family Permissions Section */}
-      <div className="mt-8 w-full max-w-4xl">
-        <Card 
-          className="cursor-pointer hover:shadow-lg transition-shadow"
-          onClick={() => navigate('/family-management')}
-        >
-          <CardHeader className="text-center">
-            <CardTitle className="flex items-center justify-center gap-2 text-xl">
-              <Shield className="w-6 h-6 text-primary" />
-              ניהול הרשאות בני המשפחה
-            </CardTitle>
-            <CardDescription>
-              בקשות הרשאות ממתינות לאישור מבני המשפחה
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <PermissionRequestsSection />
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Instructions */}
       <div className="mt-6 text-center max-w-md">
         <p className="text-muted-foreground text-lg">
