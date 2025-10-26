@@ -151,6 +151,19 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         return;
       }
 
+      // 1.5) התחברות אוטומטית כדי שauth.uid() יעבוד ב-RLS
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (signInError) {
+        // אם ההתחברות נכשלה, נמחק את המשתמש שנוצר
+        await supabase.functions.invoke('cleanup-auth-user', { body: { user_id: newUserId } }).catch(() => {});
+        toast.error('שגיאה בהתחברות אוטומטית. נסו שוב מאוחר יותר.');
+        return;
+      }
+
       // 2) שליפת מזהה המשתמש הראשי לפי האימייל שהוזן
       const { data: ownerId, error: ownerLookupError } = await supabase.rpc('get_user_id_by_email', {
         email_address: formData.ownerEmail
