@@ -164,6 +164,9 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         return;
       }
 
+      // המתנה קצרה כדי שauth.uid() יהיה זמין ב-RLS
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       // 2) שליפת מזהה המשתמש הראשי לפי האימייל שהוזן
       const { data: ownerId, error: ownerLookupError } = await supabase.rpc('get_user_id_by_email', {
         email_address: formData.ownerEmail
