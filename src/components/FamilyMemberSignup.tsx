@@ -118,15 +118,24 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
     setIsLoading(true);
 
     try {
-      // 1) יצירת משתמש ב-Auth - רק עם המידע הבסיסי ביותר
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // יצירת משתמש ב-Auth עם המטא-דאטה הדרושה לטריגר
+      const relationValue = (formData.relationshipToPrimary === 'אחר' ? formData.customRelationship : formData.relationshipToPrimary);
+      
+      const { error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
           emailRedirectTo: `${window.location.origin}/family-auth`,
           data: {
             full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
-            is_family: true
+            phone: formData.phone,
+            is_family: true,
+            owner_email: formData.ownerEmail,
+            ownerEmail: formData.ownerEmail,
+            relation: relationValue,
+            relationship_to_primary_user: relationValue,
+            gender: formData.gender || '',
+            selected_scopes: selectedScopes
           }
         }
       });
@@ -136,78 +145,8 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
         return;
       }
 
-      const newUserId = authData?.user?.id;
-      if (!newUserId) {
-        toast.error('שגיאה: לא התקבל מזהה משתמש חדש מהמערכת');
-        return;
-      }
-
-      // 1.5) התחברות אוטומטית כדי שauth.uid() יעבוד ב-RLS
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (signInError) {
-        // אם ההתחברות נכשלה, נמחק את המשתמש שנוצר
-        await supabase.functions.invoke('cleanup-auth-user', { body: { user_id: newUserId } }).catch(() => {});
-        toast.error('שגיאה בהתחברות אוטומטית. נסו שוב מאוחר יותר.');
-        return;
-      }
-
-      // המתנה קצרה כדי שauth.uid() יהיה זמין ב-RLS
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // 2) שליפת מזהה המשתמש הראשי לפי האימייל שהוזן
-      const { data: ownerId, error: ownerLookupError } = await supabase.rpc('get_user_id_by_email', {
-        email_address: formData.ownerEmail
-      });
-
-      if (ownerLookupError) {
-        // ניסיון ניקוי משתמש במידה ונכשל חיפוש הבעלים
-        await supabase.functions.invoke('cleanup-auth-user', { body: { user_id: newUserId } }).catch(() => {});
-        toast.error('שגיאה בשליפת משתמש ראשי לפי אימייל. נסו שוב מאוחר יותר.');
-        return;
-      }
-
-      if (!ownerId) {
-        // בעלים לא נמצא – נבטל את המשתמש שנוצר
-        await supabase.functions.invoke('cleanup-auth-user', { body: { user_id: newUserId } }).catch(() => {});
-        toast.error('לא נמצא משתמש ראשי עם כתובת האימייל שסופקה. ההרשמה בוטלה.');
-        return;
-      }
-
-      // 3) יצירת רשומת family_links ישירות מהקליינט
-      const fullName = `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim();
-      const relationValue = (formData.relationshipToPrimary === 'אחר' ? formData.customRelationship : formData.relationshipToPrimary);
-
-      const { error: linkError } = await supabase
-        .from('family_links')
-        .insert([
-          {
-            owner_user_id: ownerId,
-            member_user_id: newUserId,
-            full_name: fullName,
-            email: formData.email,
-            phone: formData.phone,
-            relation: relationValue,
-            relationship_to_primary_user: relationValue,
-            gender: formData.gender,
-            status: 'PENDING',
-            scopes: selectedScopes,
-            owner_email: formData.ownerEmail
-          }
-        ]);
-
-      if (linkError) {
-        // אם הוספת הקישור נכשלה – נמחק את המשתמש שנוצר כדי שלא יישאר יתום
-        await supabase.functions.invoke('cleanup-auth-user', { body: { user_id: newUserId } }).catch(() => {});
-        toast.error(`נכשלה יצירת הקישור למשתמש הראשי: ${linkError.message}`);
-        return;
-      }
-
-      // 4) הצלחה – הודעה וניווט
-      toast.success('נרשמת בהצלחה! אשר/י את המייל שלך ואז המשתמש הראשי יוכל לאשר את הבקשות שלך');
+      // הצלחה - הטריגר יצור את family_links והבקשות אחרי אימות המייל
+      toast.success('נרשמת בהצלחה! אנא אמת/י את המייל שלך כדי להמשיך');
       setTimeout(() => onComplete(), 1500);
 
     } catch (error: any) {
