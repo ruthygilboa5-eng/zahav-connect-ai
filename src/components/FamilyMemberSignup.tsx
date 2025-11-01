@@ -118,7 +118,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
     setIsLoading(true);
 
     try {
-      // 1) יצירת משתמש ב-Auth
+      // 1) יצירת משתמש ב-Auth - רק עם המידע הבסיסי ביותר
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -126,16 +126,7 @@ export default function FamilyMemberSignup({ onComplete, onBack }: FamilyMemberS
           emailRedirectTo: `${window.location.origin}/family-auth`,
           data: {
             full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
-            phone: formData.phone,
-            birth_date: getBirthDate()?.toISOString().split('T')[0],
-            is_family: true,
-            // עדיין שומרים מטא-דאטה עבור טריגרים אחרים (כגון יצירת בקשות הרשאה אחרי אימות מייל)
-            owner_email: formData.ownerEmail,
-            ownerEmail: formData.ownerEmail,
-            relation: (formData.relationshipToPrimary === 'אחר' ? formData.customRelationship : formData.relationshipToPrimary),
-            relationship_to_primary_user: (formData.relationshipToPrimary === 'אחר' ? formData.customRelationship : formData.relationshipToPrimary),
-            gender: formData.gender || '',
-            selected_scopes: selectedScopes
+            is_family: true
           }
         }
       });
