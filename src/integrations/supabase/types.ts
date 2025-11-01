@@ -535,10 +535,7 @@ export type Database = {
       }
     }
     Functions: {
-      get_current_user_email: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_current_user_email: { Args: never; Returns: string }
       get_message_template: {
         Args: { p_feature: string; p_gender: string }
         Returns: {
@@ -546,12 +543,9 @@ export type Database = {
           subject: string
         }[]
       }
-      get_owner_display_name: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_owner_display_name: { Args: never; Returns: string }
       get_permission_requests_admin: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           created_at: string | null
           family_member_email: string | null
@@ -565,9 +559,15 @@ export type Database = {
           status: string | null
           updated_at: string | null
         }[]
+        SetofOptions: {
+          from: "*"
+          to: "v_permission_requests_admin"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       get_permission_requests_main_user: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           created_at: string | null
           family_member_email: string | null
@@ -581,11 +581,14 @@ export type Database = {
           status: string | null
           updated_at: string | null
         }[]
+        SetofOptions: {
+          from: "*"
+          to: "v_permission_requests_main_user"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
-      get_user_id_by_email: {
-        Args: { email_address: string }
-        Returns: string
-      }
+      get_user_id_by_email: { Args: { email_address: string }; Returns: string }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]

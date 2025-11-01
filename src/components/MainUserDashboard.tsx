@@ -296,7 +296,7 @@ const MainUserDashboard = () => {
         ))}
       </div>
 
-      {/* Family Permission Requests */}
+      {/* Family Permission Requests - with live count */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -304,6 +304,11 @@ const MainUserDashboard = () => {
               <CardTitle className="flex items-center gap-2">
                 <Shield className="h-5 w-5" />
                 ניהול הרשאות בני המשפחה
+                {membersWithPermissions.reduce((sum, m) => sum + m.pending_requests_count, 0) > 0 && (
+                  <Badge variant="destructive" className="mr-2">
+                    {membersWithPermissions.reduce((sum, m) => sum + m.pending_requests_count, 0)} חדש
+                  </Badge>
+                )}
               </CardTitle>
               <CardDescription>
                 בקשות הרשאות ממתינות לאישור מבני המשפחה
