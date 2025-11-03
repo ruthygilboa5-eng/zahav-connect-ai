@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Heart, Shield, Clock } from 'lucide-react';
+import { Users, Shield, Clock } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useNavigate } from 'react-router-dom';
 import AuthSignupModal from '@/components/AuthSignupModal';
@@ -15,12 +15,6 @@ const Index = () => {
   const handleMainUserAuth = () => {
     console.log('Main user auth button clicked');
     setSignupUserType('main');
-    setIsSignupModalOpen(true);
-  };
-
-  const handleFamilyAuth = () => {
-    console.log('Family member auth button clicked');
-    setSignupUserType('family');
     setIsSignupModalOpen(true);
   };
 
@@ -98,41 +92,12 @@ if (authState.isAuthenticated) {
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-            <CardHeader className="text-center">
-              <CardTitle className="flex items-center justify-center gap-3 text-2xl">
-                <Heart className="w-8 h-8 text-pink-600" />
-                בן משפחה
-              </CardTitle>
-              <CardDescription className="text-lg">
-                דשבורד משפחתי להשתתפות פעילה
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <Heart className="w-4 h-4 text-pink-600" />
-                  <span>העלאת תמונות וסיפורים</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-pink-600" />
-                  <span>הצעת תזכורות</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-pink-600" />
-                  <span>הזמנת משחקים משותפים</span>
-                </div>
-              </div>
-              <Button 
-                onClick={handleFamilyAuth}
-                variant="outline"
-                className="w-full"
-                size="lg"
-              >
-                הצטרפות כבן משפחה
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="p-8 bg-card border border-border rounded-lg text-center flex flex-col gap-4 justify-center">
+            <h3 className="text-2xl font-semibold text-foreground">הורה או בני זוג</h3>
+            <p className="text-lg text-muted-foreground">
+              ניהול בני משפחה, מתן הרשאות וצפייה בתכנים שמועלים על ידי בני המשפחה
+            </p>
+          </div>
         </div>
 
         {/* Features */}
