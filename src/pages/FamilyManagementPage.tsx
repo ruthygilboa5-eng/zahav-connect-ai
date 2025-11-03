@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Shield, ArrowRight, Users, Settings } from 'lucide-react';
 import AppLayout from '@/components/AppLayout';
 import PermissionRequestsSection from '@/components/PermissionRequestsSection';
+import FamilyMembersListWithPermissions from '@/components/FamilyMembersListWithPermissions';
 
 const FamilyManagementPage = () => {
   const navigate = useNavigate();
@@ -100,9 +101,7 @@ const FamilyManagementPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-4 text-muted-foreground">
-              רשימת בני המשפחה תופיע כאן
-            </div>
+            <FamilyMembersListWithPermissions />
           </CardContent>
         </Card>
 

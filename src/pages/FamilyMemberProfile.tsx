@@ -21,6 +21,11 @@ interface FamilyLinkData {
   status: 'PENDING' | 'APPROVED' | 'DECLINED' | 'CANCELLED';
   scopes: FamilyScope[];
   owner_user_id: string;
+  permissions_requests?: Array<{
+    id: string;
+    permission_type: FamilyScope;
+    status: 'PENDING' | 'APPROVED' | 'DECLINED';
+  }>;
 }
 
 export default function FamilyMemberProfile() {
@@ -59,7 +64,14 @@ export default function FamilyMemberProfile() {
     try {
       const { data, error } = await supabase
         .from('family_links')
-        .select('*')
+        .select(`
+          *,
+          permissions_requests (
+            id,
+            permission_type,
+            status
+          )
+        `)
         .eq('member_user_id', authState.user.id)
         .single();
 
@@ -388,25 +400,50 @@ export default function FamilyMemberProfile() {
             <CardDescription>בחר את ההרשאות שתרצה לבקש מהמשתמש הראשי</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {allScopes.map((scope) => (
-              <div key={scope} className="flex items-start gap-3 p-3 border rounded-lg">
-                <Checkbox
-                  id={scope}
-                  checked={selectedScopes.includes(scope)}
-                  onCheckedChange={(checked) => handleScopeChange(scope, checked as boolean)}
-                  disabled={isSaving}
-                  className="mt-1"
-                />
-                <div className="flex-1">
-                  <Label htmlFor={scope} className="font-medium cursor-pointer">
-                    {scopeLabels[scope]}
-                  </Label>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {getScopeDescription(scope)}
-                  </p>
+            {allScopes.map((scope) => {
+              // Get permission status for this scope
+              const permissionRequest = familyLink.permissions_requests?.find(
+                (req: any) => req.permission_type === scope
+              );
+              const status = permissionRequest?.status || 'NONE';
+              
+              return (
+                <div key={scope} className="flex items-start gap-3 p-3 border rounded-lg">
+                  <Checkbox
+                    id={scope}
+                    checked={selectedScopes.includes(scope)}
+                    onCheckedChange={(checked) => handleScopeChange(scope, checked as boolean)}
+                    disabled={isSaving}
+                    className="mt-1"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Label htmlFor={scope} className="font-medium cursor-pointer">
+                        {scopeLabels[scope]}
+                      </Label>
+                      {status === 'APPROVED' && (
+                        <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
+                          אושר
+                        </Badge>
+                      )}
+                      {status === 'PENDING' && (
+                        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 text-xs">
+                          ממתין
+                        </Badge>
+                      )}
+                      {status === 'DECLINED' && (
+                        <Badge variant="secondary" className="bg-red-100 text-red-800 text-xs">
+                          נדחה
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {getScopeDescription(scope)}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
 
